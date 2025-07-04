@@ -1,4 +1,4 @@
-package likelion.sikjajaeDeal.backendProject;
+package likelion.beanBa.backendProject;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
