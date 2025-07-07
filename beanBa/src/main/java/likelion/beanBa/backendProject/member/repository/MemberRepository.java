@@ -1,6 +1,6 @@
 package likelion.beanBa.backendProject.member.repository;
 
-import likelion.beanBa.backendProject.member.model.Member;
+import likelion.beanBa.backendProject.member.Entity.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
