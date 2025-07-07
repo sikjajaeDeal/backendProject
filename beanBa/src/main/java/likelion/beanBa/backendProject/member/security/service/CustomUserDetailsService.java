@@ -1,6 +1,6 @@
 package likelion.beanBa.backendProject.member.security.service;
 
-import likelion.beanBa.backendProject.member.model.Member;
+import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;

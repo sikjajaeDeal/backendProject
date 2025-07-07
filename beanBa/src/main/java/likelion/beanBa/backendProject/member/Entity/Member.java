@@ -1,4 +1,4 @@
-package likelion.beanBa.backendProject.member.model;
+package likelion.beanBa.backendProject.member.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -15,7 +15,7 @@ public class Member {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="member_pk")
-    private Long id;
+    private Long memberPk;
 
     @Column(name = "member_id", nullable = false, unique = true, length = 255)
     private String memberId;

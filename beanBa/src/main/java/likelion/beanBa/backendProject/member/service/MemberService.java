@@ -1,7 +1,7 @@
 package likelion.beanBa.backendProject.member.service;
 
-import likelion.beanBa.backendProject.member.dto.SignupRequestDTO;
-import likelion.beanBa.backendProject.member.model.Member;
+import likelion.beanBa.backendProject.member.dto.SignupRequest;
+import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,7 +14,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public void signup(SignupRequestDTO request) {
+    public void signup(SignupRequest request) {
         if (memberRepository.existByMemberId(request.getMemberId())) {
             throw new IllegalArgumentException("이미 사용 중인 ID 입니다.");
         }
