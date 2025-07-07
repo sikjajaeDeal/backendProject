@@ -2,6 +2,8 @@ package likelion.beanBa.backendProject.member.security.config;
 
 import likelion.beanBa.backendProject.member.jwt.JwtTokenProvider;
 import likelion.beanBa.backendProject.member.security.filter.JwtAuthenticationFilter;
+import likelion.beanBa.backendProject.member.security.oauth.CustomOAuth2UserService;
+import likelion.beanBa.backendProject.member.security.oauth.OAuth2LoginSuccessHandler;
 import likelion.beanBa.backendProject.member.security.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +24,8 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -32,12 +36,18 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/api/members/signup",
+                        "/api/member/signup",
                         "/api/auth/login",
+                        "/oauth2/**",
                         "/swagger-ui/**",
                         "/v3/api-docs/**"
                 ).permitAll()
-                .anyRequest().authenticated());
+                .anyRequest().authenticated()
+        )
+                        .oauth2Login(oauth2 -> oauth2
+                                .userInfoEndpoint(userInfo -> userInfo
+                                        .userService(customOAuth2UserService))
+                                .successHandler(oAuth2LoginSuccessHandler));
 
         http.addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
