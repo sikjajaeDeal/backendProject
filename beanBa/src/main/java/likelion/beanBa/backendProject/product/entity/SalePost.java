@@ -1,11 +1,11 @@
-package likelion.beanBa.backendProject.product.entity.sale;
+package likelion.beanBa.backendProject.product.entity;
 
 import jakarta.persistence.*;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.hibernate.StaleStateException;
+
 
 import java.time.LocalDateTime;
 
