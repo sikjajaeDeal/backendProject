@@ -37,7 +37,7 @@ public class AuthService {
         String refreshToken = jwtTokenProvider.generateRefreshToken();
 
         //기존 Auth 존재하면 refreshToken 업데이트, 없으면 저장
-        authRepository.findByMemberAndRefreshTokenNotAndDeleteYn(member, "logout", "N")
+        authRepository.findByMemberAndDeleteYn(member, "N")
                 .ifPresentOrElse(
                         auth -> auth.updateToken(refreshToken),
                         () -> authRepository.save(new Auth(member, refreshToken))
