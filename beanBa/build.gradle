@@ -49,6 +49,7 @@ dependencies {
 	// AWS SDK (Spring Cloud AWS v3)
 	implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2')
 	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.669'
+
 }
 
 tasks.named('test') {
