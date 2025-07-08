@@ -2,28 +2,31 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>식재료 가격 정보</title>
+    <meta charset="UTF-8">
 </head>
 <body>
     <h1>이번 주 주요 품목 소비자가격</h1>
-    <table>
+    <table border="1">
         <thead>
             <tr>
                 <th>품목명</th>
                 <th>품종</th>
-                <th>등급</th>
-                <th>단위</th>
-                <th>가격</th>
+                <th>지역</th>
+                <th>시장</th>
+                <th>연도</th>
                 <th>날짜</th>
+                <th>가격 (₩)</th>
             </tr>
         </thead>
         <tbody>
             <tr th:each="item : ${items}">
                 <td th:text="${item.itemname}"></td>
                 <td th:text="${item.kindname}"></td>
-                <td th:text="${item.rank}"></td>
-                <td th:text="${item.unit}"></td>
-                <td th:text="${item.price}"></td>
+                <td th:text="${item.countyname}"></td>
+                <td th:text="${item.marketname}"></td>
+                <td th:text="${item.yyyy}"></td>
                 <td th:text="${item.regday}"></td>
+                <td th:text="${item.price}"></td>
             </tr>
         </tbody>
     </table>

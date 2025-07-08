@@ -1,13 +1,20 @@
 package likelion.beanBa.backendProject.infra.service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import likelion.beanBa.backendProject.infra.dto.KamisPriceResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
+
+@Slf4j
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +28,15 @@ public class PriceService {
     private String certId;
 
     public Mono<List<KamisPriceResponse.Item>> getPriceList() {
+        LocalDate endDate = LocalDate.now();
+        LocalDate startDate = endDate.minusDays(6); // 7일 전부터 오늘까지
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String startDay = startDate.format(formatter);
+        String endDay = endDate.format(formatter);
+
+        log.info("Requesting price list from {} to {}", startDay, endDay);
+
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/service/price/xml.do")
@@ -28,14 +44,26 @@ public class PriceService {
                         .queryParam("p_cert_key", apiKey)
                         .queryParam("p_cert_id", certId)
                         .queryParam("p_returntype", "json")
-                        .queryParam("p_startday", "2025-07-01")
-                        .queryParam("p_endday", "2025-07-07")
+                        .queryParam("p_startday", startDay)
+                        .queryParam("p_endday", endDay)
                         .queryParam("p_productclscode", "01")
                         .queryParam("p_itemcategorycode", "200")
                         .build())
                 .retrieve()
-                .bodyToMono(KamisPriceResponse.class)
-                .map(response -> response.getData().getItem());
-                // .map(KamisPriceResponse::getPrice);
+                .bodyToMono(String.class) // Raw String으로 먼저 받아서 로깅
+                .doOnNext(responseBody -> log.debug("Raw API Response: {}", responseBody))
+                .map(responseBody -> {
+                    try {
+                        // String을 KamisPriceResponse 객체로 변환
+                        return new com.fasterxml.jackson.databind.ObjectMapper().readValue(responseBody, KamisPriceResponse.class);
+                    } catch (Exception e) {
+                        log.error("Error parsing KamisPriceResponse: {}", e.getMessage(), e);
+                        throw new RuntimeException("Failed to parse API response", e);
+                    }
+                })
+                .map(response -> Optional.ofNullable(response.getData())
+                        .map(KamisPriceResponse.DataBlock::getItem)
+                        .orElse(Collections.emptyList()))
+                .doOnError(e -> log.error("Error fetching price list: {}", e.getMessage(), e));
     }
 }
