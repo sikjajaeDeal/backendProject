@@ -2,14 +2,17 @@ package likelion.beanBa.backendProject.product.entity;
 
 import jakarta.persistence.*;
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
+import likelion.beanBa.backendProject.product.product_enum.Yn;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
 import java.time.LocalDateTime;
 
-
+@Getter
 @Entity
 @Builder
 @NoArgsConstructor
@@ -30,10 +33,10 @@ public class SalePost {
     @JoinColumn(name = "member_pk")
     private Member seller;
 
-//    //카테고리
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "category_pk", nullable = false)
-//    private Category category;
+    //카테고리
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_pk", nullable = false)
+    private Category category;
 
 
     //구매자 PK
@@ -57,12 +60,44 @@ public class SalePost {
     private int hopePrice = 0;
 
     @Column(name = "post_at")
-    private LocalDateTime postAT;
+    private LocalDateTime postAt;
 
+    @Enumerated(EnumType.STRING)
 
+    private SaleStatement state;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "delete_yn")
+    private Yn deleteYn;
 
+    @Column(nullable = false)
+    private LocalDateTime stateAt;
 
+    @Column(nullable = false)
+    private Double latitude;
 
+    @Column(nullable = false)
+    private Double longitude;
+
+    public static SalePost create(Member seller, Category category, String title, String content,
+                                  Integer hopePrice, double latitude, double longitude) {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        return SalePost.builder()
+                .seller(seller)
+                .category(category)
+                .title(title)
+                .content(content)
+                .hopePrice(hopePrice)
+                .viewCount(0L)
+                .state(SaleStatement.SALE)
+                .deleteYn(Yn.N)
+                .postAt(now)
+                .stateAt(now)
+                .latitude(latitude)
+                .longitude(longitude)
+                .build();
+    }
 
 }
