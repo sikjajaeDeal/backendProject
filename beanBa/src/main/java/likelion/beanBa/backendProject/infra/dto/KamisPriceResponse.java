@@ -29,7 +29,8 @@ public class KamisPriceResponse {
         private String itemCode;
 
         @JsonProperty("p_kindcode")
-        private List<String> kindCode;
+        // private List<String> kindCode;
+        private Object kindCode;
 
         @JsonProperty("p_productrankcode")
         private String productRankCode;
@@ -48,6 +49,18 @@ public class KamisPriceResponse {
 
         @JsonProperty("p_returntype")
         private String returnType;
+
+        // 안전하게 List<String> 형태로 꺼내기 위한 getter
+        public List<String> getKindCode() {
+            if (kindCode == null) return List.of();
+            if (kindCode instanceof List<?>) {
+                return ((List<?>) kindCode).stream()
+                        .map(String::valueOf)
+                        .toList();
+            } else {
+                return List.of(String.valueOf(kindCode));
+            }
+        }
     }
 
     @lombok.Data
