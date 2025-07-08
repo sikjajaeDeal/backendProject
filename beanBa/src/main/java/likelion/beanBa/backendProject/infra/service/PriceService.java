@@ -48,6 +48,7 @@ public class PriceService {
                         .queryParam("p_endday", endDay)
                         .queryParam("p_productclscode", "01")
                         .queryParam("p_itemcategorycode", "200")
+                        .queryParam("p_itemcode", "232")
                         .build())
                 .retrieve()
                 .bodyToMono(String.class) // Raw String으로 먼저 받아서 로깅
