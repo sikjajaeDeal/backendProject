@@ -51,7 +51,7 @@ public class PriceService {
                         .build())
                 .retrieve()
                 .bodyToMono(String.class) // Raw String으로 먼저 받아서 로깅
-                .doOnNext(responseBody -> log.info("Raw API Response: {}", responseBody))
+                // .doOnNext(responseBody -> log.info("Raw API Response: {}", responseBody))
                 .map(responseBody -> {
                     try {
                         // String을 KamisPriceResponse 객체로 변환
