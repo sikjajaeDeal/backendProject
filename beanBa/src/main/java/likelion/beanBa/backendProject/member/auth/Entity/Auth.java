@@ -17,6 +17,7 @@ public class Auth {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long authPk;
 
+    @ManyToOne
     @JoinColumn(name = "member_pk")
     private Member member;
 

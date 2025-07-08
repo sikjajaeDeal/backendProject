@@ -15,11 +15,11 @@ public class MemberService {
     private final PasswordEncoder passwordEncoder;
 
     public void signup(SignupRequest request) {
-        if (memberRepository.existByMemberId(request.getMemberId())) {
+        if (memberRepository.existsByMemberId(request.getMemberId())) {
             throw new IllegalArgumentException("이미 사용 중인 ID 입니다.");
         }
 
-        if (memberRepository.existByEmail(request.getEmail())) {
+        if (memberRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("이미 사용 중인 Email 입니다.");
         }
 
