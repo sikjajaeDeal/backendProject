@@ -28,9 +28,12 @@ public class MemberService {
                 .nickname(request.getNickname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
                 .provider("R")
                 .useYn("Y")
                 .deleteYn("N")
+                .role("member")
                 .build();
 
         memberRepository.save(member);
