@@ -27,7 +27,7 @@ public class PriceService {
     @Value("${kamis.api.cert.id}")
     private String certId;
 
-    public Mono<List<KamisPriceResponse.Item>> getPriceList() {
+    public Mono<List<KamisPriceResponse.Item>> getPriceList(String itemCode) {
         LocalDate endDate = LocalDate.now();
         LocalDate startDate = endDate.minusDays(6); // 7일 전부터 오늘까지
 
@@ -36,6 +36,7 @@ public class PriceService {
         String endDay = endDate.format(formatter);
 
         log.info("Requesting price list from {} to {}", startDay, endDay);
+        log.info("Requesting itemCode: {}", itemCode);
 
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
@@ -47,8 +48,8 @@ public class PriceService {
                         .queryParam("p_startday", startDay)
                         .queryParam("p_endday", endDay)
                         .queryParam("p_productclscode", "01")
-                        .queryParam("p_itemcategorycode", "200")
-                        .queryParam("p_itemcode", "232")
+                        // .queryParam("p_itemcategorycode", "200")
+                        .queryParam("p_itemcode", itemCode)
                         .build())
                 .retrieve()
                 .bodyToMono(String.class) // Raw String으로 먼저 받아서 로깅

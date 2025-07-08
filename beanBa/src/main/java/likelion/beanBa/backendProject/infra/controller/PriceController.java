@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -15,8 +16,8 @@ public class PriceController {
     private final PriceService priceService;
 
     @GetMapping("/prices")
-    public String showPrices(Model model) {
-        List<KamisPriceResponse.Item> items = priceService.getPriceList().block();
+    public String showPrices(@RequestParam String itemCode,  Model model) {
+        List<KamisPriceResponse.Item> items = priceService.getPriceList(itemCode).block();
         model.addAttribute("items", items);
         return "price";
     }
