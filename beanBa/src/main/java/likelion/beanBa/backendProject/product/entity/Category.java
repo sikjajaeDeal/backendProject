@@ -19,7 +19,7 @@ public class Category {
     private Long id;
 
     @Column(name = "category_name", nullable = false, length = 255)
-    private String name;
+    private String categoryName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_pk")
@@ -41,8 +41,8 @@ public class Category {
 
     // 👉 명시적 생성자 + Builder 적용
     @Builder
-    public Category(String name, Category parent, int level, String useYn, String deleteYn) {
-        this.name = name;
+    public Category(String categoryName, Category parent, int level, String useYn, String deleteYn) {
+        this.categoryName = categoryName;
         this.parent = parent;
         this.level = level;
         this.useYn = useYn;

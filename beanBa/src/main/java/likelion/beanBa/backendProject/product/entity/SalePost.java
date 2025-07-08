@@ -30,7 +30,7 @@ public class SalePost {
     //작성자 판매자 PK
     //다대일 연관관계 매핑
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_pk")
+    @JoinColumn(name = "member_pk", nullable = false)
     private Member seller;
 
     //카테고리
@@ -41,7 +41,7 @@ public class SalePost {
 
     //구매자 PK
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "buy_member_pk")
+    @JoinColumn(name = "buy_member_pk", nullable = true)
     private Member buyer;
 
     /** 일반 컬럼 **/
@@ -63,12 +63,11 @@ public class SalePost {
     private LocalDateTime postAt;
 
     @Enumerated(EnumType.STRING)
-
-    private SaleStatement state;
+    private SaleStatement state = SaleStatement.S;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "delete_yn")
-    private Yn deleteYn;
+    private Yn deleteYn = Yn.N;
 
     @Column(nullable = false)
     private LocalDateTime stateAt;
@@ -91,13 +90,27 @@ public class SalePost {
                 .content(content)
                 .hopePrice(hopePrice)
                 .viewCount(0L)
-                .state(SaleStatement.SALE)
+                .state(SaleStatement.S)
                 .deleteYn(Yn.N)
                 .postAt(now)
                 .stateAt(now)
                 .latitude(latitude)
                 .longitude(longitude)
                 .build();
+    }
+
+    public void update(String title, String content, int hopePrice, double latitude, double longitude, Category category) {
+        this.title = title;
+        this.content = content;
+        this.hopePrice = hopePrice;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.category = category;
+        this.stateAt = LocalDateTime.now();
+    }
+
+    public void markAsDeleted() {
+        this.deleteYn = Yn.Y;
     }
 
 }

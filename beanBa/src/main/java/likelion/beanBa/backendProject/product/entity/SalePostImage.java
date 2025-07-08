@@ -11,7 +11,7 @@ import java.io.Serializable;
 @AllArgsConstructor
 @Builder
 @Table(name = "sale_post_image")
-public class SalePostImage implements Serializable {
+public class SalePostImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

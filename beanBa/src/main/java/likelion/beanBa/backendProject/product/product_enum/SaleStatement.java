@@ -8,8 +8,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum SaleStatement {
 
-    SALE("S"),    // 판매중
-    COMPLETE("C");// 판매완료
+    S("S"),    // 판매중
+    C("C");// 판매완료
 
     private final String code;
 
