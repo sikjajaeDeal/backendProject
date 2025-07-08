@@ -23,7 +23,8 @@ public class PriceService {
     public Mono<List<KamisPriceResponse.Item>> getPriceList() {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
-                        .path("/service/price/xml.do?action=periodProductList")
+                        .path("/service/price/xml.do")
+                        .queryParam("action", "periodProductList")
                         .queryParam("p_cert_key", apiKey)
                         .queryParam("p_cert_id", certId)
                         .queryParam("p_returntype", "json")
@@ -34,6 +35,7 @@ public class PriceService {
                         .build())
                 .retrieve()
                 .bodyToMono(KamisPriceResponse.class)
-                .map(KamisPriceResponse::getPrice);
+                .map(response -> response.getData().getItem());
+                // .map(KamisPriceResponse::getPrice);
     }
 }
