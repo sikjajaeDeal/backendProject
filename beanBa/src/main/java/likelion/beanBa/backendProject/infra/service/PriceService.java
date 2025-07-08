@@ -51,7 +51,7 @@ public class PriceService {
                         .build())
                 .retrieve()
                 .bodyToMono(String.class) // Raw String으로 먼저 받아서 로깅
-                .doOnNext(responseBody -> log.debug("Raw API Response: {}", responseBody))
+                .doOnNext(responseBody -> log.info("Raw API Response: {}", responseBody))
                 .map(responseBody -> {
                     try {
                         // String을 KamisPriceResponse 객체로 변환
@@ -64,6 +64,9 @@ public class PriceService {
                 .map(response -> Optional.ofNullable(response.getData())
                         .map(KamisPriceResponse.DataBlock::getItem)
                         .orElse(Collections.emptyList()))
-                .doOnError(e -> log.error("Error fetching price list: {}", e.getMessage(), e));
+                .doOnError(e -> {
+                    log.error("Error fetching price list: {}", e.getMessage(), e);
+                    e.printStackTrace();
+                });
     }
 }

@@ -62,12 +62,39 @@ public class KamisPriceResponse {
     @lombok.Data
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Item {
-        private String itemname;
-        private String kindname;
-        private String countyname;
-        private String marketname;
+
+        private Object itemname;
+        private Object kindname;
+        private Object countyname;
+        private Object marketname;
         private String yyyy;
         private String regday;
         private String price;
+
+        public String getItemname() {
+            return extractString(itemname);
+        }
+
+        public String getKindname() {
+            return extractString(kindname);
+        }
+
+        public String getCountyname() {
+            return extractString(countyname);
+        }
+
+        public String getMarketname() {
+            return extractString(marketname);
+        }
+
+        private String extractString(Object value) {
+            if (value == null) return "";
+            if (value instanceof String) return (String) value;
+            if (value instanceof List) {
+                List<?> list = (List<?>) value;
+                return list.isEmpty() ? "" : String.valueOf(list.get(0));
+            }
+            return String.valueOf(value);
+        }
     }
 }
