@@ -52,12 +52,11 @@ public class SecurityConfig {
                         "/v3/api-docs/**"
                 ).permitAll()
                 .anyRequest().authenticated()
-        );
-        //oauth2 아직 미적용
-//                        .oauth2Login(oauth2 -> oauth2
-//                                .userInfoEndpoint(userInfo -> userInfo
-//                                        .userService(customOAuth2UserService))
-//                                .successHandler(oAuth2LoginSuccessHandler));
+        )
+                    .oauth2Login(oauth2 -> oauth2
+                                .userInfoEndpoint(userInfo -> userInfo
+                                        .userService(customOAuth2UserService))
+                                .successHandler(oAuth2LoginSuccessHandler));
 
         http.addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
