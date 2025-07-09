@@ -1,7 +1,6 @@
 package likelion.beanBa.backendProject.product.service;
 
 import likelion.beanBa.backendProject.member.Entity.Member;
-import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostResponse;
 import likelion.beanBa.backendProject.product.entity.Category;
@@ -12,7 +11,6 @@ import likelion.beanBa.backendProject.product.repository.CategoryRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,7 +23,6 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostRepository salePostRepository;
     private final CategoryRepository categoryRepository;
     private final SalePostImageRepository salePostImageRepository;
-    private final MemberRepository memberRepository;
 
     /**
      * 게시글 생성
