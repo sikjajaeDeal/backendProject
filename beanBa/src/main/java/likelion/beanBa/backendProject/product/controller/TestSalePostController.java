@@ -3,76 +3,93 @@ package likelion.beanBa.backendProject.product.controller;
 import jakarta.validation.Valid;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
+import likelion.beanBa.backendProject.product.S3.service.S3Service;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.service.SalePostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
+/**
+ * 🚧 테스트 전용 컨트롤러
+ * - 인증/인가 무시
+ * - 하드코딩된 Member(멤버 PK = 1, nickname = test_user) 사용
+ * - S3Service‧SalePostService 로직은 그대로 재사용
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/test-sale-post")
 public class TestSalePostController {
 
     private final SalePostService salePostService;
-    private final MemberRepository memberRepository;
+    private final S3Service s3Service;
 
-    // 테스트용 로그인 멤버 (DB에 1번 회원이 있다고 가정)
-    private Member getTestMember() {
-        return memberRepository.findById(1L)
-                .orElseThrow(() -> new IllegalArgumentException("ID가 1인 테스트 멤버가 존재하지 않습니다."));
+    /** 하드코딩된 테스트 계정 */
+    private final Member testMember = Member.builder()
+            .memberPk(1L)
+            .nickname("test_user")
+            .build();
+
+    /* ---------- 게시글 등록 ---------- */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SalePostResponse> createPost(
+            @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
+            @RequestPart("salePostImages") MultipartFile[] salePostImages) throws IOException {
+
+        System.out.println("✅ POST 요청 도착"); // 여기에 로그
+
+        if (salePostImages == null || salePostImages.length == 0 || salePostImages.length > 4) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
+        salePostRequest.setImageUrls(imageUrls);
+
+        SalePost saved = salePostService.createPost(salePostRequest, testMember);
+        return ResponseEntity.ok(SalePostResponse.from(saved, imageUrls));
     }
 
-    /**
-     * 게시글 등록 (테스트용)
-     */
-    @PostMapping
-    public ResponseEntity<SalePostResponse> createPost(@RequestBody @Valid SalePostRequest request) {
-        Member loginMember = getTestMember();
-        SalePost salePost = salePostService.createPost(request, loginMember);
-        return ResponseEntity.ok(SalePostResponse.from(salePost, request.getImageUrls()));
-    }
-
-    /**
-     * 전체 게시글 조회
-     */
+    /* ---------- 게시글 전체 조회 ---------- */
     @GetMapping
     public ResponseEntity<List<SalePostResponse>> getAllPosts() {
-        List<SalePostResponse> posts = salePostService.getAllPosts();
-        return ResponseEntity.ok(posts);
+        return ResponseEntity.ok(salePostService.getAllPosts());
     }
 
-    /**
-     * 게시글 단건 조회
-     */
-    @GetMapping("/{postId}")
-    public ResponseEntity<SalePostResponse> getPost(@PathVariable Long postId) {
-        SalePostResponse response = salePostService.getPost(postId);
-        return ResponseEntity.ok(response);
+    /* ---------- 게시글 단건 조회 ---------- */
+    @GetMapping("/{postPk}")
+    public ResponseEntity<SalePostResponse> getPost(@PathVariable Long postPk) {
+        return ResponseEntity.ok(salePostService.getPost(postPk));
     }
 
-    /**
-     * 게시글 수정 (테스트용)
-     */
-    @PutMapping("/{postId}")
-    public ResponseEntity<Void> updatePost(@PathVariable Long postId,
-                                           @RequestBody @Valid SalePostRequest request) {
-        Member loginMember = getTestMember();
-        salePostService.updatePost(postId, request, loginMember);
+    /* ---------- 게시글 수정 ---------- */
+    @PutMapping(value = "/{postPk}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updatePost(
+            @PathVariable Long postPk,
+            @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
+            @RequestPart("salePostImages") MultipartFile[] salePostImages) throws IOException {
+
+        if (salePostImages == null || salePostImages.length == 0 || salePostImages.length > 4) {
+            return ResponseEntity.badRequest().body("이미지는 1개 이상 4개 이하로 등록해야 합니다.");
+        }
+
+        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
+        salePostRequest.setImageUrls(imageUrls);
+
+        salePostService.updatePost(postPk, salePostRequest, testMember);
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * 게시글 삭제 (테스트용)
-     */
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postId) {
-        Member loginMember = getTestMember();
-        salePostService.deletePost(postId, loginMember);
+    /* ---------- 게시글 삭제 ---------- */
+    @DeleteMapping("/{postPk}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postPk) {
+        salePostService.deletePost(postPk, testMember);
         return ResponseEntity.ok().build();
     }
 }
