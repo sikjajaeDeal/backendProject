@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface SalePostService {
 
-    SalePost createPost(SalePostRequest request, Member sellerPk);
+    SalePost createPost(SalePostRequest salePostRequest, Member sellerPk);
 
     List<SalePostResponse> getAllPosts();
 

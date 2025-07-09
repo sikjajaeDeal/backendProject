@@ -1,6 +1,7 @@
 package likelion.beanBa.backendProject.product.service;
 
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostResponse;
 import likelion.beanBa.backendProject.product.entity.Category;
@@ -11,6 +12,7 @@ import likelion.beanBa.backendProject.product.repository.CategoryRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,28 +25,30 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostRepository salePostRepository;
     private final CategoryRepository categoryRepository;
     private final SalePostImageRepository salePostImageRepository;
+    private final MemberRepository memberRepository;
+
 
     /**
      * 게시글 생성
      */
     @Override
     @Transactional
-    public SalePost createPost(SalePostRequest request, Member sellerPk) {
-        Category category = categoryRepository.findById(request.getCategoryId())
+    public SalePost createPost(SalePostRequest salePostRequest, Member sellerPk) {
+        Category categoryPk = categoryRepository.findById(salePostRequest.getCategoryPk())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         SalePost salePost = SalePost.create(
                 sellerPk,
-                category,
-                request.getTitle(),
-                request.getContent(),
-                request.getHopePrice(),
-                request.getLatitude(),
-                request.getLongitude()
+                categoryPk,
+                salePostRequest.getTitle(),
+                salePostRequest.getContent(),
+                salePostRequest.getHopePrice(),
+                salePostRequest.getLatitude(),
+                salePostRequest.getLongitude()
         );
 
         salePostRepository.save(salePost);
-        saveImages(request.getImageUrls(), salePost);
+        saveImages(salePostRequest.getImageUrls(), salePost);
 
         return salePost;
     }
@@ -96,7 +100,7 @@ public class SalePostServiceImpl implements SalePostService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        Category category = categoryRepository.findById(salePostRequest.getCategoryId())
+        Category category = categoryRepository.findById(salePostRequest.getCategoryPk())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         salePost.update(

@@ -26,7 +26,7 @@ public class SalePostController {
      * 게시글 등록
      */
     @PostMapping
-    public ResponseEntity<SalePostResponse> createPost(@RequestBody @Valid SalePostRequest request,
+    public ResponseEntity<SalePostResponse> createPost(@RequestBody @Valid SalePostRequest salePostRequest,
                                                        @CurrentUser CustomUserDetails saleUserDetails) {
 
 //        Member loginMember = Member.builder()
@@ -35,8 +35,8 @@ public class SalePostController {
 //                .build();
 //        String memberId = saleUserDetails.getUsername();
         Member loginMember = saleUserDetails.getMember();
-        SalePost salePost = salePostService.createPost(request, loginMember);
-        List<String> imageUrls = request.getImageUrls();
+        SalePost salePost = salePostService.createPost(salePostRequest, loginMember);
+        List<String> imageUrls = salePostRequest.getImageUrls();
         return ResponseEntity.ok(SalePostResponse.from(salePost, imageUrls));
     }
 
@@ -52,34 +52,34 @@ public class SalePostController {
     /**
      * 게시글 단건 조회
      */
-    @GetMapping("/{postId}")
-    public ResponseEntity<SalePostResponse> getPost(@PathVariable Long postId) {
-        SalePostResponse response = salePostService.getPost(postId);
+    @GetMapping("/{postPk}")
+    public ResponseEntity<SalePostResponse> getPost(@PathVariable Long postPk) {
+        SalePostResponse response = salePostService.getPost(postPk);
         return ResponseEntity.ok(response);
     }
 
     /**
      * 게시글 수정
      */
-    @PutMapping("/{postId}")
-    public ResponseEntity<Void> updatePost(@PathVariable Long postId,
-                                           @RequestBody @Valid SalePostRequest request,
+    @PutMapping("/{postPk}")
+    public ResponseEntity<Void> updatePost(@PathVariable Long postPk,
+                                           @RequestBody @Valid SalePostRequest salePostRequest,
                                            @CurrentUser CustomUserDetails saleUserDetails) {
 //        String memberId = saleUserDetails.getUsername();
         Member loginMember = saleUserDetails.getMember();
-        salePostService.updatePost(postId, request, loginMember);
+        salePostService.updatePost(postPk, salePostRequest, loginMember);
         return ResponseEntity.ok().build();
     }
 
     /**
      * 게시글 삭제
      */
-    @DeleteMapping("/{postId}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postId,
+    @DeleteMapping("/{postPk}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postPk,
                                            @AuthenticationPrincipal CustomUserDetails saleUserDetails) {
 
         Member loginMember = saleUserDetails.getMember();
-        salePostService.deletePost(postId, loginMember);
+        salePostService.deletePost(postPk, loginMember);
         return ResponseEntity.ok().build();
     }
 }

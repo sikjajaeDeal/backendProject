@@ -9,7 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 public class SalePostRequest {
 
-    private Long categoryId;
+    private Long categoryPk;
     private String title;
     private String content;
     private int hopePrice;

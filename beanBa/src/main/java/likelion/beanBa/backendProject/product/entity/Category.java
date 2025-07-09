@@ -23,7 +23,7 @@ public class Category {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_pk")
-    private Category parentPk;
+    private Category parent;
 
     //자식 카테고리들
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -43,7 +43,7 @@ public class Category {
     @Builder
     public Category(String categoryName, Category parent, int level, String useYn, String deleteYn) {
         this.categoryName = categoryName;
-        this.parentPk = parent;
+        this.parent = parent;
         this.level = level;
         this.useYn = useYn;
         this.deleteYn = deleteYn;
@@ -56,7 +56,7 @@ public class Category {
     }
 
     public void setParent(Category parent) {
-        this.parentPk = parent;
+        this.parent = parent;
     }
 }
 

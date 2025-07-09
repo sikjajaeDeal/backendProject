@@ -78,13 +78,13 @@ public class SalePost {
     @Column(nullable = false)
     private Double longitude;
 
-    public static SalePost create(Member seller, Category category, String title, String content,
+    public static SalePost create(Member sellerPk, Category category, String title, String content,
                                   Integer hopePrice, double latitude, double longitude) {
 
         LocalDateTime now = LocalDateTime.now();
 
         return SalePost.builder()
-                .sellerPk(seller)
+                .sellerPk(sellerPk)
                 .categoryPk(category)
                 .title(title)
                 .content(content)
