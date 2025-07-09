@@ -13,7 +13,7 @@ import java.util.List;
 @Builder
 public class SalePostResponse {
 
-    private Long id;
+    private Long postPk;
     private String sellerNickname;
     private String categoryName;
 
@@ -32,20 +32,20 @@ public class SalePostResponse {
 
     private List<String> imageUrls;
 
-    public static SalePostResponse from(SalePost post, List<String> imageUrls) {
+    public static SalePostResponse from(SalePost salePost, List<String> imageUrls) {
         return SalePostResponse.builder()
-                .id(post.getPostPk())
-                .sellerNickname(post.getSellerPk().getNickname())
-                .categoryName(post.getCategoryPk().getCategoryName())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .viewCount(post.getViewCount())
-                .hopePrice(post.getHopePrice())
-                .postAt(post.getPostAt())
-                .stateAt(post.getStateAt())
-                .state(post.getState())
-                .latitude(post.getLatitude())
-                .longitude(post.getLongitude())
+                .postPk(salePost.getPostPk())
+                .sellerNickname(salePost.getSellerPk().getNickname())
+                .categoryName(salePost.getCategoryPk().getCategoryName())
+                .title(salePost.getTitle())
+                .content(salePost.getContent())
+                .viewCount(salePost.getViewCount())
+                .hopePrice(salePost.getHopePrice())
+                .postAt(salePost.getPostAt())
+                .stateAt(salePost.getStateAt())
+                .state(salePost.getState())
+                .latitude(salePost.getLatitude())
+                .longitude(salePost.getLongitude())
                 .imageUrls(imageUrls)
                 .build();
     }

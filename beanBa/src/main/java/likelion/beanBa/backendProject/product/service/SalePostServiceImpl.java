@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.product.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,27 +29,28 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostImageRepository salePostImageRepository;
     private final MemberRepository memberRepository;
 
+
     /**
      * 게시글 생성
      */
     @Override
     @Transactional
-    public SalePost createPost(SalePostRequest request, Member sellerPk) {
-        Category category = categoryRepository.findById(request.getCategoryId())
+    public SalePost createPost(SalePostRequest salePostRequest, Member sellerPk) {
+        Category categoryPk = categoryRepository.findById(salePostRequest.getCategoryPk())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         SalePost salePost = SalePost.create(
                 sellerPk,
-                category,
-                request.getTitle(),
-                request.getContent(),
-                request.getHopePrice(),
-                request.getLatitude(),
-                request.getLongitude()
+                categoryPk,
+                salePostRequest.getTitle(),
+                salePostRequest.getContent(),
+                salePostRequest.getHopePrice(),
+                salePostRequest.getLatitude(),
+                salePostRequest.getLongitude()
         );
 
         salePostRepository.save(salePost);
-        saveImages(request.getImageUrls(), salePost);
+        saveImages(salePostRequest.getImageUrls(), salePost);
 
         return salePost;
     }
@@ -62,7 +65,7 @@ public class SalePostServiceImpl implements SalePostService {
 
         return salePosts.stream()
                 .map(salePost -> {
-                    List<String> imageUrls = salePostImageRepository.findAllByPostAndDeleteYn(salePost, Yn.N)
+                    List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                             .stream()
                             .map(SalePostImage::getImageUrl)
                             .toList();
@@ -79,13 +82,14 @@ public class SalePostServiceImpl implements SalePostService {
     public SalePostResponse getPost(Long postPk) {
         SalePost salePost = findPostById(postPk);
 
-        List<String> imageUrls = salePostImageRepository.findAllByPostAndDeleteYn(salePost, Yn.N)
+        List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .stream()
                 .map(SalePostImage::getImageUrl)
                 .toList();
 
         return SalePostResponse.from(salePost, imageUrls);
     }
+
 
     /**
      * 게시글 수정
@@ -99,7 +103,7 @@ public class SalePostServiceImpl implements SalePostService {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        Category category = categoryRepository.findById(salePostRequest.getCategoryId())
+        Category category = categoryRepository.findById(salePostRequest.getCategoryPk())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         salePost.update(
@@ -112,14 +116,12 @@ public class SalePostServiceImpl implements SalePostService {
         );
 
 
-        // 🔁 이미지 변경 감지 추가됨
+        // 🔁 이미지 무조건 삭제 후 재등록
         List<String> newUrls = salePostRequest.getImageUrls();
-        if (newUrls != null && isImageUpdated(salePost, newUrls)) {
-            // 기존 이미지 soft delete
-            salePostImageRepository.findAllByPostAndDeleteYn(salePost, Yn.N)
+        if (newUrls != null && !newUrls.isEmpty()) {
+            salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                     .forEach(SalePostImage::markAsDeleted);
 
-            // 새 이미지 등록
             saveImages(newUrls, salePost);
         }
     }
@@ -138,7 +140,7 @@ public class SalePostServiceImpl implements SalePostService {
 
         salePost.markAsDeleted();
 
-        salePostImageRepository.findAllByPostAndDeleteYn(salePost, Yn.N)
+        salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .forEach(SalePostImage::markAsDeleted);
     }
 
@@ -146,8 +148,8 @@ public class SalePostServiceImpl implements SalePostService {
      * 게시글 단건 조회 헬퍼
      */
     private SalePost findPostById(Long postPk) {
-        return salePostRepository.findById(postPk)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        return salePostRepository.findByPostPkAndDeleteYn(postPk, Yn.N)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 삭제된 게시글입니다."));
     }
 
     /**
@@ -156,8 +158,11 @@ public class SalePostServiceImpl implements SalePostService {
     private void saveImages(List<String> imageUrls, SalePost postPk) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
+        // postPk가 null 이면 NPE 발생
+        SalePost safePost = Objects.requireNonNull(postPk, "postPk는 null일 수 없습니다."); //postPk가 null 이면 에러
+
         List<SalePostImage> images = imageUrls.stream()
-                .map(url -> SalePostImage.of(postPk, url))
+                .map(url -> SalePostImage.of(safePost, url))
                 .toList();
 
         salePostImageRepository.saveAll(images);
@@ -168,7 +173,7 @@ public class SalePostServiceImpl implements SalePostService {
      * 이미지 변경 여부 감지
      */
     private boolean isImageUpdated(SalePost postPk, List<String> newUrls) {
-        List<String> oldUrls = salePostImageRepository.findAllByPostAndDeleteYn(postPk, Yn.N)
+        List<String> oldUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(postPk, Yn.N)
                 .stream()
                 .map(SalePostImage::getImageUrl)
                 .toList();
