@@ -26,12 +26,10 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
         this.attributes = attributes;
     }
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singleton(() -> "ROLE_"+member.getRole());
     }
-
 
     @Override
     public String getPassword() {
