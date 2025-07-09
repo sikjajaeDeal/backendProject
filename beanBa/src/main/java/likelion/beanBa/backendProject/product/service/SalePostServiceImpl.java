@@ -50,7 +50,7 @@ public class SalePostServiceImpl implements SalePostService {
         );
 
         salePostRepository.save(salePost);
-        saveImages(salePostRequest.getImageUrls(), salePost);
+        saveImages(salePost, salePostRequest.getImageUrls());
 
         return salePost;
     }
@@ -122,7 +122,7 @@ public class SalePostServiceImpl implements SalePostService {
             salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                     .forEach(SalePostImage::markAsDeleted);
 
-            saveImages(newUrls, salePost);
+            saveImages(salePost, newUrls);
         }
     }
 
@@ -155,14 +155,11 @@ public class SalePostServiceImpl implements SalePostService {
     /**
      * 이미지 저장 헬퍼
      */
-    private void saveImages(List<String> imageUrls, SalePost postPk) {
+    private void saveImages(SalePost salePost, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
-        // postPk가 null 이면 NPE 발생
-        SalePost safePost = Objects.requireNonNull(postPk, "postPk는 null일 수 없습니다."); //postPk가 null 이면 에러
-
         List<SalePostImage> images = imageUrls.stream()
-                .map(url -> SalePostImage.of(safePost, url))
+                .map(url -> SalePostImage.of(salePost, url))
                 .toList();
 
         salePostImageRepository.saveAll(images);

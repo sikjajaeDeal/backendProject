@@ -50,6 +50,7 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
                         "/api/sale-post/**"
+
                 ).permitAll()
                 .anyRequest().authenticated()
         );
