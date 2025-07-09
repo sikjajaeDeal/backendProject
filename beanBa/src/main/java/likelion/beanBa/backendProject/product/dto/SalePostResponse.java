@@ -34,9 +34,9 @@ public class SalePostResponse {
 
     public static SalePostResponse from(SalePost post, List<String> imageUrls) {
         return SalePostResponse.builder()
-                .id(post.getId())
-                .sellerNickname(post.getSeller().getNickname())
-                .categoryName(post.getCategory().getCategoryName())
+                .id(post.getPostPk())
+                .sellerNickname(post.getSellerPk().getNickname())
+                .categoryName(post.getCategoryPk().getCategoryName())
                 .title(post.getTitle())
                 .content(post.getContent())
                 .viewCount(post.getViewCount())

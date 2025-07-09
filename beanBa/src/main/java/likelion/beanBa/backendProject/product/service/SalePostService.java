@@ -10,13 +10,15 @@ import java.util.List;
 
 public interface SalePostService {
 
-    SalePost createPost(SalePostRequest request, Member seller);
+    SalePost createPost(SalePostRequest request, Member sellerPk);
 
     List<SalePostResponse> getAllPosts();
 
-    SalePostResponse getPost(Long postId);
+    SalePostResponse getPost(Long postPk);
 
-    void updatePost(Long postId, SalePostRequest request, Member seller);
+    void updatePost(Long postPk, SalePostRequest salePostRequest, Member sellerPk);
 
-    void deletePost(Long postId, Member seller);
+    void deletePost(Long postPk, Member sellerPk);
+
+    void completeSale(Long postPk, Long buyerPk, Member sellerPk);
 }
