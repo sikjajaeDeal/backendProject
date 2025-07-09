@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Geolocation API 사용 예시</title>
+</head>
+<body>
+<h1>Geolocation API로 현재 위치 가져오기</h1>
+<button onclick="getLocation()">위치 찾기</button>
+<p id="status">위치를 찾지 못했습니다</p>
+<script>
+    function getLocation() {
+        const status = document.getElementById("status");
+
+        // Geolocation API 지원 여부 확인
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude, accuracy } = position.coords;
+                    status.textContent = `위도: ${latitude}, 경도: ${longitude}, 정확도: ${accuracy}미터`;
+
+                    console.log("위도: " + latitude + "경도: " + longitude)
+
+                    sendLocationToServer(latitude, longitude, accuracy)
+                },
+                (error) => {
+                    status.textContent = `위치 정보를 가져올 수 없습니다: ${error.message}`;
+                },
+                {
+                    enableHighAccuracy: true, // 정확도 우선 모드
+                    timeout: 10000,           // 10초 이내에 응답 없으면 에러 발생
+                    maximumAge: 0             // 항상 최신 위치 정보 수집
+                }
+            );
+        } else {
+            status.textContent = "브라우저가 위치 서비스를 지원하지 않습니다.";
+        }
+    }
+
+    // 이미 변수에 담아 놓은 값(예: lat, lng, acc)을 받아 서버로 전송
+    async function sendLocationToServer(latitude, longitude, accuracy) {
+        try {
+            const res = await fetch('/location', {          // ← Spring 쪽 엔드포인트
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ latitude, longitude, accuracy })
+            });
+
+            if (!res.ok) {
+                throw new Error(`서버 응답 오류: ${res.status}`);
+            }
+            console.log('✔ 위치 전송 완료');
+        } catch (err) {
+            console.error('✖ 위치 전송 실패', err);
+        }
+    }
+
+
+</script>
+</body>
+</html>

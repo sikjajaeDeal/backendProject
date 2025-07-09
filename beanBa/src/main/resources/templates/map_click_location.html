@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>반경 내/외부 판단하기</title>
+    <style>
+        #checkResult {
+            font-weight: bold;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<div id="map" style="width:100%;height:350px;"></div>
+<p id="currentResult"></p>
+<p id="result"></p>
+<p id="resultRadius"></p>
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ac095486b0af57d713dacf3da83fb961"></script>
+<script>
+    (async () => {
+        // 서버에서 중심 좌표 및 반경을 가져오는 함수
+        async function getLocationFromServer() {
+            try {
+                const response = await fetch('/location/latest');
+                if (!response.ok) throw new Error(`서버 오류: ${response.status}`);
+                const data = await response.json();
+                console.log("위도: " + data.latitude)
+                console.log("경도: " + data.longitude)
+                return {
+                    lat: data.latitude,
+                    lng: data.longitude,
+
+                };
+            } catch (e) {
+                console.error(e);
+                // 기본값: 서울 시청 + 500m 반경
+                return { lat: 37.5665, lng: 126.9780, radius: 500 };
+            }
+        }
+
+        // 두 좌표 사이 거리 계산 (미터 단위)
+        function getDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371000;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        // // 내가 판단하고 싶은 좌표 직접 설정 (예시)
+        // const myLat = 37.675699;      // 여기 원하는 위도 넣기
+        // const myLng = 126.766506;     // 여기 원하는 경도 넣기
+        //
+        // /** test data
+        //  * 반경 내부 : 위도 - 37.655746, 경도 - 126.769692
+        //  * **/
+
+
+        const centerData = await getLocationFromServer();
+
+        var mapContainer = document.getElementById('map'),
+            mapOption = {
+                center: new kakao.maps.LatLng(centerData.lat, centerData.lng),
+                level: 3
+
+            };
+
+        var map = new kakao.maps.Map(mapContainer, mapOption);
+
+        // 중심 마커 및 원 표시
+        var centerPos = new kakao.maps.LatLng(centerData.lat, centerData.lng);
+        var marker = new kakao.maps.Marker({ position: centerPos });
+        marker.setMap(map);
+
+        const RADIUS_M = 500
+
+        var circle = new kakao.maps.Circle({
+            center: centerPos,
+            radius: RADIUS_M,
+            strokeWeight: 1,
+            strokeColor: '#00a0e9',
+            strokeOpacity: 0.5,
+            fillColor: '#00a0e9',
+            fillOpacity: 0.1
+        });
+        circle.setMap(map);
+
+        var messageCurrent = '현재 위치의 위도는 ' + centerData.lat + ' 이고, ';
+        messageCurrent += '경도는 ' + centerData.lng + ' 입니다';
+
+        var currentDiv = document.getElementById('currentResult')
+        currentDiv.innerHTML = messageCurrent
+
+
+        // // 내가 지정한 좌표 위치에 마커 추가 (선택사항)
+        // var myPosition = new kakao.maps.LatLng(myLat, myLng);
+        // var myMarker = new kakao.maps.Marker({ position: myPosition};
+        // myMarker.setMap(map);
+
+        // 반경 내/외부 판단
+        // var dist = getDistance(centerData.lat, centerData.lng, myLat, myLng);
+        // var resultText = dist <= centerData.radius
+        //     ? `내 위치는 반경 내부입니다. (거리: ${Math.round(dist)}m)`
+        //     : `내 위치는 반경 외부입니다. (거리: ${Math.round(dist)}m)`;
+        //
+        // document.getElementById('checkResult').textContent = resultText;
+
+        kakao.maps.event.addListener(map, 'click', function(mouseEvent) {
+
+            // 클릭한 위도, 경도 정보를 가져옵니다
+            var latlng = mouseEvent.latLng;
+
+            var message = '클릭한 위치의 위도는 ' + latlng.getLat() + ' 이고, ';
+            message += '경도는 ' + latlng.getLng() + ' 입니다';
+
+            var checkPos = new kakao.maps.LatLng(latlng.getLat(), latlng.getLng());
+            var checkMarker = new kakao.maps.Marker({ position: checkPos });
+            checkMarker.setMap(map);
+
+            //반경 내/외부 판단
+            var dist = getDistance(centerData.lat, centerData.lng, latlng.getLat(), latlng.getLng());
+            var messageRadius= dist <= RADIUS_M
+                ? `클릭 위치는 반경 내부입니다. (거리: ${Math.round(dist)}m)`
+                : `클릭 위치는 반경 외부입니다. (거리: ${Math.round(dist)}m)`;
+
+
+            var resultDiv = document.getElementById('result');
+            var radiusDiv = document.getElementById('resultRadius');
+            resultDiv.innerHTML = message;
+            radiusDiv.innerHTML = messageRadius
+
+        });
+
+    })();
+</script>
+</body>
+</html>
