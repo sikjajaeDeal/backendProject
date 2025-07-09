@@ -50,6 +50,9 @@ dependencies {
 	implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2')
 	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.669'
 
+	//elasticsearch
+	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+
 }
 
 tasks.named('test') {
