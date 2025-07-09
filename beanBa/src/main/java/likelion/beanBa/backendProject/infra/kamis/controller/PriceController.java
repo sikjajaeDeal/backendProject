@@ -1,7 +1,7 @@
-package likelion.beanBa.backendProject.infra.controller;
+package likelion.beanBa.backendProject.infra.kamis.controller;
 
-import likelion.beanBa.backendProject.infra.dto.KamisPriceResponse;
-import likelion.beanBa.backendProject.infra.service.PriceService;
+import likelion.beanBa.backendProject.infra.kamis.dto.KamisPriceResponse;
+import likelion.beanBa.backendProject.infra.kamis.service.PriceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

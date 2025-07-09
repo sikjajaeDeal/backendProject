@@ -1,4 +1,4 @@
-package likelion.beanBa.backendProject.infra.service;
+package likelion.beanBa.backendProject.infra.kamis.service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -9,7 +9,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import likelion.beanBa.backendProject.infra.dto.KamisPriceResponse;
+import likelion.beanBa.backendProject.infra.kamis.dto.KamisPriceResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;

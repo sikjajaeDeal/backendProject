@@ -1,4 +1,4 @@
-package likelion.beanBa.backendProject.infra.config;
+package likelion.beanBa.backendProject.infra.kamis.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
