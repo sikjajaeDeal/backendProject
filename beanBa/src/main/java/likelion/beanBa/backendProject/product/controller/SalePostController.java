@@ -10,7 +10,6 @@ import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.service.SalePostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,7 +22,7 @@ public class SalePostController {
     private final SalePostService salePostService;
 
     /**
-     * 게시글 등록
+     * 게시글 등록 （테스트 완）
      */
     @PostMapping
     public ResponseEntity<SalePostResponse> createPost(@RequestBody @Valid SalePostRequest salePostRequest,
@@ -35,6 +34,7 @@ public class SalePostController {
 //                .build();
 //        String memberId = saleUserDetails.getUsername();
         Member loginMember = saleUserDetails.getMember();
+        System.out.println("=======================로그인 PK: " + loginMember);
         SalePost salePost = salePostService.createPost(salePostRequest, loginMember);
         List<String> imageUrls = salePostRequest.getImageUrls();
         return ResponseEntity.ok(SalePostResponse.from(salePost, imageUrls));
@@ -62,21 +62,28 @@ public class SalePostController {
      * 게시글 수정
      */
     @PutMapping("/{postPk}")
-    public ResponseEntity<Void> updatePost(@PathVariable Long postPk,
-                                           @RequestBody @Valid SalePostRequest salePostRequest,
-                                           @CurrentUser CustomUserDetails saleUserDetails) {
-//        String memberId = saleUserDetails.getUsername();
+    public ResponseEntity<?> updatePost(@PathVariable Long postPk,
+                                        @RequestBody @Valid SalePostRequest salePostRequest,
+                                        @CurrentUser CustomUserDetails saleUserDetails) {
+
+        List<String> imageUrls = salePostRequest.getImageUrls();
+
+        if (imageUrls == null || imageUrls.isEmpty() || imageUrls.size() > 4) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("이미지는 1개 이상 4개 이하로 등록해야 합니다.");
+        }
+
         Member loginMember = saleUserDetails.getMember();
         salePostService.updatePost(postPk, salePostRequest, loginMember);
         return ResponseEntity.ok().build();
     }
-
     /**
-     * 게시글 삭제
+     * 게시글 삭제 （테스트 완）
      */
     @DeleteMapping("/{postPk}")
     public ResponseEntity<Void> deletePost(@PathVariable Long postPk,
-                                           @AuthenticationPrincipal CustomUserDetails saleUserDetails) {
+                                           @CurrentUser CustomUserDetails saleUserDetails) {
 
         Member loginMember = saleUserDetails.getMember();
         salePostService.deletePost(postPk, loginMember);

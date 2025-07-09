@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.product.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -88,6 +90,7 @@ public class SalePostServiceImpl implements SalePostService {
         return SalePostResponse.from(salePost, imageUrls);
     }
 
+
     /**
      * 게시글 수정
      */
@@ -113,14 +116,12 @@ public class SalePostServiceImpl implements SalePostService {
         );
 
 
-        // 🔁 이미지 변경 감지 추가됨
+        // 🔁 이미지 무조건 삭제 후 재등록
         List<String> newUrls = salePostRequest.getImageUrls();
-        if (newUrls != null && isImageUpdated(salePost, newUrls)) {
-            // 기존 이미지 soft delete
+        if (newUrls != null && !newUrls.isEmpty()) {
             salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                     .forEach(SalePostImage::markAsDeleted);
 
-            // 새 이미지 등록
             saveImages(newUrls, salePost);
         }
     }
@@ -147,8 +148,8 @@ public class SalePostServiceImpl implements SalePostService {
      * 게시글 단건 조회 헬퍼
      */
     private SalePost findPostById(Long postPk) {
-        return salePostRepository.findById(postPk)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+        return salePostRepository.findByPostPkAndDeleteYn(postPk, Yn.N)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 삭제된 게시글입니다."));
     }
 
     /**
@@ -157,8 +158,11 @@ public class SalePostServiceImpl implements SalePostService {
     private void saveImages(List<String> imageUrls, SalePost postPk) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
+        // postPk가 null 이면 NPE 발생
+        SalePost safePost = Objects.requireNonNull(postPk, "postPk는 null일 수 없습니다."); //postPk가 null 이면 에러
+
         List<SalePostImage> images = imageUrls.stream()
-                .map(url -> SalePostImage.of(postPk, url))
+                .map(url -> SalePostImage.of(safePost, url))
                 .toList();
 
         salePostImageRepository.saveAll(images);
