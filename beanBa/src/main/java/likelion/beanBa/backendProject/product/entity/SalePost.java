@@ -24,25 +24,25 @@ public class SalePost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "post_pk")
-    private long id;
+    private long postPk;
 
     /** 연관관계 매핑 **/
     //작성자 판매자 PK
     //다대일 연관관계 매핑
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_pk", nullable = false)
-    private Member seller;
+    private Member sellerPk;
 
     //카테고리
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_pk", nullable = false)
-    private Category category;
+    private Category categoryPk;
 
 
     //구매자 PK
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "buy_member_pk", nullable = true)
-    private Member buyer;
+    private Member buyerPk;
 
     /** 일반 컬럼 **/
     @Column(length = 255, nullable = false)
@@ -84,8 +84,8 @@ public class SalePost {
         LocalDateTime now = LocalDateTime.now();
 
         return SalePost.builder()
-                .seller(seller)
-                .category(category)
+                .sellerPk(seller)
+                .categoryPk(category)
                 .title(title)
                 .content(content)
                 .hopePrice(hopePrice)
@@ -105,7 +105,13 @@ public class SalePost {
         this.hopePrice = hopePrice;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.category = category;
+        this.categoryPk = category;
+        this.stateAt = LocalDateTime.now();
+    }
+
+    public void markAsSold(Member buyer) {
+        this.buyerPk = buyer;
+        this.state = SaleStatement.C;
         this.stateAt = LocalDateTime.now();
     }
 

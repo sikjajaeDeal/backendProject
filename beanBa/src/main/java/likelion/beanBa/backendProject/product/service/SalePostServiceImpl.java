@@ -1,6 +1,7 @@
 package likelion.beanBa.backendProject.product.service;
 
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostResponse;
 import likelion.beanBa.backendProject.product.entity.Category;
@@ -11,6 +12,7 @@ import likelion.beanBa.backendProject.product.repository.CategoryRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,18 +25,19 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostRepository salePostRepository;
     private final CategoryRepository categoryRepository;
     private final SalePostImageRepository salePostImageRepository;
+    private final MemberRepository memberRepository;
 
     /**
      * 게시글 생성
      */
     @Override
     @Transactional
-    public SalePost createPost(SalePostRequest request, Member seller) {
+    public SalePost createPost(SalePostRequest request, Member sellerPk) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         SalePost salePost = SalePost.create(
-                seller,
+                sellerPk,
                 category,
                 request.getTitle(),
                 request.getContent(),
@@ -73,8 +76,8 @@ public class SalePostServiceImpl implements SalePostService {
      */
     @Override
     @Transactional(readOnly = true)
-    public SalePostResponse getPost(Long postId) {
-        SalePost salePost = findPostById(postId);
+    public SalePostResponse getPost(Long postPk) {
+        SalePost salePost = findPostById(postPk);
 
         List<String> imageUrls = salePostImageRepository.findAllByPostAndDeleteYn(salePost, Yn.N)
                 .stream()
@@ -89,28 +92,28 @@ public class SalePostServiceImpl implements SalePostService {
      */
     @Override
     @Transactional
-    public void updatePost(Long postId, SalePostRequest request, Member seller) {
-        SalePost salePost = findPostById(postId);
+    public void updatePost(Long postPk, SalePostRequest salePostRequest, Member sellerPk) {
+        SalePost salePost = findPostById(postPk);
 
-        if (!salePost.getSeller().getMemberPk().equals(seller.getMemberPk())) {
+        if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
 
-        Category category = categoryRepository.findById(request.getCategoryId())
+        Category category = categoryRepository.findById(salePostRequest.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
 
         salePost.update(
-                request.getTitle(),
-                request.getContent(),
-                request.getHopePrice(),
-                request.getLatitude(),
-                request.getLongitude(),
+                salePostRequest.getTitle(),
+                salePostRequest.getContent(),
+                salePostRequest.getHopePrice(),
+                salePostRequest.getLatitude(),
+                salePostRequest.getLongitude(),
                 category
         );
 
 
         // 🔁 이미지 변경 감지 추가됨
-        List<String> newUrls = request.getImageUrls();
+        List<String> newUrls = salePostRequest.getImageUrls();
         if (newUrls != null && isImageUpdated(salePost, newUrls)) {
             // 기존 이미지 soft delete
             salePostImageRepository.findAllByPostAndDeleteYn(salePost, Yn.N)
@@ -126,10 +129,10 @@ public class SalePostServiceImpl implements SalePostService {
      */
     @Override
     @Transactional
-    public void deletePost(Long postId, Member seller) {
-        SalePost salePost = findPostById(postId);
+    public void deletePost(Long postPk, Member sellerPk) {
+        SalePost salePost = findPostById(postPk);
 
-        if (!salePost.getSeller().getMemberPk().equals(seller.getMemberPk())) {
+        if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
             throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
         }
 
@@ -142,19 +145,19 @@ public class SalePostServiceImpl implements SalePostService {
     /**
      * 게시글 단건 조회 헬퍼
      */
-    private SalePost findPostById(Long id) {
-        return salePostRepository.findById(id)
+    private SalePost findPostById(Long postPk) {
+        return salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
     }
 
     /**
      * 이미지 저장 헬퍼
      */
-    private void saveImages(List<String> imageUrls, SalePost post) {
+    private void saveImages(List<String> imageUrls, SalePost postPk) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
         List<SalePostImage> images = imageUrls.stream()
-                .map(url -> SalePostImage.of(post, url))
+                .map(url -> SalePostImage.of(postPk, url))
                 .toList();
 
         salePostImageRepository.saveAll(images);
@@ -164,12 +167,27 @@ public class SalePostServiceImpl implements SalePostService {
     /**
      * 이미지 변경 여부 감지
      */
-    private boolean isImageUpdated(SalePost post, List<String> newUrls) {
-        List<String> oldUrls = salePostImageRepository.findAllByPostAndDeleteYn(post, Yn.N)
+    private boolean isImageUpdated(SalePost postPk, List<String> newUrls) {
+        List<String> oldUrls = salePostImageRepository.findAllByPostAndDeleteYn(postPk, Yn.N)
                 .stream()
                 .map(SalePostImage::getImageUrl)
                 .toList();
 
         return !new java.util.HashSet<>(oldUrls).equals(new java.util.HashSet<>(newUrls));
+    }
+
+    @Transactional
+    public void completeSale(Long postPk, Long buyerPk, Member sellerPk) {
+        SalePost salePost = salePostRepository.findById(postPk)
+                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
+
+        if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
+            throw new AccessDeniedException("해당 게시글의 판매자가 아닙니다.");
+        }
+
+        Member buyer = memberRepository.findById(buyerPk)
+                .orElseThrow(() -> new IllegalArgumentException("해당 구매자가 존재하지 않습니다."));
+
+        salePost.markAsSold(buyer);
     }
 }

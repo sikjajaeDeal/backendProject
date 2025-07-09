@@ -16,11 +16,11 @@ public class SalePostImage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "image_pk")
-    private Long id;
+    private Long imagePk;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_pk", nullable = false)
-    private SalePost post;
+    private SalePost postPk;
 
     @Column(name = "image_url", nullable = false, length = 255)
     private String imageUrl;
@@ -30,9 +30,9 @@ public class SalePostImage {
     private Yn deleteYn;
 
     // 정적 팩토리 메서드
-    public static SalePostImage of(SalePost post, String imageUrl) {
+    public static SalePostImage of(SalePost salePost, String imageUrl) {
         return SalePostImage.builder()
-                .post(post)
+                .postPk(salePost)
                 .imageUrl(imageUrl)
                 .deleteYn(Yn.N)
                 .build();

@@ -16,14 +16,14 @@ public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "category_pk")
-    private Long id;
+    private Long categoryPk;
 
     @Column(name = "category_name", nullable = false, length = 255)
     private String categoryName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_pk")
-    private Category parent;
+    private Category parentPk;
 
     //자식 카테고리들
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -43,7 +43,7 @@ public class Category {
     @Builder
     public Category(String categoryName, Category parent, int level, String useYn, String deleteYn) {
         this.categoryName = categoryName;
-        this.parent = parent;
+        this.parentPk = parent;
         this.level = level;
         this.useYn = useYn;
         this.deleteYn = deleteYn;
@@ -56,7 +56,7 @@ public class Category {
     }
 
     public void setParent(Category parent) {
-        this.parent = parent;
+        this.parentPk = parent;
     }
 }
 
