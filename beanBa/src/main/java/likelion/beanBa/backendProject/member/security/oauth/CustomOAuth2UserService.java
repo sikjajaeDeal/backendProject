@@ -42,11 +42,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             provider = "K";
             providerId = String.valueOf(attrs.get("id"));
 
+            @SuppressWarnings("unchecked")
             Map<String,Object> kakaoAccount = (Map<String,Object>) attrs.get("kakao_account");
             if (kakaoAccount != null) {
                 email = String.valueOf(kakaoAccount.get("email"));
 
-                Map<String,Object> profile = (Map<String,Object>) attrs.get("profile");
+                @SuppressWarnings("unchecked")
+                Map<String,Object> profile = (Map<String,Object>) kakaoAccount.get("profile");
                 if(profile != null) {
                     nickname = String.valueOf(profile.get("nickname"));
                 }
