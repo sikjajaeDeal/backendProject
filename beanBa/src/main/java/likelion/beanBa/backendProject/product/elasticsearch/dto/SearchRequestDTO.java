@@ -21,4 +21,7 @@ public class SearchRequestDTO {
   //키워드
   private String keyword;
 
+  //카테고리
+  private Long categoryPk;
+
 }
