@@ -15,19 +15,19 @@ import lombok.extern.slf4j.Slf4j;
 @Controller
 @RequiredArgsConstructor
 @Slf4j
-public class MapTestController {
+public class MapController {
 
     private final LocationService locationService;
 
     @GetMapping("/radius_map")
-    public String  test() {
+    public String  radiusMap() {
         return "map_click_location.html";
     }
 
 
     @GetMapping("/geo_map")
-    public String geoTest(){
-        return "geo_test.html";
+    public String geoMap(){
+        return "geo_map.html";
     }
 
     // 클라이언트로부터 위치 정보 저장
