@@ -13,6 +13,7 @@ import likelion.beanBa.backendProject.product.repository.CategoryRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SalePostServiceImpl implements SalePostService {
@@ -179,7 +181,7 @@ public class SalePostServiceImpl implements SalePostService {
     }
 
     @Transactional
-    public void completeSale(Long postPk, Long buyerPk, Member sellerPk) {
+    public void completeSale(Long postPk, Long buyerPk, Member sellerPk) { //sellerPk 는 로그인된 사용자 정보이므로 Member 객체로 받기
         SalePost salePost = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
@@ -187,8 +189,14 @@ public class SalePostServiceImpl implements SalePostService {
             throw new AccessDeniedException("해당 게시글의 판매자가 아닙니다.");
         }
 
-        Member buyer = memberRepository.findById(buyerPk)
-                .orElseThrow(() -> new IllegalArgumentException("해당 구매자가 존재하지 않습니다."));
+        Member buyer = null; //분기에 따라 markAsSold 를 중복하지 않기 위해
+
+        if (buyerPk != null) {
+            buyer = memberRepository.findById(buyerPk)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 구매자가 존재하지 않습니다."));
+        } else {
+            log.info("구매자 없이 판매자가 거래완료 처리했습니다.");
+        }
 
         salePost.markAsSold(buyer);
     }
