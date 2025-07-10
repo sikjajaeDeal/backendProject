@@ -44,6 +44,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                         "/api/member/signup",
+                        "/elasticsearch/**",
                         "/api/auth/login",
                         "/oauth2/**",
                         "/swagger-ui/**",
