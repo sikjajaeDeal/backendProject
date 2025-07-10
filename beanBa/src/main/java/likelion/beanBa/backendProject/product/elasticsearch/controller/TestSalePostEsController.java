@@ -3,6 +3,7 @@ package likelion.beanBa.backendProject.product.elasticsearch.controller;
 
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
+import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 @RequestMapping("/api/test-sale-post")
 public class TestSalePostEsController {
 
-    private final SalePostEsService salePostEsService;
+    private final SalePostEsService salePostEsServiceImpl;
 
     //private final KafkaTemplate<String, SearchLogMessage> kafkaTemplate;
     @GetMapping("/elasticsearch")
@@ -38,7 +39,7 @@ public class TestSalePostEsController {
         //kafkaTemplate.send("search-log", message); //search-log 토픽으로 메세지 전달
 
 
-        return ResponseEntity.ok(salePostEsService.search(keyword,page,size));
+        return ResponseEntity.ok(salePostEsServiceImpl.search(keyword,page,size));
 
     }
 

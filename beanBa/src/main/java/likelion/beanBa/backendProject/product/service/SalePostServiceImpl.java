@@ -7,7 +7,7 @@ import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
-import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
+import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -16,7 +16,6 @@ import likelion.beanBa.backendProject.product.repository.CategoryRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,7 +32,7 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostImageRepository salePostImageRepository;
     private final MemberRepository memberRepository;
 
-    private final SalePostEsService salePostEsService;
+    private final SalePostEsServiceImpl salePostEsServiceImpl;
     private final SalePostEsRepository salePostEsRepository;
 
 
@@ -72,7 +71,7 @@ public class SalePostServiceImpl implements SalePostService {
 //                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
 //                .build();
 
-        salePostEsService.save(doc);
+        salePostEsServiceImpl.save(doc);
 
         return salePost;
     }
