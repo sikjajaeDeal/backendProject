@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
+import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,10 +38,15 @@ public class SalePostEsServiceImpl implements SalePostEsService {
         repository.deleteById(id);
     }
 
-    public Page<SalePostEsDocument> search(String keyword, int page, int size){
+    public Page<SalePostEsDocument> search(SearchRequestDTO searchRequestDTO){
 
         try{
             System.out.println("검색 시작 : ");
+
+            int page = searchRequestDTO.getPage();
+            int size = searchRequestDTO.getSize();
+
+            String keyword = searchRequestDTO.getKeyword();
 
             //엘라스틱서치에서 페이징을 위한 시작 위치를 계산하는 변수
             int from = page * size;

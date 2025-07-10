@@ -24,4 +24,9 @@ public class SearchRequestDTO {
   //카테고리
   private Long categoryPk;
 
+  private int page; // 페이지 번호
+  private int size; // 페이지 크기 (한 페이지에 몇 개의 결과를 보여줄지)
+
+
+
 }
