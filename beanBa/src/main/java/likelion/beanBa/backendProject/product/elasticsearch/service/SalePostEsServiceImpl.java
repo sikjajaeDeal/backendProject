@@ -48,6 +48,9 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             int page = searchRequestDTO.getPage();
             int size = searchRequestDTO.getSize();
 
+            int minPrice = searchRequestDTO.getMinPrice();
+            int maxPrice = searchRequestDTO.getMaxPrice();
+
             String keyword = searchRequestDTO.getKeyword();
 
             //엘라스틱서치에서 페이징을 위한 시작 위치를 계산하는 변수
@@ -57,12 +60,11 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             Query query;
 
             //검색어가 없으면 모든 문서를 검색하는 matchAll 쿼리
-            if (keyword == null || keyword.isBlank()) {
-                query = MatchAllQuery.of(m -> m)._toQuery(); // 전체 문서를 가져오는 쿼리를 생성하는 람다함수
-                // MatchAllQuery는 엘라스틱서치에서 조건 없이 모든 문서를 검색할 때 사용하는 쿼리
-            }
+//            if ((keyword == null || keyword.isBlank())) {
+//                query = MatchAllQuery.of(m -> m)._toQuery(); // 전체 문서를 가져오는 쿼리를 생성하는 람다함수
+//                // MatchAllQuery는 엘라스틱서치에서 조건 없이 모든 문서를 검색할 때 사용하는 쿼리
+//            }
             //검색어가 있을 때
-            else {
                 //boolquery는 복수 조건을 조합할 때 사용하는 쿼리
                 // 이 쿼리 안에 여러개의 조건을 나열
                 //예를 들어 "백엔드"라는 키워드가 들어왔을 때 이 "백엔드" 키워드를 어떻게 분석해서 데이터를 보여줄 것인가를 작성
@@ -95,7 +97,6 @@ public class SalePostEsServiceImpl implements SalePostEsService {
                     return b;
                 })._toQuery();
 
-            }
             //
             //SearchRequest 는 엘라스틱서치에서 검색을 하기 위한 검색요청 객체
             // 인덱스명, 페이징 정보, 쿼리를 포함한 검색 요청
@@ -154,6 +155,12 @@ public class SalePostEsServiceImpl implements SalePostEsService {
      * @param searchRequestDTO 검색 요청 DTO
      */
     private void baseSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
+
+        //검색어가 없으면 검색하지 않음
+        if (searchRequestDTO.getKeyword() == null || searchRequestDTO.getKeyword().isBlank()) {
+            return; // 검색어가 없으면 쿼리를 생성하지 않음
+        }
+
         String keyword = searchRequestDTO.getKeyword();
 
         //접두어 글자 검색
@@ -232,6 +239,11 @@ public class SalePostEsServiceImpl implements SalePostEsService {
     }
 
     private void priceSearchFilter(BoolQuery.Builder boolBuilder, int minPrice, int maxPrice) {
+
+        if(minPrice == 0 && maxPrice == 0) {
+            return;
+        }
+
         boolBuilder.filter(f -> f.range(RangeQuery.of(r -> r
             .field("hopePrice")
             .gte(JsonData.of(minPrice))
