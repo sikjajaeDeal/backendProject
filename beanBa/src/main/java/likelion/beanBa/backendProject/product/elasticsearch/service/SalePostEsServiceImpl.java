@@ -2,6 +2,8 @@ package likelion.beanBa.backendProject.product.elasticsearch.service;
 
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.GeoLocation;
+import co.elastic.clients.elasticsearch._types.LatLonGeoLocation;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
@@ -12,9 +14,11 @@ import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.platform.launcher.core.LauncherConfig.Builder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -78,25 +82,11 @@ public class SalePostEsServiceImpl implements SalePostEsService {
                      filter : must와 같지만 점수 계산 안함 (속도가 빠름)
                      **/
 
-                    //접두어 글자 검색
-                    b.should(PrefixQuery.of(p->p.field("title").value(keyword))._toQuery());
-                    b.should(PrefixQuery.of(p->p.field("content").value(keyword))._toQuery());
+                    // 접두어 초성 중간글자 검색 쿼리를 생성하는 메서드 입니다.
+                    baseSearchFilter(b,searchRequestDTO);
 
-                    //초성 검색
-                    b.should(PrefixQuery.of(p->p.field("title.chosung").value(keyword))._toQuery());
-                    b.should(PrefixQuery.of(p->p.field("content.chosung").value(keyword))._toQuery());
-
-                    //중간 글자 검색(match만 가능)
-                    b.should(MatchQuery.of(p->p.field("title.ngram").query(keyword))._toQuery());
-                    b.should(MatchQuery.of(p->p.field("content.ngram").query(keyword))._toQuery());
-
-                    // fuzziness: "AUTO"는  오타 허용 검색 기능을 자동으로 켜주는 설정 -> 유사도 계산을 매번 수행하기 때문에 느림
-                    //짧은 키워드에는 사용 xxx
-                    //오타 허용 (오타허용은 match만 가능 )
-                    if (keyword.length()>=3){
-                        b.should(MatchQuery.of(m ->m.field("title").query(keyword).fuzziness("AUTO"))._toQuery());
-                        b.should(MatchQuery.of(m ->m.field("content").query(keyword).fuzziness("AUTO"))._toQuery());
-                    }
+                    // 위치 기반 검색 쿼리를 생성하는 메서드 입니다.(기본값은 5km)
+                    locationSearchFilter(b, searchRequestDTO);
 
                     return b;
                 })._toQuery();
@@ -151,6 +141,54 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             throw new RuntimeException("검색 중 오류 발생",e);
 
         }
+
+    }
+    private void baseSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
+        String keyword = searchRequestDTO.getKeyword();
+
+        //접두어 글자 검색
+        b.should(PrefixQuery.of(p->p.field("title").value(keyword))._toQuery());
+        b.should(PrefixQuery.of(p->p.field("content").value(keyword))._toQuery());
+
+        //초성 검색
+        b.should(PrefixQuery.of(p->p.field("title.chosung").value(keyword))._toQuery());
+        b.should(PrefixQuery.of(p->p.field("content.chosung").value(keyword))._toQuery());
+
+        //중간 글자 검색(match만 가능)
+        b.should(MatchQuery.of(p->p.field("title.ngram").query(keyword))._toQuery());
+        b.should(MatchQuery.of(p->p.field("content.ngram").query(keyword))._toQuery());
+
+        // fuzziness: "AUTO"는  오타 허용 검색 기능을 자동으로 켜주는 설정 -> 유사도 계산을 매번 수행하기 때문에 느림
+        //짧은 키워드에는 사용 xxx
+        //오타 허용 (오타허용은 match만 가능 )
+        if (keyword.length()>=3){
+            b.should(MatchQuery.of(m ->m.field("title").query(keyword).fuzziness("AUTO"))._toQuery());
+            b.should(MatchQuery.of(m ->m.field("content").query(keyword).fuzziness("AUTO"))._toQuery());
+        }
+    }
+
+    private void locationSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
+
+        Integer distance = 5;     //거리 5km
+
+        if(searchRequestDTO.getLatitude() == 0.0 || searchRequestDTO.getLongitude() == 0.0) {
+            return; //위도나 경도 값이 없을 경우 쿼리를 생성하지 않음
+        }
+
+        double latitude = searchRequestDTO.getLatitude();
+        double longitude = searchRequestDTO.getLongitude();
+
+        LatLonGeoLocation latLonGeoLocation = new LatLonGeoLocation.Builder()
+            .lat(latitude)
+            .lon(longitude)
+            .build();
+
+        b.filter(
+            GeoDistanceQuery.of(g -> g
+                .field("geoLocation")
+                .distance(distance + "km")
+                .location(l -> l.latlon(latLonGeoLocation))
+        )._toQuery());
 
     }
 }
