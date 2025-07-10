@@ -2,23 +2,21 @@ package likelion.beanBa.backendProject.product.elasticsearch.service;
 
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import co.elastic.clients.elasticsearch._types.GeoLocation;
 import co.elastic.clients.elasticsearch._types.LatLonGeoLocation;
 import co.elastic.clients.elasticsearch._types.SortOrder;
 import co.elastic.clients.elasticsearch._types.query_dsl.*;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
+import co.elastic.clients.json.JsonData;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.platform.launcher.core.LauncherConfig.Builder;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -70,6 +68,8 @@ public class SalePostEsServiceImpl implements SalePostEsService {
                 //예를 들어 "백엔드"라는 키워드가 들어왔을 때 이 "백엔드" 키워드를 어떻게 분석해서 데이터를 보여줄 것인가를 작성
                 query = BoolQuery.of(b ->{
 
+
+
                     System.out.println("키워드는 : "+keyword);
 
                     // PrefixQuery는 해당 필드가 특정 단어로 시작하는지 검사하는 쿼리
@@ -82,11 +82,15 @@ public class SalePostEsServiceImpl implements SalePostEsService {
                      filter : must와 같지만 점수 계산 안함 (속도가 빠름)
                      **/
 
+
                     // 접두어 초성 중간글자 검색 쿼리를 생성하는 메서드 입니다.
                     baseSearchFilter(b,searchRequestDTO);
 
                     // 위치 기반 검색 쿼리를 생성하는 메서드 입니다.(기본값은 5km)
                     locationSearchFilter(b, searchRequestDTO);
+
+                    priceSearchFilter(b, searchRequestDTO.getMinPrice(), searchRequestDTO.getMaxPrice());
+
 
                     return b;
                 })._toQuery();
@@ -143,20 +147,50 @@ public class SalePostEsServiceImpl implements SalePostEsService {
         }
 
     }
+
+    /**
+     * 접두어, 초성, 중간 글자 검색 쿼리를 생성하는 메서드입니다.
+     * @param b BoolQuery.Builder 객체
+     * @param searchRequestDTO 검색 요청 DTO
+     */
     private void baseSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
         String keyword = searchRequestDTO.getKeyword();
 
         //접두어 글자 검색
-        b.should(PrefixQuery.of(p->p.field("title").value(keyword))._toQuery());
-        b.should(PrefixQuery.of(p->p.field("content").value(keyword))._toQuery());
+//        b.should(PrefixQuery.of(p->p.field("title").value(keyword))._toQuery());
+//        b.should(PrefixQuery.of(p->p.field("content").value(keyword))._toQuery());
+//
+//        //초성 검색
+//        b.should(PrefixQuery.of(p->p.field("title.chosung").value(keyword))._toQuery());
+//        b.should(PrefixQuery.of(p->p.field("content.chosung").value(keyword))._toQuery());
+//
+//        //중간 글자 검색(match만 가능)
+//        b.should(MatchQuery.of(p->p.field("title.ngram").query(keyword))._toQuery());
+//        b.should(MatchQuery.of(p->p.field("content.ngram").query(keyword))._toQuery());
+//
+//
 
-        //초성 검색
-        b.should(PrefixQuery.of(p->p.field("title.chosung").value(keyword))._toQuery());
-        b.should(PrefixQuery.of(p->p.field("content.chosung").value(keyword))._toQuery());
 
-        //중간 글자 검색(match만 가능)
-        b.should(MatchQuery.of(p->p.field("title.ngram").query(keyword))._toQuery());
-        b.should(MatchQuery.of(p->p.field("content.ngram").query(keyword))._toQuery());
+
+        b.must(bb->bb.bool(bbb-> bbb.
+            should(PrefixQuery.of(p->p.field("title").value(keyword))._toQuery())
+            .should(PrefixQuery.of(p->p.field("title.chosung").value(keyword))._toQuery())
+            .should(MatchQuery.of(p->p.field("title.ngram").query(keyword))._toQuery())
+                .should(PrefixQuery.of(p->p.field("content").value(keyword))._toQuery())
+                .should(PrefixQuery.of(p->p.field("content.chosung").value(keyword))._toQuery())
+                .should(MatchQuery.of(p->p.field("content.ngram").query(keyword))._toQuery())
+            )
+        );
+
+//
+//        b.must(bb->bb.bool(bbb-> bbb.
+//                should(PrefixQuery.of(p->p.field("content").value(keyword))._toQuery())
+//                .should(PrefixQuery.of(p->p.field("content.chosung").value(keyword))._toQuery())
+//                .should(MatchQuery.of(p->p.field("content.ngram").query(keyword))._toQuery())
+//            )
+//        );
+
+
 
         // fuzziness: "AUTO"는  오타 허용 검색 기능을 자동으로 켜주는 설정 -> 유사도 계산을 매번 수행하기 때문에 느림
         //짧은 키워드에는 사용 xxx
@@ -167,6 +201,11 @@ public class SalePostEsServiceImpl implements SalePostEsService {
         }
     }
 
+    /**
+     * 위치 기반 검색 쿼리를 생성하는 메서드입니다.
+     * @param b BoolQuery.Builder 객체
+     * @param searchRequestDTO 검색 요청 DTO
+     */
     private void locationSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
 
         Integer distance = 5;     //거리 5km
@@ -183,12 +222,20 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             .lon(longitude)
             .build();
 
-        b.filter(
+        b.must(
             GeoDistanceQuery.of(g -> g
                 .field("geoLocation")
                 .distance(distance + "km")
                 .location(l -> l.latlon(latLonGeoLocation))
         )._toQuery());
 
+    }
+
+    private void priceSearchFilter(BoolQuery.Builder boolBuilder, int minPrice, int maxPrice) {
+        boolBuilder.filter(f -> f.range(RangeQuery.of(r -> r
+            .field("hopePrice")
+            .gte(JsonData.of(minPrice))
+            .lte(JsonData.of(maxPrice))
+        )));
     }
 }
