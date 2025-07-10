@@ -1,6 +1,8 @@
 package likelion.beanBa.backendProject.product.controller;
 
 import jakarta.validation.Valid;
+import likelion.beanBa.backendProject.global.util.FileValidator;
+import likelion.beanBa.backendProject.global.util.InputValidator;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.S3.service.S3Service;
@@ -41,13 +43,12 @@ public class TestSalePostController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SalePostResponse> createPost(
             @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
-            @RequestPart("salePostImages") MultipartFile[] salePostImages) throws IOException {
+            @RequestPart(value = "salePostImages") MultipartFile[] salePostImages) throws IOException {
 
         System.out.println("✅ POST 요청 도착"); // 여기에 로그
 
-        if (salePostImages == null || salePostImages.length == 0 || salePostImages.length > 4) {
-            return ResponseEntity.badRequest().body(null);
-        }
+        FileValidator.validateImageFiles(salePostImages, 4); // ✅ 이미지 수 검증 추가
+        InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
 
         List<String> imageUrls = s3Service.uploadFiles(salePostImages);
         salePostRequest.setImageUrls(imageUrls);
@@ -73,11 +74,10 @@ public class TestSalePostController {
     public ResponseEntity<?> updatePost(
             @PathVariable Long postPk,
             @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
-            @RequestPart("salePostImages") MultipartFile[] salePostImages) throws IOException {
+            @RequestPart(value = "salePostImages") MultipartFile[] salePostImages) throws IOException {
 
-        if (salePostImages == null || salePostImages.length == 0 || salePostImages.length > 4) {
-            return ResponseEntity.badRequest().body("이미지는 1개 이상 4개 이하로 등록해야 합니다.");
-        }
+        FileValidator.validateImageFiles(salePostImages, 4); // ✅ 이미지 수 검증 추가
+        InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
 
         List<String> imageUrls = s3Service.uploadFiles(salePostImages);
         salePostRequest.setImageUrls(imageUrls);

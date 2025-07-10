@@ -32,14 +32,12 @@ public class SalePostServiceImpl implements SalePostService {
     private final MemberRepository memberRepository;
 
 
-    /**
-     * 게시글 생성
-     */
+    /** 게시글 생성 **/
     @Override
     @Transactional
     public SalePost createPost(SalePostRequest salePostRequest, Member sellerPk) {
         Category categoryPk = categoryRepository.findById(salePostRequest.getCategoryPk())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리입니다."));
 
         SalePost salePost = SalePost.create(
                 sellerPk,
@@ -57,9 +55,8 @@ public class SalePostServiceImpl implements SalePostService {
         return salePost;
     }
 
-    /**
-     * 게시글 전체 조회
-     */
+
+    /** 게시글 전체 조회 **/
     @Override
     @Transactional(readOnly = true)
     public List<SalePostResponse> getAllPosts() {
@@ -76,9 +73,8 @@ public class SalePostServiceImpl implements SalePostService {
                 .toList();
     }
 
-    /**
-     * 게시글 단건 조회
-     */
+
+    /** 게시글 단건 조회 **/
     @Override
     @Transactional(readOnly = true)
     public SalePostResponse getPost(Long postPk) {
@@ -93,9 +89,8 @@ public class SalePostServiceImpl implements SalePostService {
     }
 
 
-    /**
-     * 게시글 수정
-     */
+
+    /** 게시글 수정 **/
     @Override
     @Transactional
     public void updatePost(Long postPk, SalePostRequest salePostRequest, Member sellerPk) {
@@ -106,7 +101,7 @@ public class SalePostServiceImpl implements SalePostService {
         }
 
         Category category = categoryRepository.findById(salePostRequest.getCategoryPk())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 카테고리입니다."));
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리입니다."));
 
         salePost.update(
                 salePostRequest.getTitle(),
@@ -128,17 +123,38 @@ public class SalePostServiceImpl implements SalePostService {
         }
     }
 
-    /**
-     * 게시글 삭제 (소프트 삭제)
-     */
+
+    /** 판매와료 처리 시 호출 **/
+    @Transactional
+    public void completeSale(Long postPk, Long buyerPk, Member sellerPk) { //sellerPk 는 로그인된 사용자 정보이므로 Member 객체로 받기
+        SalePost salePost = salePostRepository.findById(postPk)
+                .orElseThrow(() -> new EntityNotFoundException("해당 게시글이 존재하지 않습니다."));
+
+        validateWriter(salePost, sellerPk);
+
+        Member buyer = null; //분기에 따라 markAsSold 를 중복하지 않기 위해
+
+        if (buyerPk != null) {
+            buyer = memberRepository.findById(buyerPk)
+                    .orElseThrow(() -> new EntityNotFoundException("해당 구매자가 존재하지 않습니다."));
+        } else {
+            log.info("구매자 없이 판매자가 거래완료 처리했습니다.");
+        }
+
+        salePost.markAsSold(buyer);
+    }
+
+
+    /** #### 헬퍼 메소드 #### **/
+
+
+    /** 게시글 삭제 (소프트 삭제) **/
     @Override
     @Transactional
     public void deletePost(Long postPk, Member sellerPk) {
         SalePost salePost = findPostById(postPk);
 
-        if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
-            throw new IllegalArgumentException("작성자만 삭제할 수 있습니다.");
-        }
+        validateWriter(salePost, sellerPk);
 
         salePost.markAsDeleted();
 
@@ -146,17 +162,15 @@ public class SalePostServiceImpl implements SalePostService {
                 .forEach(SalePostImage::markAsDeleted);
     }
 
-    /**
-     * 게시글 단건 조회 헬퍼
-     */
+
+    /** 게시글 단건 조회 헬퍼 **/
     private SalePost findPostById(Long postPk) {
         return salePostRepository.findByPostPkAndDeleteYn(postPk, Yn.N)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 삭제된 게시글입니다."));
     }
 
-    /**
-     * 이미지 저장 헬퍼
-     */
+
+    /** 이미지 저장 헬퍼 **/
     private void saveImages(SalePost salePost, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
@@ -168,36 +182,12 @@ public class SalePostServiceImpl implements SalePostService {
     }
 
 
-    /**
-     * 이미지 변경 여부 감지
-     */
-    private boolean isImageUpdated(SalePost postPk, List<String> newUrls) {
-        List<String> oldUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(postPk, Yn.N)
-                .stream()
-                .map(SalePostImage::getImageUrl)
-                .toList();
-
-        return !new java.util.HashSet<>(oldUrls).equals(new java.util.HashSet<>(newUrls));
+    /** 작성자 권한 확인 헬퍼 **/
+    private void validateWriter(SalePost salePost, Member writer) {
+        if (!salePost.getSellerPk().getMemberPk().equals(writer.getMemberPk())) {
+            throw new AccessDeniedException("작성자만 수행할 수 있습니다.");
+        }
     }
 
-    @Transactional
-    public void completeSale(Long postPk, Long buyerPk, Member sellerPk) { //sellerPk 는 로그인된 사용자 정보이므로 Member 객체로 받기
-        SalePost salePost = salePostRepository.findById(postPk)
-                .orElseThrow(() -> new IllegalArgumentException("해당 게시글이 존재하지 않습니다."));
 
-        if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
-            throw new AccessDeniedException("해당 게시글의 판매자가 아닙니다.");
-        }
-
-        Member buyer = null; //분기에 따라 markAsSold 를 중복하지 않기 위해
-
-        if (buyerPk != null) {
-            buyer = memberRepository.findById(buyerPk)
-                    .orElseThrow(() -> new IllegalArgumentException("해당 구매자가 존재하지 않습니다."));
-        } else {
-            log.info("구매자 없이 판매자가 거래완료 처리했습니다.");
-        }
-
-        salePost.markAsSold(buyer);
-    }
 }

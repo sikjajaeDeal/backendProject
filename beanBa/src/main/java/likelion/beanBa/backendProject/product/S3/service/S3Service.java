@@ -45,6 +45,12 @@ public class S3Service {
 
         for (MultipartFile file : files) {
             try {
+
+                // ✅ 빈 파일 여부 체크 추가
+                if (file == null || file.isEmpty()) {
+                    throw new IOException("빈 파일은 업로드할 수 없습니다: " + (file != null ? file.getOriginalFilename() : "null"));
+                }
+
                 File f = multiPartFileToFile(file);
                 String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
 
@@ -56,6 +62,7 @@ public class S3Service {
                 fileUrls.add(fileUrl);
             } catch (IOException e) {
                 log.error("File upload failed for {}: {}", file.getOriginalFilename(), e.getMessage());
+                throw new IOException("파일 업로드 중 문제가 발생했습니다: " + file.getOriginalFilename(), e); // 예외 전파 ✅
             }
         }
         return fileUrls;
