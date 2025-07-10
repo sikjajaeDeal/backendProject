@@ -138,6 +138,8 @@ public class SalePostServiceImpl implements SalePostService {
         );
 
 
+
+
         // 🔁 이미지 무조건 삭제 후 재등록
         List<String> newUrls = salePostRequest.getImageUrls();
         if (newUrls != null && !newUrls.isEmpty()) {
@@ -146,6 +148,8 @@ public class SalePostServiceImpl implements SalePostService {
 
             saveImages(newUrls, salePost);
         }
+
+        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
     }
 
     /**
