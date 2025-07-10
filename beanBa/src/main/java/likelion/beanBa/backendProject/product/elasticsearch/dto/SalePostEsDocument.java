@@ -10,7 +10,7 @@ import org.springframework.data.elasticsearch.annotations.GeoPointField;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 
 @JsonIgnoreProperties(ignoreUnknown = true) // 이게 있어야 클래스 명을 저장 안함(_class : com.example.backendprojcet.board.elasticsearch.dto; 등)
-@Document(indexName = "post_sale", createIndex = false) //인덱스
+@Document(indexName = "sale_post", createIndex = false) //인덱스
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -24,8 +24,8 @@ public class SalePostEsDocument {
     /*private Long sellerPk; // 판매자 pk*/ // id 만 있어도 검색 충분
     private String sellerId; // 판매자 id
 
-    private Long categoryPk; // 카테고리 pk
-    private String categoryName; // 카테고리 이름
+    //private Long categoryPk; // 카테고리 pk
+    //private String categoryName; // 카테고리 이름
 
 
     /*private Long buyerPk;// 구매자 pk*/ //id만 있어도 괜찮을 듯
@@ -52,10 +52,10 @@ public class SalePostEsDocument {
                 .postPk(entity.getPostPk())
                // .sellerPk(entity.getSellerPk().getMemberPk())
                 .sellerId(entity.getSellerPk().getMemberId())
-                .categoryPk(entity.getCategoryPk().getCategoryPk())
-                .categoryName(entity.getCategoryPk().getCategoryName())
+                //.categoryPk(entity.getCategoryPk().getCategoryPk())
+               // .categoryName(entity.getCategoryPk().getCategoryName())
                 //.buyerPk(entity.getBuyerPk().getMemberPk())
-                .buyerId(entity.getBuyerPk().getMemberId())
+                .buyerId(entity.getBuyerPk()!= null ? entity.getBuyerPk().getMemberId() : null)
                 .title(entity.getTitle())
                 .content(entity.getContent())
                 //.viewCount(entity.getViewCount())
