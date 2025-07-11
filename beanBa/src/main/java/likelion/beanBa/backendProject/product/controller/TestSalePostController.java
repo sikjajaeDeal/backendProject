@@ -1,0 +1,95 @@
+package likelion.beanBa.backendProject.product.controller;
+
+import jakarta.validation.Valid;
+import likelion.beanBa.backendProject.global.util.FileValidator;
+import likelion.beanBa.backendProject.global.util.InputValidator;
+import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.member.repository.MemberRepository;
+import likelion.beanBa.backendProject.product.S3.service.S3Service;
+import likelion.beanBa.backendProject.product.dto.SalePostRequest;
+import likelion.beanBa.backendProject.product.dto.SalePostResponse;
+import likelion.beanBa.backendProject.product.entity.SalePost;
+import likelion.beanBa.backendProject.product.service.SalePostService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+
+/**
+ * 🚧 테스트 전용 컨트롤러
+ * - 인증/인가 무시
+ * - 하드코딩된 Member(멤버 PK = 1, nickname = test_user) 사용
+ * - S3Service‧SalePostService 로직은 그대로 재사용
+ */
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/test-sale-post")
+public class TestSalePostController {
+
+    private final SalePostService salePostService;
+    private final S3Service s3Service;
+
+    /** 하드코딩된 테스트 계정 */
+    private final Member testMember = Member.builder()
+            .memberPk(1L)
+            .nickname("test_user")
+            .build();
+
+    /* ---------- 게시글 등록 ---------- */
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<SalePostResponse> createPost(
+            @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
+            @RequestPart(value = "salePostImages") MultipartFile[] salePostImages) throws IOException {
+
+        System.out.println("✅ POST 요청 도착"); // 여기에 로그
+
+        FileValidator.validateImageFiles(salePostImages, 4); // ✅ 이미지 수 검증 추가
+        InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
+
+        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
+        salePostRequest.setImageUrls(imageUrls);
+
+        SalePost saved = salePostService.createPost(salePostRequest, testMember);
+        return ResponseEntity.ok(SalePostResponse.from(saved, imageUrls));
+    }
+
+    /* ---------- 게시글 전체 조회 ---------- */
+    @GetMapping
+    public ResponseEntity<List<SalePostResponse>> getAllPosts() {
+        return ResponseEntity.ok(salePostService.getAllPosts());
+    }
+
+    /* ---------- 게시글 단건 조회 ---------- */
+    @GetMapping("/{postPk}")
+    public ResponseEntity<SalePostResponse> getPost(@PathVariable Long postPk) {
+        return ResponseEntity.ok(salePostService.getPost(postPk));
+    }
+
+    /* ---------- 게시글 수정 ---------- */
+    @PutMapping(value = "/{postPk}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updatePost(
+            @PathVariable Long postPk,
+            @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
+            @RequestPart(value = "salePostImages") MultipartFile[] salePostImages) throws IOException {
+
+        FileValidator.validateImageFiles(salePostImages, 4); // ✅ 이미지 수 검증 추가
+        InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
+
+        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
+        salePostRequest.setImageUrls(imageUrls);
+
+        salePostService.updatePost(postPk, salePostRequest, testMember);
+        return ResponseEntity.ok().build();
+    }
+
+    /* ---------- 게시글 삭제 ---------- */
+    @DeleteMapping("/{postPk}")
+    public ResponseEntity<Void> deletePost(@PathVariable Long postPk) {
+        salePostService.deletePost(postPk, testMember);
+        return ResponseEntity.ok().build();
+    }
+}
