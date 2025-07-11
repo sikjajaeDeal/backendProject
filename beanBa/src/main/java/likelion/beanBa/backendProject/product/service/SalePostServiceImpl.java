@@ -5,6 +5,9 @@ import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostResponse;
+import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
+import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
+import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -31,6 +34,9 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostImageRepository salePostImageRepository;
     private final MemberRepository memberRepository;
 
+    private final SalePostEsServiceImpl salePostEsServiceImpl;
+    private final SalePostEsRepository salePostEsRepository;
+
 
     /** 게시글 생성 **/
     @Override
@@ -51,6 +57,21 @@ public class SalePostServiceImpl implements SalePostService {
 
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
+
+        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+
+//        SalePostEsDocument doc = SalePostEsDocument.builder()
+//                .postPk(salePost.getPostPk())
+//                .sellerId(salePost.getSellerPk().getMemberId())
+//                .buyerId(salePost.getBuyerPk() != null ? salePost.getBuyerPk().getMemberId() : null)
+//                .title(salePost.getTitle())
+//                .content(salePost.getContent())
+//                .hopePrice(salePost.getHopePrice())
+//                .deleteYn(salePost.getDeleteYn().toString())
+//                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
+//                .build();
+
+        salePostEsServiceImpl.save(doc);
 
         return salePost;
     }
@@ -113,6 +134,8 @@ public class SalePostServiceImpl implements SalePostService {
         );
 
 
+
+
         // 🔁 이미지 무조건 삭제 후 재등록
         List<String> newUrls = salePostRequest.getImageUrls();
         if (newUrls != null && !newUrls.isEmpty()) {
@@ -121,6 +144,8 @@ public class SalePostServiceImpl implements SalePostService {
 
             saveImages(salePost, newUrls);
         }
+
+        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
     }
 
 

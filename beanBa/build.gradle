@@ -50,6 +50,13 @@ dependencies {
 	implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2')
 	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.669'
 
+	//elasticsearch
+	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+	implementation 'co.elastic.clients:elasticsearch-java:8.12.0'
+
+	//AWS RDS
+	implementation 'com.mysql:mysql-connector-j'
+
 }
 
 tasks.named('test') {
