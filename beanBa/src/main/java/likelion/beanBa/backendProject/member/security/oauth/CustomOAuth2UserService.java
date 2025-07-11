@@ -23,44 +23,61 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        String provider = userRequest.getClientRegistration().getRegistrationId();
-        Map<String, Object> attributes = oAuth2User.getAttributes();
+        // 소셜 로그인 구분
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
 
-        String memberId = extractMemberId(provider, attributes);
-        String email = extractEmail(provider, attributes);
+        String provider = null;
+        String providerId = null;
+        String email = null;
+        String nickname = null;
 
-        Member member = memberRepository.findByEmailAndProvider(email, provider)
-                .orElseGet(() -> {
-                    Member newMember = Member.builder()
-                            .email(email)
-                            .provider(provider)
-                            .memberId(memberId)
-                            .role("member")
-                            .build();
-                    return memberRepository.save(newMember);
-                });
+        Map<String,Object> attrs = oAuth2User.getAttributes();
 
-        return new CustomUserDetails(member);
-    }
+        if("google".equals(registrationId)) {
+            providerId = String.valueOf(attrs.get("sub"));
+            email = String.valueOf(attrs.get("email"));
+            nickname = String.valueOf(attrs.get("name"));
+            provider = "G";
+        } else if ("kakao".equals(registrationId)) {
+            provider = "K";
+            providerId = String.valueOf(attrs.get("id"));
 
-    private String extractEmail(String provider, Map<String,Object> attributes) {
-        if(provider.equals("google")){
-            return (String) attributes.get("email");
-        } else if (provider.equals("kakao")){
-            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            return (String) kakaoAccount.get("email");
-        } else {
-            throw new IllegalArgumentException("Unsupported provider: "+provider);
+            @SuppressWarnings("unchecked")
+            Map<String,Object> kakaoAccount = (Map<String,Object>) attrs.get("kakao_account");
+            if (kakaoAccount != null) {
+                email = String.valueOf(kakaoAccount.get("email"));
+
+                @SuppressWarnings("unchecked")
+                Map<String,Object> profile = (Map<String,Object>) kakaoAccount.get("profile");
+                if(profile != null) {
+                    nickname = String.valueOf(profile.get("nickname"));
+                }
+            }
         }
-    }
 
-    private String extractMemberId(String provider, Map<String,Object> attributes) {
-        if(provider.equals("google")){
-            return (String) attributes.get("sub");
-        } else if (provider.equals("kakao")){
-            return String.valueOf(attributes.get("id"));
-        } else {
-            throw new IllegalArgumentException("Unsupported provider: "+provider);
+        if(email == null || providerId == null) {
+            throw new OAuth2AuthenticationException("소셜 로그인 실패 : 필수 정보 누락");
         }
+
+        final String finalProvider = provider;
+        final String finalProviderId = providerId;
+        final String finalEmail = email;
+        final String finalNickname = nickname;
+
+        Member member = memberRepository.findByEmail(email)
+                .orElseGet(() -> memberRepository.save(
+                        Member.builder()
+                                .email(finalEmail)
+                                .provider(finalProvider)
+                                .memberId(finalProviderId)
+                                .password("temp")
+                                .nickname(finalNickname != null ? finalNickname : "temp")
+                                .role("member")
+                                .useYn("Y")
+                                .deleteYn("N")
+                                .build()
+                ));
+
+        return new CustomOAuth2User(member, oAuth2User.getAttributes());
     }
 }

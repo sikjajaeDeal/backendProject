@@ -28,7 +28,6 @@ dependencies {
 	//DB
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'com.mysql:mysql-connector-j'
-	implementation 'mysql:mysql-connector-java:8.0.41'
 
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
@@ -51,12 +50,8 @@ dependencies {
 	implementation platform('io.awspring.cloud:spring-cloud-aws-dependencies:3.0.2')
 	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.669'
 
-	// websocket
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
-	// redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
+	//EMAIL Authorization
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('test') {
