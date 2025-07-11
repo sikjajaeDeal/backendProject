@@ -4,10 +4,10 @@ import jakarta.validation.Valid;
 import likelion.beanBa.backendProject.global.util.FileValidator;
 import likelion.beanBa.backendProject.global.util.InputValidator;
 import likelion.beanBa.backendProject.member.Entity.Member;
-import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.S3.service.S3Service;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.service.SalePostService;
 import lombok.RequiredArgsConstructor;
@@ -41,7 +41,7 @@ public class TestSalePostController {
 
     /* ---------- 게시글 등록 ---------- */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<SalePostResponse> createPost(
+    public ResponseEntity<SalePostDetailResponse> createPost(
             @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
             @RequestPart(value = "salePostImages") MultipartFile[] salePostImages) throws IOException {
 
@@ -54,25 +54,25 @@ public class TestSalePostController {
         salePostRequest.setImageUrls(imageUrls);
 
         SalePost saved = salePostService.createPost(salePostRequest, testMember);
-        return ResponseEntity.ok(SalePostResponse.from(saved, imageUrls));
+        return ResponseEntity.ok(SalePostDetailResponse.from(saved, imageUrls));
     }
 
     /* ---------- 게시글 전체 조회 ---------- */
     @GetMapping
-    public ResponseEntity<List<SalePostResponse>> getAllPosts() {
+    public ResponseEntity<List<SalePostSummaryResponse>> getAllPosts() {
         return ResponseEntity.ok(salePostService.getAllPosts());
     }
 
     /* ---------- 게시글 단건 조회 ---------- */
     @GetMapping("/{postPk}")
-    public ResponseEntity<SalePostResponse> getPost(@PathVariable Long postPk) {
+    public ResponseEntity<SalePostDetailResponse> getPost(@PathVariable("postPk") Long postPk) {
         return ResponseEntity.ok(salePostService.getPost(postPk));
     }
 
     /* ---------- 게시글 수정 ---------- */
     @PutMapping(value = "/{postPk}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updatePost(
-            @PathVariable Long postPk,
+            @PathVariable("postPk") Long postPk,
             @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
             @RequestPart(value = "salePostImages") MultipartFile[] salePostImages) throws IOException {
 
@@ -88,7 +88,7 @@ public class TestSalePostController {
 
     /* ---------- 게시글 삭제 ---------- */
     @DeleteMapping("/{postPk}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postPk) {
+    public ResponseEntity<Void> deletePost(@PathVariable("postPk") Long postPk) {
         salePostService.deletePost(postPk, testMember);
         return ResponseEntity.ok().build();
     }

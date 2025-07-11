@@ -4,7 +4,8 @@ import jakarta.persistence.EntityNotFoundException;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
@@ -22,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @Service
@@ -80,16 +80,27 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 전체 조회 **/
     @Override
     @Transactional(readOnly = true)
-    public List<SalePostResponse> getAllPosts() {
+    public List<SalePostSummaryResponse> getAllPosts() {
         List<SalePost> salePosts = salePostRepository.findAllByDeleteYn(Yn.N);
 
         return salePosts.stream()
                 .map(salePost -> {
-                    List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
-                            .stream()
+                    // 삭제되지 않은 이미지만 가져오기
+                    List<SalePostImage> images = salePostImageRepository
+                            .findAllByPostPkAndDeleteYn(salePost, Yn.N);
+
+                    // 썸네일 추출
+                    String thumbnailUrl = images.stream()
+                            .findFirst()
                             .map(SalePostImage::getImageUrl)
-                            .toList();
-                    return SalePostResponse.from(salePost, imageUrls);
+                            .orElse(null);
+
+//                    //이미지 리스트
+//                    List<String> imageUrls = images.stream()
+//                            .map(SalePostImage::getImageUrl)
+//                            .toList();
+
+                    return SalePostSummaryResponse.from(salePost, thumbnailUrl);
                 })
                 .toList();
     }
@@ -98,7 +109,7 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 단건 조회 **/
     @Override
     @Transactional(readOnly = true)
-    public SalePostResponse getPost(Long postPk) {
+    public SalePostDetailResponse getPost(Long postPk) {
         SalePost salePost = findPostById(postPk);
 
         List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
@@ -106,7 +117,7 @@ public class SalePostServiceImpl implements SalePostService {
                 .map(SalePostImage::getImageUrl)
                 .toList();
 
-        return SalePostResponse.from(salePost, imageUrls);
+        return SalePostDetailResponse.from(salePost, imageUrls);
     }
 
 
