@@ -43,9 +43,9 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
-                        "/api/member/signup",
                         "/api/auth/login",
                         "/api/auth/refresh",
+                        "/api/auth/signup/**",
                         "/oauth2/**",
                         "/upload",
                         "/swagger-ui/**",
@@ -53,12 +53,11 @@ public class SecurityConfig {
                         "/api/test-sale-post/**"  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
                 ).permitAll()
                 .anyRequest().authenticated()
-        );
-        //oauth2 아직 미적용
-//                        .oauth2Login(oauth2 -> oauth2
-//                                .userInfoEndpoint(userInfo -> userInfo
-//                                        .userService(customOAuth2UserService))
-//                                .successHandler(oAuth2LoginSuccessHandler));
+        )
+                    .oauth2Login(oauth2 -> oauth2
+                                .userInfoEndpoint(userInfo -> userInfo
+                                        .userService(customOAuth2UserService))
+                                .successHandler(oAuth2LoginSuccessHandler));
 
         http.addFilterBefore(
                 new JwtAuthenticationFilter(jwtTokenProvider, customUserDetailsService),
