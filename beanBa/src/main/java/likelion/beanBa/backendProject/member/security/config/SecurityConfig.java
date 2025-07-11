@@ -43,6 +43,8 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                        "/api/member/signup",
+                        "/elasticsearch/**",
                         "/api/auth/login",
                         "/api/auth/refresh",
                         "/api/auth/signup/**",
