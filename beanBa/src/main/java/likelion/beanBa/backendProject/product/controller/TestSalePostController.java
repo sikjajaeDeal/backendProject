@@ -54,7 +54,7 @@ public class TestSalePostController {
         salePostRequest.setImageUrls(imageUrls);
 
         SalePost saved = salePostService.createPost(salePostRequest, testMember);
-        return ResponseEntity.ok(SalePostDetailResponse.from(saved, imageUrls, false));
+        return ResponseEntity.ok(SalePostDetailResponse.from(saved, imageUrls, false, 0));
     }
 
     /* ---------- 게시글 전체 조회 ---------- */

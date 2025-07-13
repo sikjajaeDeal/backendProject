@@ -108,7 +108,9 @@ public class SalePostServiceImpl implements SalePostService {
 
                     boolean salePostLiked = likedPostPks.contains(salePost.getPostPk()); // 찜 여부 판단
 
-                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, salePostLiked);
+                    int likeCount = salePostLikeRepository.countByPostPk(salePost); // 찜 수 조회
+
+                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, salePostLiked, likeCount);
                 })
                 .toList();
     }
@@ -128,7 +130,9 @@ public class SalePostServiceImpl implements SalePostService {
         // 단건 조회 시에도 찜 여부 확인
         boolean salePostLiked = member != null && salePostLikeRepository.existsByMemberPkAndPostPk(member, salePost);
 
-        return SalePostDetailResponse.from(salePost, imageUrls, salePostLiked);
+        int likeCount = salePostLikeRepository.countByPostPk(salePost); // 찜 수 조회
+
+        return SalePostDetailResponse.from(salePost, imageUrls, salePostLiked, likeCount);
     }
 
 

@@ -21,6 +21,7 @@ public class SalePostSummaryResponse {
     private String content;
     private int hopePrice;
     private Long viewCount;
+    private int likeCount;
 
     private LocalDateTime postAt;
     private LocalDateTime stateAt;
@@ -36,7 +37,7 @@ public class SalePostSummaryResponse {
     private boolean salePostLiked;
 
 
-    public static SalePostSummaryResponse from(SalePost salePost, String thumbnailUrl, boolean salePostLiked) {
+    public static SalePostSummaryResponse from(SalePost salePost, String thumbnailUrl, boolean salePostLiked, int likeCount) {
         return SalePostSummaryResponse.builder()
                 .postPk(salePost.getPostPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
@@ -44,6 +45,7 @@ public class SalePostSummaryResponse {
                 .title(salePost.getTitle())
                 .content(salePost.getContent())
                 .viewCount(salePost.getViewCount())
+                .likeCount(likeCount)
                 .hopePrice(salePost.getHopePrice())
                 .postAt(salePost.getPostAt())
                 .stateAt(salePost.getStateAt())
