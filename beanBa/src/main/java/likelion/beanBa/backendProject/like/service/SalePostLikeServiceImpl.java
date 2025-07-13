@@ -12,6 +12,7 @@ import likelion.beanBa.backendProject.product.repository.SalePostImageRepository
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     private final SalePostImageRepository salePostImageRepository;
 
     @Override
+    @Transactional
     public void likePost(Member member, Long postPk) {
         SalePost post = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
@@ -36,6 +38,7 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     }
 
     @Override
+    @Transactional
     public void unlikePost(Member member, Long postPk) {
         SalePost post = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
@@ -47,6 +50,7 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean isPostLiked(Member member, Long postPk) {
         SalePost post = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
@@ -54,6 +58,7 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SalePostSummaryResponse> getAllLikedPosts(Member member) {
 
         return likeRepository.findAllByMemberPk(member).stream()

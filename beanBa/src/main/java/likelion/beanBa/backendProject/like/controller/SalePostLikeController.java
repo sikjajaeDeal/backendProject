@@ -3,6 +3,7 @@ package likelion.beanBa.backendProject.like.controller;
 
 import jakarta.persistence.Column;
 import likelion.beanBa.backendProject.like.service.SalePostLikeService;
+import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
 import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
 import likelion.beanBa.backendProject.mypage.dto.MyPagePostResponse;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static likelion.beanBa.backendProject.global.util.AuthUtils.getAuthenticatedMember;
 
 @RestController
 @RequiredArgsConstructor
@@ -25,7 +28,8 @@ public class SalePostLikeController {
     public ResponseEntity<Void> likePost (@PathVariable("postPk") Long postPk,
                                           @CurrentUser CustomUserDetails userDetails) {
 
-        salePostLikeService.likePost(userDetails.getMember(), postPk);
+        Member loginMember = getAuthenticatedMember(userDetails);
+        salePostLikeService.likePost(loginMember, postPk);
         return ResponseEntity.ok().build();
     }
 
@@ -35,7 +39,8 @@ public class SalePostLikeController {
     public ResponseEntity<Void> unlikePost(@PathVariable("postPk") Long postPk,
                                            @CurrentUser CustomUserDetails userDetails) {
 
-        salePostLikeService.unlikePost(userDetails.getMember(), postPk);
+        Member loginMember = getAuthenticatedMember(userDetails);
+        salePostLikeService.unlikePost(loginMember, postPk);
         return ResponseEntity.ok().build();
     }
 
@@ -45,7 +50,8 @@ public class SalePostLikeController {
     public ResponseEntity<Boolean> isPostLiked(@PathVariable("postPk") Long postPk,
                                                @CurrentUser CustomUserDetails userDetails) {
 
-        boolean saleLiked = salePostLikeService.isPostLiked(userDetails.getMember(), postPk);
+        Member loginMember = getAuthenticatedMember(userDetails);
+        boolean saleLiked = salePostLikeService.isPostLiked(loginMember, postPk);
         return ResponseEntity.ok(saleLiked);
     }
 
@@ -54,7 +60,8 @@ public class SalePostLikeController {
     @GetMapping("/mypage")
     public ResponseEntity<List<SalePostSummaryResponse>> getMyLikedPosts(@CurrentUser CustomUserDetails userDetails) {
 
-        List<SalePostSummaryResponse> saleLikedPosts = salePostLikeService.getAllLikedPosts(userDetails.getMember());
+        Member loginMember = getAuthenticatedMember(userDetails);
+        List<SalePostSummaryResponse> saleLikedPosts = salePostLikeService.getAllLikedPosts(loginMember);
         return ResponseEntity.ok(saleLikedPosts);
     }
 

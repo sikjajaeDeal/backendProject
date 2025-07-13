@@ -21,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import static likelion.beanBa.backendProject.global.util.AuthUtils.getAuthenticatedMember;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/sale-post")
@@ -43,7 +45,7 @@ public class SalePostController {
         List<String> imageUrls = s3Service.uploadFiles(salePostImages);
         salePostRequest.setImageUrls(imageUrls);
 
-        Member loginMember = userDetails.getMember();
+        Member loginMember = getAuthenticatedMember(userDetails);
         SalePost salePost = salePostService.createPost(salePostRequest, loginMember);
         return ResponseEntity.ok(SalePostDetailResponse.from(salePost, imageUrls, false));
     }
@@ -84,7 +86,7 @@ public class SalePostController {
         List<String> imageUrls = s3Service.uploadFiles(salePostImages);
         salePostRequest.setImageUrls(imageUrls);
 
-        Member loginMember = userDetails.getMember();
+        Member loginMember = getAuthenticatedMember(userDetails);
         salePostService.updatePost(postPk, salePostRequest, loginMember);
         return ResponseEntity.ok().build();
     }
@@ -95,7 +97,7 @@ public class SalePostController {
     public ResponseEntity<Void> deletePost(@PathVariable("postPk") Long postPk,
                                            @CurrentUser CustomUserDetails userDetails) {
 
-        Member loginMember = userDetails.getMember();
+        Member loginMember = getAuthenticatedMember(userDetails);
         salePostService.deletePost(postPk, loginMember);
         return ResponseEntity.ok().build();
     }
