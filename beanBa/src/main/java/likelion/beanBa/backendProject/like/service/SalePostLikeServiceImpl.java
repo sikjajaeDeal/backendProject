@@ -3,7 +3,6 @@ package likelion.beanBa.backendProject.like.service;
 import likelion.beanBa.backendProject.like.entity.SalePostLike;
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
-import likelion.beanBa.backendProject.mypage.dto.MyPagePostResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;

@@ -2,7 +2,6 @@ package likelion.beanBa.backendProject.mypage.service;
 
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
-import likelion.beanBa.backendProject.mypage.dto.MyPagePostResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -46,7 +45,9 @@ public class MyPageServiceImpl implements MyPageService {
 
                     boolean isLiked = likedPostPks.contains(mySalePost.getPostPk());
 
-                    return SalePostSummaryResponse.from(mySalePost, thumbnail, isLiked);
+                    int likeCount = salePostLikeRepository.countByPostPk(mySalePost); // 찜 수 조회
+
+                    return SalePostSummaryResponse.from(mySalePost, thumbnail, isLiked, likeCount);
                 })
                 .toList();
     }
@@ -70,7 +71,9 @@ public class MyPageServiceImpl implements MyPageService {
 
                     boolean isLiked = likedPostPks.contains(myPurchasedPost.getPostPk());
 
-                    return SalePostSummaryResponse.from(myPurchasedPost, thumbnail, isLiked);
+                    int likeCount = salePostLikeRepository.countByPostPk(myPurchasedPost); // 찜 수 조회
+
+                    return SalePostSummaryResponse.from(myPurchasedPost, thumbnail, isLiked, likeCount);
                 })
                 .toList();
     }

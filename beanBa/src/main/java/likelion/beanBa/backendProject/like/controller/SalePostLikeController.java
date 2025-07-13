@@ -1,12 +1,10 @@
 package likelion.beanBa.backendProject.like.controller;
 
 
-import jakarta.persistence.Column;
 import likelion.beanBa.backendProject.like.service.SalePostLikeService;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
 import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
-import likelion.beanBa.backendProject.mypage.dto.MyPagePostResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
