@@ -12,10 +12,13 @@ import java.util.Map;
  **/
 public class CustomHandshakeHandler extends DefaultHandshakeHandler {
 
+    /*
+    * Websocket이 연결이 시작될 때 클라이언트의 nickname 파라미터를 읽어서 Add commentMore actions
+    * 그 값을 Principal(인증정보)로 사용
+    * */
     @Override
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
-        //Websocket이 연결이 시작될 때 클라이언트의 nickname 파라미터를 읽어서Add commentMore actions
-        //그 값을 Principal(인증정보)로 사용
+
         String nickname = getNickname(request.getURI().getQuery());
         return new StompPrincipal(nickname);
     }

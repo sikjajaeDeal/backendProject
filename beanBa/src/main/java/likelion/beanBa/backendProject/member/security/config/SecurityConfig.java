@@ -50,7 +50,10 @@ public class SecurityConfig {
                         "/upload",
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
-                        "/api/test-sale-post/**"  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
+                        "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
+                        "/chatting/**",  // 채팅 테스트
+                        "/*.html",  // html 정적 화면
+                        "/js/**"  // js파일
                 ).permitAll()
                 .anyRequest().authenticated()
         )

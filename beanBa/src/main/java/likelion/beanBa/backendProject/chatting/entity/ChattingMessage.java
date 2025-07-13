@@ -7,12 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
-import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 
-@AllArgsConstructor // 모든 필드 다 파라미터로 받는 생성자 어노테이션
-@NoArgsConstructor // 기본생성자 어노테이션
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Entity
@@ -22,22 +21,22 @@ public class ChattingMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "chat_message_pk")
-    private long id;
+    private long id; // pk값
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_room_pk")
+    @JoinColumn(name = "chat_room_pk") // 채팅룸 pk
     private ChattingRoom chattingRoom;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_pk_from")
+    @JoinColumn(name = "member_pk_from") // 발신자 멤버 pk
     private Member member;
 
+    @Lob //TEXT 타입으로 만들기
+    private String message; // 전송한 메시지
 
-    private String message;
-
-    //엔티티가 저잘될때 자동으로 시간을 기록
+    //엔티티가 저장될 때 자동으로 시간을 기록
     @CreationTimestamp
     @JoinColumn(name = "message_at")
-    private LocalDateTime messageAt;
+    private LocalDateTime messageAt; // 전송 시간
 
 }

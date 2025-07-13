@@ -12,16 +12,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker // Stomp 메시지 브로커 기능을 활성화하는 어노테이션
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    /** 클라이언트가 웹소켓에 연결할 엔드포인트를 등록 **/
+    /*
+    * 클라이언트가 웹소켓에 연결할 엔드포인트를 등록
+    **/
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-chat") // 단톡방 전용
                 .setHandshakeHandler(new CustomHandshakeHandler())
                 .setAllowedOriginPatterns("*");
-
     }
 
-    /** Stomp에서 메세지가 어디로 전달될지 규칙(경로)을 정하는 곳   **/
+    /*
+     * Stomp에서 메세지가 어디로 전달될지 규칙(경로)을 정하는 곳
+     **/
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/topic", "/queue"); // 구독용 경로 서버 -> 클라이언트
