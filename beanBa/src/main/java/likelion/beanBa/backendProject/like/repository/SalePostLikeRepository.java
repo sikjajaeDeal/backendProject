@@ -10,9 +10,12 @@ import java.util.Optional;
 
 public interface SalePostLikeRepository extends JpaRepository<SalePostLike, Long> {
 
+    // 사용자의 찜 여부 반환
     boolean existsByMemberPkAndPostPk(Member member, SalePost post);
 
+    // 찜 취소 시, 객체 삭제를 위해 객체를 반환
     Optional<SalePostLike> findByMemberPkAndPostPk(Member member, SalePost post);
 
+    // 사용자가 찜한 모든 게시물 반환
     List<SalePostLike> findAllByMemberPk(Member member);
 }

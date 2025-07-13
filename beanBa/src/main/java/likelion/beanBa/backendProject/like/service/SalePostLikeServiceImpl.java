@@ -23,7 +23,7 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     private final SalePostImageRepository salePostImageRepository;
 
     @Override
-    public void getLikePost(Member member, Long postPk) {
+    public void LikePost(Member member, Long postPk) {
         SalePost post = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
