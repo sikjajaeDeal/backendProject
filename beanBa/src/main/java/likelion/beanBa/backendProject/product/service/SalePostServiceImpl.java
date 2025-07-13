@@ -62,7 +62,7 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
-//        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 하느라 주석
+        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 할 때 주석
 
 //        SalePostEsDocument doc = SalePostEsDocument.builder()
 //                .postPk(salePost.getPostPk())
@@ -75,7 +75,7 @@ public class SalePostServiceImpl implements SalePostService {
 //                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
 //                .build();
 
-//        salePostEsServiceImpl.save(doc);
+        salePostEsServiceImpl.save(doc);
 
         return salePost;
     }
