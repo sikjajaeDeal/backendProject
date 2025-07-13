@@ -1,8 +1,8 @@
 package likelion.beanBa.backendProject.mypage.controller;
 
 import likelion.beanBa.backendProject.member.Entity.Member;
-import likelion.beanBa.backendProject.mypage.dto.MyPagePostResponse;
 import likelion.beanBa.backendProject.mypage.service.MyPageService;
+import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,15 +27,15 @@ public class MyPageTestController {
 
     /** 내가 판매한 글 조회 (테스트용) **/
     @GetMapping("/sales")
-    public ResponseEntity<List<MyPagePostResponse>> getMySalePostsTest() {
-        List<MyPagePostResponse> responses = myPageService.getMySalePosts(testMember);
+    public ResponseEntity<List<SalePostSummaryResponse>> getMySalePostsTest() {
+        List<SalePostSummaryResponse> responses = myPageService.getMySalePosts(testMember);
         return ResponseEntity.ok(responses);
     }
 
     /** 내가 구매한 글 조회 (테스트용) **/
     @GetMapping("/purchases")
-    public ResponseEntity<List<MyPagePostResponse>> getMyPurchasedPostsTest() {
-        List<MyPagePostResponse> responses = myPageService.getMyPurchasedPosts(testMember);
+    public ResponseEntity<List<SalePostSummaryResponse>> getMyPurchasedPostsTest() {
+        List<SalePostSummaryResponse> responses = myPageService.getMyPurchasedPosts(testMember);
         return ResponseEntity.ok(responses);
     }
 }
