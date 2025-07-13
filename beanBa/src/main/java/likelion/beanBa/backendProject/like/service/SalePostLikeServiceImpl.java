@@ -69,7 +69,10 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
                             .findTopByPostPkAndDeleteYnOrderByImagePkAsc(salePost, Yn.N)
                             .map(SalePostImage::getImageUrl)
                             .orElseThrow(() -> new IllegalStateException("썸네일 이미지가 존재하지 않습니다."));
-                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, true);
+
+                    int likeCount = likeRepository.countByPostPk(salePost); // 찜 수 조회
+
+                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, true, likeCount);
                 })
                 .toList();
     }

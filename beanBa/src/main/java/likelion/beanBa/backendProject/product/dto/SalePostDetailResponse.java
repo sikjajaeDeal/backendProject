@@ -23,6 +23,9 @@ public class SalePostDetailResponse {
     private int hopePrice;
     private Long viewCount;
 
+    @Builder.Default
+    private int likeCount = 0;
+
     private LocalDateTime postAt;
     private LocalDateTime stateAt;
     private SaleStatement state;
@@ -36,7 +39,7 @@ public class SalePostDetailResponse {
     @Builder.Default
     private boolean salePostLiked = false; // 값 반환을 빠뜨렸을 경우 대비, 디폴트 설정
 
-    public static SalePostDetailResponse from(SalePost salePost, List<String> imageUrls, boolean salePostLiked) {
+    public static SalePostDetailResponse from(SalePost salePost, List<String> imageUrls, boolean salePostLiked, int likeCount) {
         return SalePostDetailResponse.builder()
                 .postPk(salePost.getPostPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
@@ -44,6 +47,7 @@ public class SalePostDetailResponse {
                 .title(salePost.getTitle())
                 .content(salePost.getContent())
                 .viewCount(salePost.getViewCount())
+                .likeCount(likeCount)
                 .hopePrice(salePost.getHopePrice())
                 .postAt(salePost.getPostAt())
                 .stateAt(salePost.getStateAt())

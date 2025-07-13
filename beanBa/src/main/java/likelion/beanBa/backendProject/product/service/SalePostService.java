@@ -22,4 +22,5 @@ public interface SalePostService {
     void deletePost(Long postPk, Member sellerPk);
 
     void completeSale(Long postPk, Long buyerPk, Member sellerPk);
+
 }

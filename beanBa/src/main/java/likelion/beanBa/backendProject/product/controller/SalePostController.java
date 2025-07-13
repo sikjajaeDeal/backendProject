@@ -47,7 +47,8 @@ public class SalePostController {
 
         Member loginMember = getAuthenticatedMember(userDetails);
         SalePost salePost = salePostService.createPost(salePostRequest, loginMember);
-        return ResponseEntity.ok(SalePostDetailResponse.from(salePost, imageUrls, false));
+
+        return ResponseEntity.ok(SalePostDetailResponse.from(salePost, imageUrls, false, 0));
     }
 
 
