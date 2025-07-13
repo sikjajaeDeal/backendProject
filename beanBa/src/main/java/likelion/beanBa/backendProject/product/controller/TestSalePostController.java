@@ -54,19 +54,19 @@ public class TestSalePostController {
         salePostRequest.setImageUrls(imageUrls);
 
         SalePost saved = salePostService.createPost(salePostRequest, testMember);
-        return ResponseEntity.ok(SalePostDetailResponse.from(saved, imageUrls));
+        return ResponseEntity.ok(SalePostDetailResponse.from(saved, imageUrls, false));
     }
 
     /* ---------- 게시글 전체 조회 ---------- */
     @GetMapping
     public ResponseEntity<List<SalePostSummaryResponse>> getAllPosts() {
-        return ResponseEntity.ok(salePostService.getAllPosts());
+        return ResponseEntity.ok(salePostService.getAllPosts(testMember));
     }
 
     /* ---------- 게시글 단건 조회 ---------- */
     @GetMapping("/{postPk}")
     public ResponseEntity<SalePostDetailResponse> getPost(@PathVariable("postPk") Long postPk) {
-        return ResponseEntity.ok(salePostService.getPost(postPk));
+        return ResponseEntity.ok(salePostService.getPost(postPk, testMember));
     }
 
     /* ---------- 게시글 수정 ---------- */

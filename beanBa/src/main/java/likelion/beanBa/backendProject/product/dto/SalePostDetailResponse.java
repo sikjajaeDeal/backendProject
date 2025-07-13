@@ -33,7 +33,10 @@ public class SalePostDetailResponse {
 
     private List<String> imageUrls;
 
-    public static SalePostDetailResponse from(SalePost salePost, List<String> imageUrls) {
+    @Builder.Default
+    private boolean salePostLiked = false; // 값 반환을 빠뜨렸을 경우 대비, 디폴트 설정
+
+    public static SalePostDetailResponse from(SalePost salePost, List<String> imageUrls, boolean salePostLiked) {
         return SalePostDetailResponse.builder()
                 .postPk(salePost.getPostPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
@@ -48,6 +51,7 @@ public class SalePostDetailResponse {
                 .latitude(salePost.getLatitude())
                 .longitude(salePost.getLongitude())
                 .imageUrls(imageUrls)
+                .salePostLiked(salePostLiked)
                 .build();
     }
 }

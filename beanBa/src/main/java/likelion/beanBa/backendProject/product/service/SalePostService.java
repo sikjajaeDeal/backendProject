@@ -13,9 +13,9 @@ public interface SalePostService {
 
     SalePost createPost(SalePostRequest salePostRequest, Member sellerPk);
 
-    List<SalePostSummaryResponse> getAllPosts();
+    List<SalePostSummaryResponse> getAllPosts(Member member);
 
-    SalePostDetailResponse getPost(Long postPk);
+    SalePostDetailResponse getPost(Long postPk, Member member);
 
     void updatePost(Long postPk, SalePostRequest salePostRequest, Member sellerPk);
 

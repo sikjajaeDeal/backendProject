@@ -4,6 +4,7 @@ import likelion.beanBa.backendProject.like.entity.SalePostLike;
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.mypage.dto.MyPagePostResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
@@ -23,7 +24,7 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     private final SalePostImageRepository salePostImageRepository;
 
     @Override
-    public void LikePost(Member member, Long postPk) {
+    public void likePost(Member member, Long postPk) {
         SalePost post = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
 
@@ -53,16 +54,17 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     }
 
     @Override
-    public List<MyPagePostResponse> getAllLikedPosts(Member member) {
+    public List<SalePostSummaryResponse> getAllLikedPosts(Member member) {
+
         return likeRepository.findAllByMemberPk(member).stream()
                 .map(SalePostLike::getPostPk)
                 .filter(salePost -> salePost.getDeleteYn() == Yn.N)
                 .map(salePost -> {
-                    SalePostImage thumbnail = salePostImageRepository
+                    String thumbnailUrl = salePostImageRepository
                             .findTopByPostPkAndDeleteYnOrderByImagePkAsc(salePost, Yn.N)
-                            .orElse(null);
-                    String url = thumbnail != null ? thumbnail.getImageUrl() : null;
-                    return MyPagePostResponse.from(salePost, url);
+                            .map(SalePostImage::getImageUrl)
+                            .orElseThrow(() -> new IllegalStateException("썸네일 이미지가 존재하지 않습니다."));
+                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, true);
                 })
                 .toList();
     }

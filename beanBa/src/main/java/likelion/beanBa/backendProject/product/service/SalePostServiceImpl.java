@@ -1,6 +1,7 @@
 package likelion.beanBa.backendProject.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
@@ -23,6 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,6 +36,7 @@ public class SalePostServiceImpl implements SalePostService {
     private final CategoryRepository categoryRepository;
     private final SalePostImageRepository salePostImageRepository;
     private final MemberRepository memberRepository;
+    private final SalePostLikeRepository salePostLikeRepository;
 
     private final SalePostEsServiceImpl salePostEsServiceImpl;
     private final SalePostEsRepository salePostEsRepository;
@@ -58,7 +62,7 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
-        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+//        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 하느라 주석
 
 //        SalePostEsDocument doc = SalePostEsDocument.builder()
 //                .postPk(salePost.getPostPk())
@@ -71,7 +75,7 @@ public class SalePostServiceImpl implements SalePostService {
 //                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
 //                .build();
 
-        salePostEsServiceImpl.save(doc);
+//        salePostEsServiceImpl.save(doc);
 
         return salePost;
     }
@@ -80,8 +84,15 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 전체 조회 **/
     @Override
     @Transactional(readOnly = true)
-    public List<SalePostSummaryResponse> getAllPosts() {
+    public List<SalePostSummaryResponse> getAllPosts(Member member) {
         List<SalePost> salePosts = salePostRepository.findAllByDeleteYn(Yn.N);
+
+        // 찜한 게시글 postPk 만 먼저 가져오기
+        Set<Long> likedPostPks = member != null
+                ? salePostLikeRepository.findAllByMemberPk(member).stream()
+                .map(like -> like.getPostPk().getPostPk())
+                .collect(Collectors.toSet())
+                : Set.of();
 
         return salePosts.stream()
                 .map(salePost -> {
@@ -95,12 +106,9 @@ public class SalePostServiceImpl implements SalePostService {
                             .map(SalePostImage::getImageUrl)
                             .orElse(null);
 
-//                    //이미지 리스트
-//                    List<String> imageUrls = images.stream()
-//                            .map(SalePostImage::getImageUrl)
-//                            .toList();
+                    boolean salePostLiked = likedPostPks.contains(salePost.getPostPk()); // 찜 여부 판단
 
-                    return SalePostSummaryResponse.from(salePost, thumbnailUrl);
+                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, salePostLiked);
                 })
                 .toList();
     }
@@ -109,7 +117,7 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 단건 조회 **/
     @Override
     @Transactional(readOnly = true)
-    public SalePostDetailResponse getPost(Long postPk) {
+    public SalePostDetailResponse getPost(Long postPk, Member member) {
         SalePost salePost = findPostById(postPk);
 
         List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
@@ -117,7 +125,10 @@ public class SalePostServiceImpl implements SalePostService {
                 .map(SalePostImage::getImageUrl)
                 .toList();
 
-        return SalePostDetailResponse.from(salePost, imageUrls);
+        // 단건 조회 시에도 찜 여부 확인
+        boolean salePostLiked = member != null && salePostLikeRepository.existsByMemberPkAndPostPk(member, salePost);
+
+        return SalePostDetailResponse.from(salePost, imageUrls, salePostLiked);
     }
 
 

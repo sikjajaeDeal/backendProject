@@ -32,8 +32,11 @@ public class SalePostSummaryResponse {
 
     private String thumbnailUrl;
 
+    // 찜 여부 필드 추가
+    private boolean salePostLiked;
 
-    public static SalePostSummaryResponse from(SalePost salePost, String thumbnailUrl) {
+
+    public static SalePostSummaryResponse from(SalePost salePost, String thumbnailUrl, boolean salePostLiked) {
         return SalePostSummaryResponse.builder()
                 .postPk(salePost.getPostPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
@@ -48,6 +51,7 @@ public class SalePostSummaryResponse {
                 .latitude(salePost.getLatitude())
                 .longitude(salePost.getLongitude())
                 .thumbnailUrl(thumbnailUrl)
+                .salePostLiked(salePostLiked)
                 .build();
     }
 }
