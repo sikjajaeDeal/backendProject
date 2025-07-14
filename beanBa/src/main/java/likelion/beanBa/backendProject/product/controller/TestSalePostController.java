@@ -17,7 +17,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 🚧 테스트 전용 컨트롤러
@@ -74,13 +77,38 @@ public class TestSalePostController {
     public ResponseEntity<?> updatePost(
             @PathVariable("postPk") Long postPk,
             @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
-            @RequestPart(value = "salePostImages") MultipartFile[] salePostImages) throws IOException {
+            @RequestPart(value = "salePostImages", required = false) MultipartFile[] salePostImages) throws IOException {
 
-        FileValidator.validateImageFiles(salePostImages, 4); // ✅ 이미지 수 검증 추가
         InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
 
-        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
-        salePostRequest.setImageUrls(imageUrls);
+        List<String> fullImageUrls = salePostRequest.getImageUrls(); // 슬롯 순서 유지
+        List<String> newImageUrls = new ArrayList<>();
+
+        if (salePostImages != null) {
+            List<MultipartFile> validFiles = Arrays.stream(salePostImages)
+                    .filter(f -> f != null && !f.isEmpty())
+                    .collect(Collectors.toList());
+
+            if (!validFiles.isEmpty()) {
+                newImageUrls = s3Service.uploadFiles(validFiles.toArray(new MultipartFile[0]));
+
+                // 새 이미지 URL 을 빈 슬롯(null or "")에 순서대로 채워넣기
+                int newImageIndex = 0;
+                for (int i = 0; i < fullImageUrls.size(); i++) {
+                    String url = fullImageUrls.get(i);
+                    if ((url == null || url.isBlank()) && newImageIndex < newImageUrls.size()) {
+                        fullImageUrls.set(i, newImageUrls.get(newImageIndex++));
+                    }
+                }
+
+                if (newImageIndex < newImageUrls.size()) {
+                    throw new IllegalArgumentException("빈 이미지 슬롯보다 업로드한 이미지 수가 더 많습니다.");
+                }
+            }
+        }
+
+//        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
+        salePostRequest.setImageUrls(fullImageUrls); //최종 슬롯 순서 반영
 
         salePostService.updatePost(postPk, salePostRequest, testMember);
         return ResponseEntity.ok().build();

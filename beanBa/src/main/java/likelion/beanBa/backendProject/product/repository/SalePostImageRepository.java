@@ -15,5 +15,8 @@ public interface SalePostImageRepository extends JpaRepository<SalePostImage, Lo
     // 이미지들을 오름차순 정렬하여 가장 위에 것(가장 첫번째 등록한) 하나를 가져옴
     Optional<SalePostImage> findTopByPostPkAndDeleteYnOrderByImagePkAsc(SalePost salePost, Yn deleteYn);
 
+    //삭제되지 않은 글만 단건 조회
+    Optional<SalePostImage> findByPostPkAndDeleteYn(SalePost postPk, Yn deleteYn);
+
 
 }

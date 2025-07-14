@@ -23,6 +23,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -145,7 +146,9 @@ public class SalePostServiceImpl implements SalePostService {
     @Override
     @Transactional
     public void updatePost(Long postPk, SalePostRequest salePostRequest, Member sellerPk) {
-        SalePost salePost = findPostById(postPk);
+        // ✅ 삭제되지 않은 게시글만 조회 (Yn.N 필터 포함)
+        SalePost salePost = salePostRepository.findByPostPkAndDeleteYn(postPk, Yn.N)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 삭제된 게시글입니다."));
 
         if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
@@ -166,13 +169,30 @@ public class SalePostServiceImpl implements SalePostService {
 
 
 
-        // 🔁 이미지 무조건 삭제 후 재등록
-        List<String> newUrls = salePostRequest.getImageUrls();
-        if (newUrls != null && !newUrls.isEmpty()) {
-            salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
-                    .forEach(SalePostImage::markAsDeleted);
 
-            saveImages(salePost, newUrls);
+        // ✅ 이미지 비교 및 변경 감지 처리
+        List<String> requestUrls = salePostRequest.getImageUrls(); // 프론트가 슬롯 순서대로 보낸 0~3
+        if (requestUrls != null && !requestUrls.isEmpty()) {
+            List<SalePostImage> existingImages = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
+                    .stream()
+                    .sorted(Comparator.comparing(SalePostImage::getImagePk)) // 슬롯 순서 보장
+                    .collect(Collectors.toList());
+
+            for (int i = 0; i < 4; i++) {
+                String newUrl = (requestUrls.size() > i) ? requestUrls.get(i) : null;
+                SalePostImage existing = (existingImages.size() > i) ? existingImages.get(i) : null;
+
+                if (existing != null && (newUrl == null || !existing.getImageUrl().equals(newUrl))) {
+                    existing.markAsDeleted(); // 삭제 or 교체
+                }
+
+                if ((existing == null || !existing.getImageUrl().equals(newUrl)) &&
+                        newUrl != null && !newUrl.isBlank()) {
+                    salePostImageRepository.save(SalePostImage.of(salePost, newUrl)); // 새로 등록
+                }
+
+                // 같으면 유지 (아무 처리 안 함)
+            }
         }
 
         SalePostEsDocument doc = SalePostEsDocument.from(salePost);
