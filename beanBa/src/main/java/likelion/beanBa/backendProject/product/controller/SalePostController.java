@@ -8,10 +8,12 @@ import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
 import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
 import likelion.beanBa.backendProject.product.S3.service.S3Service;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.service.SalePostService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +22,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+import static likelion.beanBa.backendProject.global.util.AuthUtils.getAuthenticatedMember;
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/sale-post")
@@ -31,10 +36,12 @@ public class SalePostController {
 
     /** 게시글 등록 (S3 이미지 업로드 포함) **/
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<SalePostResponse> createPost(
+    public ResponseEntity<SalePostDetailResponse> createPost(
             @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
             @RequestPart("salePostImages") MultipartFile[] salePostImages,
-            @CurrentUser CustomUserDetails saleUserDetails) throws IOException {
+            @CurrentUser CustomUserDetails userDetails) throws IOException {
+
+//        log.info("생성 요청 시작");
 
         FileValidator.validateImageFiles(salePostImages, 4); // ✅ 이미지 수 검증 추가
         InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
@@ -42,35 +49,41 @@ public class SalePostController {
         List<String> imageUrls = s3Service.uploadFiles(salePostImages);
         salePostRequest.setImageUrls(imageUrls);
 
-        Member loginMember = saleUserDetails.getMember();
+        Member loginMember = getAuthenticatedMember(userDetails);
         SalePost salePost = salePostService.createPost(salePostRequest, loginMember);
-        return ResponseEntity.ok(SalePostResponse.from(salePost, imageUrls));
+
+        return ResponseEntity.ok(SalePostDetailResponse.from(salePost, imageUrls, false, 0));
     }
 
 
     /** 전체 게시글 조회 **/
-    @GetMapping
-    public ResponseEntity<List<SalePostResponse>> getAllPosts() {
-        List<SalePostResponse> salePosts = salePostService.getAllPosts();
+    @GetMapping("all")
+    public ResponseEntity<List<SalePostSummaryResponse>> getAllPosts(@CurrentUser CustomUserDetails userDetails) {
+
+        Member loginMember = userDetails != null ? userDetails.getMember() : null;
+        List<SalePostSummaryResponse> salePosts = salePostService.getAllPosts(loginMember);
         return ResponseEntity.ok(salePosts);
     }
 
 
     /** 게시글 단건 조회 **/
-    @GetMapping("/{postPk}")
-    public ResponseEntity<SalePostResponse> getPost(@PathVariable Long postPk) {
-        SalePostResponse response = salePostService.getPost(postPk);
-        return ResponseEntity.ok(response);
+    @GetMapping("/detail/{postPk}")
+    public ResponseEntity<SalePostDetailResponse> getPost(@PathVariable("postPk") Long postPk,
+                                                          @CurrentUser CustomUserDetails userDetails) {
+
+        Member loginMember = userDetails != null ? userDetails.getMember() : null;
+        SalePostDetailResponse salePost = salePostService.getPost(postPk, loginMember);
+        return ResponseEntity.ok(salePost);
     }
 
 
     /** 게시글 수정 (S3 이미지 업로드 포함) **/
     @PutMapping(value = "/{postPk}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updatePost(
-            @PathVariable Long postPk,
+            @PathVariable("postPk") Long postPk,
             @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
             @RequestPart("salePostImages") MultipartFile[] salePostImages,
-            @CurrentUser CustomUserDetails saleUserDetails) throws IOException {
+            @CurrentUser CustomUserDetails userDetails) throws IOException {
 
         FileValidator.validateImageFiles(salePostImages, 4); //✅ 이미지 수 검증
         InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
@@ -78,7 +91,7 @@ public class SalePostController {
         List<String> imageUrls = s3Service.uploadFiles(salePostImages);
         salePostRequest.setImageUrls(imageUrls);
 
-        Member loginMember = saleUserDetails.getMember();
+        Member loginMember = getAuthenticatedMember(userDetails);
         salePostService.updatePost(postPk, salePostRequest, loginMember);
         return ResponseEntity.ok().build();
     }
@@ -86,10 +99,10 @@ public class SalePostController {
 
     /** 게시글 삭제 （테스트 완） **/
     @DeleteMapping("/{postPk}")
-    public ResponseEntity<Void> deletePost(@PathVariable Long postPk,
-                                           @CurrentUser CustomUserDetails saleUserDetails) {
+    public ResponseEntity<Void> deletePost(@PathVariable("postPk") Long postPk,
+                                           @CurrentUser CustomUserDetails userDetails) {
 
-        Member loginMember = saleUserDetails.getMember();
+        Member loginMember = getAuthenticatedMember(userDetails);
         salePostService.deletePost(postPk, loginMember);
         return ResponseEntity.ok().build();
     }

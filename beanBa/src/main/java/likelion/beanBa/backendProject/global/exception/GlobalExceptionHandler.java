@@ -40,4 +40,12 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage()));
         return ResponseEntity.badRequest().body(errors);
     }
+
+    /** 401 Unauthorized 로그인 정보 확인 불가 시 **/
+    @ExceptionHandler(UnauthenticatedException.class)
+    public ResponseEntity<Map<String, String>> handleUnauthenticated(UnauthenticatedException e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", e.getMessage());
+        return ResponseEntity.status(401).body(error); // 401 Unauthorized
+    }
 }
