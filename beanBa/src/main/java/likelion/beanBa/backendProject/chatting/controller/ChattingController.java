@@ -38,7 +38,7 @@ import java.util.*;
 @Slf4j
 public class ChattingController {
 
-    // redispublisher
+    // redisPublisher
     private final RedisPublisher redisPublisher;
 
     // json<->dto 를 위한 객체
