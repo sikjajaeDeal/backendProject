@@ -1,10 +1,7 @@
 package likelion.beanBa.backendProject.member.auth.controller;
 
 import jakarta.validation.Valid;
-import likelion.beanBa.backendProject.member.auth.dto.JwtToken;
-import likelion.beanBa.backendProject.member.auth.dto.LoginRequest;
-import likelion.beanBa.backendProject.member.auth.dto.LoginResponse;
-import likelion.beanBa.backendProject.member.auth.dto.RefreshTokenRequest;
+import likelion.beanBa.backendProject.member.auth.dto.*;
 import likelion.beanBa.backendProject.member.auth.service.AuthService;
 import likelion.beanBa.backendProject.member.dto.SignupRequest;
 import likelion.beanBa.backendProject.member.email.service.EmailAuthService;
@@ -55,7 +52,7 @@ public class AuthController {
         if(memberRepository.existsByEmail(email)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 가입된 이메일 입니다.");
         }
-        emailService.sendVerificationCode(email);
+        emailService.sendVerificationCode(email, null,"signup");
         return ResponseEntity.ok("이메일 인증 메일을 전송했습니다.");
     }
 

@@ -43,7 +43,7 @@ public class AuthService {
                         () -> authRepository.save(new Auth(member, refreshToken))
                 );
 
-        return new LoginResponse(accessToken,refreshToken, MemberResponse.from(member));
+        return new LoginResponse(accessToken, MemberResponse.from(member));
     }
 
     public JwtToken reissue(RefreshTokenRequest request) {
