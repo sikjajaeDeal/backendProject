@@ -58,7 +58,9 @@ public class SecurityConfig {
                         .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
                         .requestMatchers(
                                 "/upload",
-                                "/api/test-sale-post/**"  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
+                                "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
+                                "/api/sale-post/all/",
+                                "/api/sale-post/detail/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

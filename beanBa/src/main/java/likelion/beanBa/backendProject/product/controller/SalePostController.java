@@ -57,7 +57,7 @@ public class SalePostController {
 
 
     /** 전체 게시글 조회 **/
-    @GetMapping("all")
+    @GetMapping("/all")
     public ResponseEntity<List<SalePostSummaryResponse>> getAllPosts(@CurrentUser CustomUserDetails userDetails) {
 
         Member loginMember = userDetails != null ? userDetails.getMember() : null;
