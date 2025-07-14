@@ -7,9 +7,13 @@ import likelion.beanBa.backendProject.product.product_enum.Yn;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface SalePostImageRepository extends JpaRepository<SalePostImage, Long> {
     List<SalePostImage> findAllByPostPkAndDeleteYn(SalePost salePost, Yn deleteYn);
+
+    // 이미지들을 오름차순 정렬하여 가장 위에 것(가장 첫번째 등록한) 하나를 가져옴
+    Optional<SalePostImage> findTopByPostPkAndDeleteYnOrderByImagePkAsc(SalePost salePost, Yn deleteYn);
 
 
 }

@@ -37,6 +37,10 @@ public class JwtTokenProvider {
         return generateToken(email, 180000);
     }
 
+    public String generateTokenForPwd(String memberId) {
+        return generateToken(memberId, 900000);
+    }
+
     public String generateToken(String memberId, long validity) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + validity);

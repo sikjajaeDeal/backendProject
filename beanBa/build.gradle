@@ -53,11 +53,18 @@ dependencies {
 	//EMAIL Authorization
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 
-	// websocket
-	implementation 'org.springframework.boot:spring-boot-starter-websocket'
+	//elasticsearch
+	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+	implementation 'co.elastic.clients:elasticsearch-java:8.12.0'
 
-	// redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	//AWS RDS
+	implementation 'com.mysql:mysql-connector-j'
+
+
+
+
+	//swagger
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
 }
 
 tasks.named('test') {

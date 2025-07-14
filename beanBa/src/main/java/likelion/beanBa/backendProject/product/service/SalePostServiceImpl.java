@@ -1,10 +1,15 @@
 package likelion.beanBa.backendProject.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
+import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
+import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
+import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -19,7 +24,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -30,6 +36,10 @@ public class SalePostServiceImpl implements SalePostService {
     private final CategoryRepository categoryRepository;
     private final SalePostImageRepository salePostImageRepository;
     private final MemberRepository memberRepository;
+    private final SalePostLikeRepository salePostLikeRepository;
+
+    private final SalePostEsServiceImpl salePostEsServiceImpl;
+    private final SalePostEsRepository salePostEsRepository;
 
 
     /** 게시글 생성 **/
@@ -52,6 +62,21 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
+//        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 할 때 주석
+
+//        SalePostEsDocument doc = SalePostEsDocument.builder()
+//                .postPk(salePost.getPostPk())
+//                .sellerId(salePost.getSellerPk().getMemberId())
+//                .buyerId(salePost.getBuyerPk() != null ? salePost.getBuyerPk().getMemberId() : null)
+//                .title(salePost.getTitle())
+//                .content(salePost.getContent())
+//                .hopePrice(salePost.getHopePrice())
+//                .deleteYn(salePost.getDeleteYn().toString())
+//                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
+//                .build();
+
+//        salePostEsServiceImpl.save(doc);
+
         return salePost;
     }
 
@@ -59,16 +84,33 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 전체 조회 **/
     @Override
     @Transactional(readOnly = true)
-    public List<SalePostResponse> getAllPosts() {
+    public List<SalePostSummaryResponse> getAllPosts(Member member) {
         List<SalePost> salePosts = salePostRepository.findAllByDeleteYn(Yn.N);
+
+        // 찜한 게시글 postPk 만 먼저 가져오기
+        Set<Long> likedPostPks = member != null
+                ? salePostLikeRepository.findAllByMemberPk(member).stream()
+                .map(like -> like.getPostPk().getPostPk())
+                .collect(Collectors.toSet())
+                : Set.of();
 
         return salePosts.stream()
                 .map(salePost -> {
-                    List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
-                            .stream()
+                    // 삭제되지 않은 이미지만 가져오기
+                    List<SalePostImage> images = salePostImageRepository
+                            .findAllByPostPkAndDeleteYn(salePost, Yn.N);
+
+                    // 썸네일 추출
+                    String thumbnailUrl = images.stream()
+                            .findFirst()
                             .map(SalePostImage::getImageUrl)
-                            .toList();
-                    return SalePostResponse.from(salePost, imageUrls);
+                            .orElse(null);
+
+                    boolean salePostLiked = likedPostPks.contains(salePost.getPostPk()); // 찜 여부 판단
+
+                    int likeCount = salePostLikeRepository.countByPostPk(salePost); // 찜 수 조회
+
+                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, salePostLiked, likeCount);
                 })
                 .toList();
     }
@@ -76,16 +118,25 @@ public class SalePostServiceImpl implements SalePostService {
 
     /** 게시글 단건 조회 **/
     @Override
-    @Transactional(readOnly = true)
-    public SalePostResponse getPost(Long postPk) {
+    @Transactional //조회수 DB 반영 필요
+    public SalePostDetailResponse getPost(Long postPk, Member member) {
+
         SalePost salePost = findPostById(postPk);
+
+        // 조회수 증가
+        salePost.increaseViewCount();
 
         List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .stream()
                 .map(SalePostImage::getImageUrl)
                 .toList();
 
-        return SalePostResponse.from(salePost, imageUrls);
+        // 단건 조회 시에도 찜 여부 확인
+        boolean salePostLiked = member != null && salePostLikeRepository.existsByMemberPkAndPostPk(member, salePost);
+
+        int likeCount = salePostLikeRepository.countByPostPk(salePost); // 찜 수 조회
+
+        return SalePostDetailResponse.from(salePost, imageUrls, salePostLiked, likeCount);
     }
 
 
@@ -113,6 +164,8 @@ public class SalePostServiceImpl implements SalePostService {
         );
 
 
+
+
         // 🔁 이미지 무조건 삭제 후 재등록
         List<String> newUrls = salePostRequest.getImageUrls();
         if (newUrls != null && !newUrls.isEmpty()) {
@@ -121,6 +174,8 @@ public class SalePostServiceImpl implements SalePostService {
 
             saveImages(salePost, newUrls);
         }
+
+        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
     }
 
 
