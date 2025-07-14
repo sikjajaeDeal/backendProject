@@ -53,16 +53,11 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/refresh", "/api/auth/signup/**", "/oauth2/**").permitAll()
+                        .requestMatchers("/api/member/findId", "/api/member/findPassword").permitAll()
+                        .requestMatchers("/v3/api-docs/**","/swagger-ui/**","/swagger-ui.html").permitAll()
                         .requestMatchers(
-                                "/api/auth/login",
-                                "/api/auth/refresh",
-                                "/api/auth/signup/**",
-                                "/api/member/findId",
-                                "/api/member/findPassword",
-                                "/oauth2/**",
                                 "/upload",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
                                 "/api/test-sale-post/**"  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
                         ).permitAll()
                         .anyRequest().authenticated()
