@@ -60,7 +60,10 @@ public class SecurityConfig {
                                 "/upload",
                                 "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
                                 "/api/sale-post/all/",
-                                "/api/sale-post/detail/**"
+                                "/api/sale-post/detail/**",
+                                "/chatting/**",  // 채팅 테스트 하느라고 잠시 넣어놨습니다.
+                                "/*.html",  // html 정적 화면
+                                "/js/**"  // js파일
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
