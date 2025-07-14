@@ -31,10 +31,10 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
     private final ElasticsearchClient client;
 
-    private final SalePostEsRepository repository;
+    private final SalePostEsRepository esRepository;
 
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        esRepository.deleteById(id);
     }
 
     public Page<SalePostEsDocument> search(SearchRequestDTO searchRequestDTO){
@@ -145,18 +145,30 @@ public class SalePostEsServiceImpl implements SalePostEsService {
         }
 
     }
-
+// ================ 엘라스틱서치 i/o ====================
     public void save(SalePost salePost) {
 
         try {
             SalePostEsDocument doc = SalePostEsDocument.from(salePost);
-            repository.save(doc);
+            esRepository.save(doc);
         } catch (Exception e) {
             log.error("Elasticsearch 저장 오류: {}", e.getMessage());
             throw new RuntimeException("Elasticsearch 저장 중 오류 발생", e);
         }
 
     }
+
+    public void delete(SalePost salePost) {
+        try {
+            SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+            esRepository.delete(doc);
+        } catch (Exception e) {
+            log.error("Elasticsearch 삭제 오류: {}", e.getMessage());
+            throw new RuntimeException("Elasticsearch 삭제 중 오류 발생", e);
+        }
+    }
+//================ 엘라스틱서치 i/o ====================
+
 
     /**
      * 접두어, 초성, 중간 글자 검색 쿼리를 생성하는 메서드입니다.

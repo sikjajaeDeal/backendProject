@@ -8,10 +8,7 @@ import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
-import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
-import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
-import likelion.beanBa.backendProject.product.elasticsearch.util.ElasticUtil;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -201,6 +198,9 @@ public class SalePostServiceImpl implements SalePostService {
         validateWriter(salePost, sellerPk);
 
         salePost.markAsDeleted();
+
+        // 테스트시 주석처리
+        salePostEsService.delete(salePost); // Elasticsearch에서 게시글 삭제
 
         salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .forEach(SalePostImage::markAsDeleted);

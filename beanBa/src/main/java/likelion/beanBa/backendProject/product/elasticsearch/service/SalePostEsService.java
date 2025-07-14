@@ -11,4 +11,6 @@ public interface SalePostEsService {
 
   void save(SalePost salePost);
 
+  void delete(SalePost salePost);
+
 }
