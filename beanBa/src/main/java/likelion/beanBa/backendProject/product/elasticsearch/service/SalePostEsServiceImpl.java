@@ -12,6 +12,7 @@ import co.elastic.clients.json.JsonData;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
+import likelion.beanBa.backendProject.product.entity.SalePost;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,10 +32,6 @@ public class SalePostEsServiceImpl implements SalePostEsService {
     private final ElasticsearchClient client;
 
     private final SalePostEsRepository repository;
-
-    public void save(SalePostEsDocument document) {
-        repository.save(document);
-    }
 
     public void deleteById(Long id) {
         repository.deleteById(id);
@@ -149,6 +146,18 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
     }
 
+    public void save(SalePost salePost) {
+
+        try {
+            SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+            repository.save(doc);
+        } catch (Exception e) {
+            log.error("Elasticsearch 저장 오류: {}", e.getMessage());
+            throw new RuntimeException("Elasticsearch 저장 중 오류 발생", e);
+        }
+
+    }
+
     /**
      * 접두어, 초성, 중간 글자 검색 쿼리를 생성하는 메서드입니다.
      * @param b BoolQuery.Builder 객체
@@ -250,4 +259,6 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             .lte(JsonData.of(maxPrice))
         )));
     }
+
+
 }
