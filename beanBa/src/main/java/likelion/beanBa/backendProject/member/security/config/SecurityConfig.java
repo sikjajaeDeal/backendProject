@@ -54,7 +54,9 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
                         "/api/test-mypage/**", //mypage 테스트 하느라고 잠시 넣어놨습니다.
-                        "api/test-like/**" //찜하기 테스트하느라고 잠시 넣었습니다.
+                        "/api/test-like/**", //찜하기 테스트하느라고 잠시 넣었습니다.
+                        "/api/like/**",
+                        "/api/sale-post/detail/**"
                 ).permitAll()
                 .anyRequest().authenticated()
         )

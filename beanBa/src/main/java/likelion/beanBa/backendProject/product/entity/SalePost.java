@@ -119,4 +119,10 @@ public class SalePost {
         this.deleteYn = Yn.Y;
     }
 
+
+    /** 조회수 증가 메서드 **/
+    public void increaseViewCount() {
+        this.viewCount += 1L;
+    }
+
 }

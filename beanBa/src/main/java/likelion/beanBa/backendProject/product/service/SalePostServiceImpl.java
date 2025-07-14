@@ -62,7 +62,7 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
-        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 할 때 주석
+//        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 할 때 주석
 
 //        SalePostEsDocument doc = SalePostEsDocument.builder()
 //                .postPk(salePost.getPostPk())
@@ -75,7 +75,7 @@ public class SalePostServiceImpl implements SalePostService {
 //                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
 //                .build();
 
-        salePostEsServiceImpl.save(doc);
+//        salePostEsServiceImpl.save(doc);
 
         return salePost;
     }
@@ -118,9 +118,13 @@ public class SalePostServiceImpl implements SalePostService {
 
     /** 게시글 단건 조회 **/
     @Override
-    @Transactional(readOnly = true)
+    @Transactional //조회수 DB 반영 필요
     public SalePostDetailResponse getPost(Long postPk, Member member) {
+
         SalePost salePost = findPostById(postPk);
+
+        // 조회수 증가
+        salePost.increaseViewCount();
 
         List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .stream()

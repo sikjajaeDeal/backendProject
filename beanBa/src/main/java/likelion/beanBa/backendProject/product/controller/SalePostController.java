@@ -13,6 +13,7 @@ import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.service.SalePostService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import static likelion.beanBa.backendProject.global.util.AuthUtils.getAuthenticatedMember;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/sale-post")
@@ -39,6 +41,8 @@ public class SalePostController {
             @RequestPart("salePostImages") MultipartFile[] salePostImages,
             @CurrentUser CustomUserDetails userDetails) throws IOException {
 
+//        log.info("생성 요청 시작");
+
         FileValidator.validateImageFiles(salePostImages, 4); // ✅ 이미지 수 검증 추가
         InputValidator.validateHopePrice(salePostRequest.getHopePrice()); // ✅ 희망 가격 검증 추가
 
@@ -53,7 +57,7 @@ public class SalePostController {
 
 
     /** 전체 게시글 조회 **/
-    @GetMapping
+    @GetMapping("all")
     public ResponseEntity<List<SalePostSummaryResponse>> getAllPosts(@CurrentUser CustomUserDetails userDetails) {
 
         Member loginMember = userDetails != null ? userDetails.getMember() : null;
@@ -63,7 +67,7 @@ public class SalePostController {
 
 
     /** 게시글 단건 조회 **/
-    @GetMapping("/{postPk}")
+    @GetMapping("/detail/{postPk}")
     public ResponseEntity<SalePostDetailResponse> getPost(@PathVariable("postPk") Long postPk,
                                                           @CurrentUser CustomUserDetails userDetails) {
 
