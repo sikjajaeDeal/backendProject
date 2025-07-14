@@ -50,7 +50,7 @@ public class MemberService {
             member.setNickname(request.getNickname());
         }
         if(request.getPassword() != null&& !request.getPassword().isEmpty()) {
-            member.setPassword(request.getPassword());
+            member.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         if(request.getLatitude() != null) {
             member.setLatitude(request.getLatitude());
