@@ -251,10 +251,8 @@ public class SalePostEsServiceImpl implements SalePostEsService {
     private void locationSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
 
         //==============거리 (km 단위)================
-        Integer distance = searchRequestDTO.getDistance();
-        if (distance == null || distance <= 0) {
-            distance = 0; // 기본값으로 0km 설정
-        }
+        Integer distance = (searchRequestDTO.getDistance() == null || searchRequestDTO.getDistance() <= 0)
+            ? 0 : searchRequestDTO.getDistance();
         //============================================
 
         if(searchRequestDTO.getLatitude() == 0.0 || searchRequestDTO.getLongitude() == 0.0) {
