@@ -63,15 +63,22 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
         return likeRepository.findAllByMemberPk(member).stream()
                 .map(SalePostLike::getPostPk)
                 .filter(salePost -> salePost.getDeleteYn() == Yn.N)
-                .map(salePost -> {
-                    String thumbnailUrl = salePostImageRepository
-                            .findTopByPostPkAndDeleteYnOrderByImagePkAsc(salePost, Yn.N)
+                .map(myLikedPost -> {
+                    List<SalePostImage> images = salePostImageRepository.findAllByPostPkAndDeleteYn(myLikedPost, Yn.N);
+
+                    String thumbnail = images.stream()
+                            .sorted((a, b) -> {
+                                Integer orderA = a.getImageOrder() != null ? a.getImageOrder() : Integer.MAX_VALUE;
+                                Integer orderB = b.getImageOrder() != null ? b.getImageOrder() : Integer.MAX_VALUE;
+                                return orderA.compareTo(orderB);
+                            })
                             .map(SalePostImage::getImageUrl)
-                            .orElseThrow(() -> new IllegalStateException("썸네일 이미지가 존재하지 않습니다."));
+                            .findFirst()
+                            .orElse(null);
 
-                    int likeCount = likeRepository.countByPostPk(salePost); // 찜 수 조회
+                    int likeCount = likeRepository.countByPostPk(myLikedPost); // 찜 수 조회
 
-                    return SalePostSummaryResponse.from(salePost, thumbnailUrl, true, likeCount);
+                    return SalePostSummaryResponse.from(myLikedPost, thumbnail, true, likeCount);
                 })
                 .toList();
     }
