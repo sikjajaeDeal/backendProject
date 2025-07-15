@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.product.dto;
 
+import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import lombok.Builder;
@@ -15,6 +16,7 @@ import java.util.List;
 public class SalePostDetailResponse {
 
     private Long postPk;
+    private Member sellerPk;
     private String sellerNickname;
     private String categoryName;
 
@@ -42,6 +44,7 @@ public class SalePostDetailResponse {
     public static SalePostDetailResponse from(SalePost salePost, List<String> imageUrls, boolean salePostLiked, int likeCount) {
         return SalePostDetailResponse.builder()
                 .postPk(salePost.getPostPk())
+                .sellerPk(salePost.getSellerPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
                 .categoryName(salePost.getCategoryPk().getCategoryName())
                 .title(salePost.getTitle())
