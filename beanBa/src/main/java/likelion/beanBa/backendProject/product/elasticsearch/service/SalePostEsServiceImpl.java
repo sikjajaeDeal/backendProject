@@ -88,7 +88,11 @@ public class SalePostEsServiceImpl implements SalePostEsService {
                     // 위치 기반 검색 쿼리를 생성하는 메서드 입니다.(기본값은 5km)
                     locationSearchFilter(b, searchRequestDTO);
 
+                    // 가격 범위기반 검색 쿼리를 생성하는 메서드입니다.
                     priceSearchFilter(b, searchRequestDTO.getMinPrice(), searchRequestDTO.getMaxPrice());
+
+                    // 카테고리 검색 쿼리를 생성하는 메서드입니다.
+                    categorySearchFilter(b, searchRequestDTO.getCategoryPk());
 
 
                     return b;
@@ -270,6 +274,18 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             .gte(JsonData.of(minPrice))
             .lte(JsonData.of(maxPrice))
         )));
+    }
+
+    private void categorySearchFilter(BoolQuery.Builder boolBuilder, Long categoryPk) {
+
+        if (categoryPk == null || categoryPk <= 0) {
+            return; // 카테고리 검색이 필요하지 않음
+        }
+
+        boolBuilder.filter(TermQuery.of(t -> t
+            .field("categoryPk")
+            .value(categoryPk)
+        )._toQuery());
     }
 
 

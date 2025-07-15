@@ -24,7 +24,7 @@ public class SalePostEsDocument {
     /*private Long sellerPk; // 판매자 pk*/ // id 만 있어도 검색 충분
     private String sellerId; // 판매자 id
 
-    //private Long categoryPk; // 카테고리 pk
+    private Long categoryPk; // 카테고리 pk
     //private String categoryName; // 카테고리 이름
 
 
@@ -52,7 +52,9 @@ public class SalePostEsDocument {
                 .postPk(entity.getPostPk())
                // .sellerPk(entity.getSellerPk().getMemberPk())
                 .sellerId(entity.getSellerPk().getMemberId())
-                //.categoryPk(entity.getCategoryPk().getCategoryPk())
+
+                .categoryPk(entity.getCategoryPk().getCategoryPk())
+
                // .categoryName(entity.getCategoryPk().getCategoryName())
                 //.buyerPk(entity.getBuyerPk().getMemberPk())
                 .buyerId(entity.getBuyerPk()!= null ? entity.getBuyerPk().getMemberId() : null)
