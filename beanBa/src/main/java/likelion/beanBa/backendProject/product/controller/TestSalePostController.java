@@ -120,6 +120,15 @@ public class TestSalePostController {
         List<String> fullImageUrls = salePostRequest.getImageUrls(); // 슬롯 순서 유지
         List<String> newImageUrls = new ArrayList<>();
 
+        // 이미지 존재 여부 검증 (기존 + 새 이미지 모두 없음 → 에러)
+        boolean noExistingImages = fullImageUrls == null || fullImageUrls.stream().allMatch(url -> url == null || url.isBlank());
+        boolean noNewImages = salePostImages == null || Arrays.stream(salePostImages).allMatch(f -> f == null || f.isEmpty());
+
+        if (noExistingImages && noNewImages) {
+            throw new IllegalArgumentException("최소 1장의 이미지를 등록해야 합니다.");
+        }
+
+        //에러 검증 이후 기본 로직 수행
         if (salePostImages != null) {
             List<MultipartFile> validFiles = Arrays.stream(salePostImages)
                     .filter(f -> f != null && !f.isEmpty())
