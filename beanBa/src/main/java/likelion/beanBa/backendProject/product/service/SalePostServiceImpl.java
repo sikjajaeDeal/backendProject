@@ -12,6 +12,7 @@ import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsSe
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
+import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
 import likelion.beanBa.backendProject.product.repository.CategoryRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
@@ -60,9 +61,9 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
-//
-//        //테스트할 때 주석처리
-//        salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
+
+        //테스트할 때 주석처리
+        salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
 
 
         return salePost;
@@ -172,29 +173,63 @@ public class SalePostServiceImpl implements SalePostService {
             }
         }
 
-//        // 테스트시 주석처리
-//        salePostEsService.update(salePost); // Elasticsearch에서 게시글 업데이트
+        // 테스트시 주석처리
+        salePostEsService.update(salePost); // Elasticsearch에서 게시글 업데이트
     }
 
 
     /** 판매와료 처리 시 호출 **/
     @Transactional
-    public void completeSale(Long postPk, Long buyerPk, Member sellerPk) { //sellerPk 는 로그인된 사용자 정보이므로 Member 객체로 받기
+    public String changeSaleStatus(Long postPk, SaleStatement newStatus, Long buyerPk, Member sellerPk) { //sellerPk 는 로그인된 사용자 정보이므로 Member 객체로 받기
         SalePost salePost = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new EntityNotFoundException("해당 게시글이 존재하지 않습니다."));
 
         validateWriter(salePost, sellerPk);
 
-        Member buyer = null; //분기에 따라 markAsSold 를 중복하지 않기 위해
-
-        if (buyerPk != null) {
-            buyer = memberRepository.findById(buyerPk)
-                    .orElseThrow(() -> new EntityNotFoundException("해당 구매자가 존재하지 않습니다."));
-        } else {
-            log.info("구매자 없이 판매자가 거래완료 처리했습니다.");
+        if (newStatus == null) {
+            throw new IllegalArgumentException("상태 값이 지정되지 않았습니다.");
         }
 
-        salePost.markAsSold(buyer);
+        switch (newStatus) {
+            case S: // 판매중
+            case H: // 판매보류
+                if (salePost.getState() == newStatus) {
+                    log.info("이미 '{}' 상태인 게시글입니다. 상태 변경 생략.", newStatus);
+                    return "이미 " + newStatus.name() + " 상태입니다.";
+                }
+
+                salePost.changeState(newStatus);
+                salePost.removeBuyer(); // 구매자 정보 제거
+                log.info("게시글 [{}] 상태가 {}로 변경되었습니다. (구매자 정보 제거)", postPk, newStatus);
+                return "판매 상태가 '" + newStatus.name() + "'로 변경되었습니다. (구매자 없음/제거)";
+
+            case C: // 판매완료
+                if (salePost.getState() == SaleStatement.C) {
+                    Member currentBuyer = salePost.getBuyerPk();
+                    if (buyerPk == null && currentBuyer == null) {
+                        throw new IllegalStateException("이미 구매자 없이 판매 완료된 게시글입니다.");
+                    }
+                    if (buyerPk != null && currentBuyer != null &&
+                            currentBuyer.getMemberPk().equals(buyerPk)) {
+                        throw new IllegalStateException("이미 동일한 구매자로 판매 완료된 게시글입니다.");
+                    }
+                }
+
+                if (buyerPk == null) {
+                    log.info("판매자가 구매자를 선택하지 않고 구매 완료 처리했습니다.");
+                    salePost.markAsSold(null); // 구매자 없이 처리
+                    return "구매자 없이 판매 완료 처리되었습니다.";
+                }
+
+                Member buyer = memberRepository.findById(buyerPk)
+                        .orElseThrow(() -> new EntityNotFoundException("해당 구매자가 존재하지 않습니다."));
+                salePost.markAsSold(buyer);
+                log.info("게시글 [{}]이(가) 구매자 [{}]에 의해 판매 완료 처리되었습니다.", postPk, buyerPk);
+                return "구매자 [" + buyer.getNickname() + "]에 의해 판매 완료 처리되었습니다.";
+
+            default:
+                throw new IllegalArgumentException("지원하지 않는 상태입니다: " + newStatus);
+        }
     }
 
 
@@ -211,8 +246,8 @@ public class SalePostServiceImpl implements SalePostService {
 
         salePost.markAsDeleted();
 
-//        // 테스트시 주석처리
-//        salePostEsService.delete(salePost); // Elasticsearch에서 게시글 삭제
+        // 테스트시 주석처리
+        salePostEsService.delete(salePost); // Elasticsearch에서 게시글 삭제
 
         salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .forEach(SalePostImage::markAsDeleted);

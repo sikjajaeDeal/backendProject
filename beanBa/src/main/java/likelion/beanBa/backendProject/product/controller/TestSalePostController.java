@@ -4,11 +4,14 @@ import jakarta.validation.Valid;
 import likelion.beanBa.backendProject.global.util.FileValidator;
 import likelion.beanBa.backendProject.global.util.InputValidator;
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
+import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
 import likelion.beanBa.backendProject.product.S3.service.S3Service;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
+import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.service.SalePostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -20,7 +23,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import static likelion.beanBa.backendProject.global.util.AuthUtils.getAuthenticatedMember;
 
 /**
  * 🚧 테스트 전용 컨트롤러
@@ -149,5 +155,16 @@ public class TestSalePostController {
     public ResponseEntity<Void> deletePost(@PathVariable("postPk") Long postPk) {
         salePostService.deletePost(postPk, testMember);
         return ResponseEntity.ok().build();
+    }
+
+    /** 판매 상태 변경 시 **/
+    @PutMapping("/{postPk}/status")
+    public ResponseEntity<?> changeSaleStatus(
+            @PathVariable ("postPk") Long postPk,
+            @RequestParam("status") SaleStatement status,
+            @RequestParam(value = "buyerPk", required = false) Long buyerPk) {
+
+        String changeStatusMessage = salePostService.changeSaleStatus(postPk, status, buyerPk, testMember);
+        return ResponseEntity.ok(Map.of("message", changeStatusMessage));
     }
 }

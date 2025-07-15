@@ -19,6 +19,8 @@ public interface SalePostLikeRepository extends JpaRepository<SalePostLike, Long
     // 사용자가 찜한 모든 게시물 반환
     List<SalePostLike> findAllByMemberPk(Member member);
 
+    List<SalePostLike> findAllByMemberPkOrderByLikedAtDesc(Member member);
+
     // 찜 개수 조회
     int countByPostPk(SalePost salePost);
 }

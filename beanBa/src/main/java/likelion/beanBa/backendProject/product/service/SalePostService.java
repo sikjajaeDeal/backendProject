@@ -6,6 +6,7 @@ import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
+import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface SalePostService {
 
     void deletePost(Long postPk, Member sellerPk);
 
-    void completeSale(Long postPk, Long buyerPk, Member sellerPk);
+    String changeSaleStatus(Long postPk, SaleStatement newStatus, Long buyerPk, Member sellerPk);
 
 
 }

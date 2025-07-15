@@ -11,6 +11,7 @@ import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.entity.SalePost;
+import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.service.SalePostService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static likelion.beanBa.backendProject.global.util.AuthUtils.getAuthenticatedMember;
@@ -145,6 +147,7 @@ public class SalePostController {
         }
 
 //        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
+
         salePostRequest.setImageUrls(fullImageUrls); //최종 슬롯 순서 반영
 
         Member loginMember = getAuthenticatedMember(userDetails);
@@ -161,5 +164,20 @@ public class SalePostController {
         Member loginMember = getAuthenticatedMember(userDetails);
         salePostService.deletePost(postPk, loginMember);
         return ResponseEntity.ok().build();
+    }
+
+    /** 판매 상태 변경 시 **/
+    @PutMapping("/{postPk}/status")
+    public ResponseEntity<?> changeSaleStatus(
+            @PathVariable ("postPk") Long postPk,
+            @RequestParam("status") SaleStatement status,
+            @RequestParam(value = "buyerPk", required = false) Long buyerPk,
+            @CurrentUser CustomUserDetails userDetails
+    ) {
+
+        Member loginMember = getAuthenticatedMember(userDetails);
+
+        String changeStatusMessage = salePostService.changeSaleStatus(postPk, status, buyerPk, loginMember);
+        return ResponseEntity.ok(Map.of("message", changeStatusMessage));
     }
 }

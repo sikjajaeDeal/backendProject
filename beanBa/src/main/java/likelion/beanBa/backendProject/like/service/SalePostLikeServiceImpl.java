@@ -60,7 +60,8 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     @Transactional(readOnly = true)
     public List<SalePostSummaryResponse> getAllLikedPosts(Member member) {
 
-        return likeRepository.findAllByMemberPk(member).stream()
+        //좋아요 누른 최신 순 정렬해서 보여주기
+        return likeRepository.findAllByMemberPkOrderByLikedAtDesc(member).stream()
                 .map(SalePostLike::getPostPk)
                 .filter(salePost -> salePost.getDeleteYn() == Yn.N)
                 .map(myLikedPost -> {
