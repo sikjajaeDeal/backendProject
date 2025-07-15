@@ -46,9 +46,9 @@ public class S3Service {
         for (MultipartFile file : files) {
             try {
 
-                // ✅ 빈 파일 여부 체크 추가
                 if (file == null || file.isEmpty()) {
-                    throw new IOException("빈 파일은 업로드할 수 없습니다: " + (file != null ? file.getOriginalFilename() : "null"));
+                    log.warn("빈 파일은 업로드 대상에서 제외됨: {}", (file != null ? file.getOriginalFilename() : "null"));
+                    continue; // 그냥 건너뜀
                 }
 
                 File f = multiPartFileToFile(file);
