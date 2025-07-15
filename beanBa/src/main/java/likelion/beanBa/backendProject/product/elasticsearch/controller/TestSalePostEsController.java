@@ -60,6 +60,7 @@ public class TestSalePostEsController {
                     .title(requestDTO.getTitle())
                     .content(requestDTO.getContent())
                     .hopePrice(requestDTO.getHopePrice())
+                    .categoryPk(requestDTO.getCategoryPk())
                     .deleteYn(requestDTO.getDeleteYn())
                     .geoLocation(new GeoPoint(requestDTO.getLatitude(), requestDTO.getLongitude()))
                     .build()).toList();

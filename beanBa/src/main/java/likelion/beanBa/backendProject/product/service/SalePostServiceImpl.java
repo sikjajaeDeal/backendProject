@@ -8,8 +8,7 @@ import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
-import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
-import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
+import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -23,6 +22,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,10 +37,7 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostImageRepository salePostImageRepository;
     private final MemberRepository memberRepository;
     private final SalePostLikeRepository salePostLikeRepository;
-
-    private final SalePostEsServiceImpl salePostEsServiceImpl;
-    private final SalePostEsRepository salePostEsRepository;
-
+    private final SalePostEsService salePostEsService;
 
     /** 게시글 생성 **/
     @Override
@@ -62,20 +59,10 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
-//        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 할 때 주석
 
-//        SalePostEsDocument doc = SalePostEsDocument.builder()
-//                .postPk(salePost.getPostPk())
-//                .sellerId(salePost.getSellerPk().getMemberId())
-//                .buyerId(salePost.getBuyerPk() != null ? salePost.getBuyerPk().getMemberId() : null)
-//                .title(salePost.getTitle())
-//                .content(salePost.getContent())
-//                .hopePrice(salePost.getHopePrice())
-//                .deleteYn(salePost.getDeleteYn().toString())
-//                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
-//                .build();
+        //테스트할 때 주석처리
+        salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
 
-//        salePostEsServiceImpl.save(doc);
 
         return salePost;
     }
@@ -145,7 +132,9 @@ public class SalePostServiceImpl implements SalePostService {
     @Override
     @Transactional
     public void updatePost(Long postPk, SalePostRequest salePostRequest, Member sellerPk) {
-        SalePost salePost = findPostById(postPk);
+        // 삭제되지 않은 게시글만 조회 (Yn.N 필터 포함)
+        SalePost salePost = salePostRepository.findByPostPkAndDeleteYn(postPk, Yn.N)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 삭제된 게시글입니다."));
 
         if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
@@ -164,18 +153,22 @@ public class SalePostServiceImpl implements SalePostService {
         );
 
 
+        // 기존 이미지 전체 삭제 처리 (소프트 삭제)
+        List<SalePostImage> existingImages = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N);
+        existingImages.forEach(SalePostImage::markAsDeleted);
 
-
-        // 🔁 이미지 무조건 삭제 후 재등록
-        List<String> newUrls = salePostRequest.getImageUrls();
-        if (newUrls != null && !newUrls.isEmpty()) {
-            salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
-                    .forEach(SalePostImage::markAsDeleted);
-
-            saveImages(salePost, newUrls);
+        // 현재 순서 그대로 새 이미지 등록
+        List<String> requestUrls = salePostRequest.getImageUrls(); // 순서 유지
+        if (requestUrls != null) {
+            for (String url : requestUrls) {
+                if (url != null && !url.isBlank()) {
+                    salePostImageRepository.save(SalePostImage.of(salePost, url));
+                }
+            }
         }
 
-        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+        // 테스트시 주석처리
+        salePostEsService.update(salePost); // Elasticsearch에서 게시글 업데이트
     }
 
 
@@ -212,6 +205,9 @@ public class SalePostServiceImpl implements SalePostService {
         validateWriter(salePost, sellerPk);
 
         salePost.markAsDeleted();
+
+        // 테스트시 주석처리
+        salePostEsService.delete(salePost); // Elasticsearch에서 게시글 삭제
 
         salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .forEach(SalePostImage::markAsDeleted);
