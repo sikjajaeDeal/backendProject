@@ -250,7 +250,7 @@ public class SalePostEsServiceImpl implements SalePostEsService {
      */
     private void locationSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
 
-        Integer distance = 5;     //거리 5km
+        Integer distance = searchRequestDTO.getDistance();     //거리 5km
 
         if(searchRequestDTO.getLatitude() == 0.0 || searchRequestDTO.getLongitude() == 0.0) {
             return; //위도나 경도 값이 없을 경우 쿼리를 생성하지 않음
