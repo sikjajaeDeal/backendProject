@@ -161,7 +161,8 @@ public class SalePostServiceImpl implements SalePostService {
             saveImages(salePost, newUrls);
         }
 
-        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+        // 테스트시 주석처리
+        salePostEsService.update(salePost); // Elasticsearch에서 게시글 업데이트
     }
 
 

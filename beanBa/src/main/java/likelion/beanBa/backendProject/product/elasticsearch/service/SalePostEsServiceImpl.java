@@ -171,6 +171,16 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             throw new RuntimeException("Elasticsearch 삭제 중 오류 발생", e);
         }
     }
+
+    public void update(SalePost salePost) {
+        try {
+            SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+            esRepository.save(doc);
+        } catch (Exception e) {
+            log.error("Elasticsearch 업데이트 오류: {}", e.getMessage());
+            throw new RuntimeException("Elasticsearch 업데이트 중 오류 발생", e);
+        }
+    }
 //================ 엘라스틱서치 i/o ====================
 
 
