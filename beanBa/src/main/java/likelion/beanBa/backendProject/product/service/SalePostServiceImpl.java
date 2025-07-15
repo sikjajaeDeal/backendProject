@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -59,9 +60,9 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
-
-        //테스트할 때 주석처리
-        salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
+//
+//        //테스트할 때 주석처리
+//        salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
 
 
         return salePost;
@@ -89,8 +90,9 @@ public class SalePostServiceImpl implements SalePostService {
 
                     // 썸네일 추출
                     String thumbnailUrl = images.stream()
-                            .findFirst()
+                            .sorted(Comparator.comparing(i -> i.getImageOrder() != null ? i.getImageOrder() : Integer.MAX_VALUE))
                             .map(SalePostImage::getImageUrl)
+                            .findFirst()
                             .orElse(null);
 
                     boolean salePostLiked = likedPostPks.contains(salePost.getPostPk()); // 찜 여부 판단
@@ -115,6 +117,7 @@ public class SalePostServiceImpl implements SalePostService {
 
         List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .stream()
+                .sorted(Comparator.comparing(i -> i.getImageOrder() != null ? i.getImageOrder() : Integer.MAX_VALUE))
                 .map(SalePostImage::getImageUrl)
                 .toList();
 
@@ -159,16 +162,18 @@ public class SalePostServiceImpl implements SalePostService {
 
         // 현재 순서 그대로 새 이미지 등록
         List<String> requestUrls = salePostRequest.getImageUrls(); // 순서 유지
+
         if (requestUrls != null) {
-            for (String url : requestUrls) {
+            for (int i = 0; i < requestUrls.size(); i++) {
+                String url = requestUrls.get(i);
                 if (url != null && !url.isBlank()) {
-                    salePostImageRepository.save(SalePostImage.of(salePost, url));
+                    salePostImageRepository.save(SalePostImage.ofWithOrder(salePost, url, i));
                 }
             }
         }
 
-        // 테스트시 주석처리
-        salePostEsService.update(salePost); // Elasticsearch에서 게시글 업데이트
+//        // 테스트시 주석처리
+//        salePostEsService.update(salePost); // Elasticsearch에서 게시글 업데이트
     }
 
 
@@ -206,8 +211,8 @@ public class SalePostServiceImpl implements SalePostService {
 
         salePost.markAsDeleted();
 
-        // 테스트시 주석처리
-        salePostEsService.delete(salePost); // Elasticsearch에서 게시글 삭제
+//        // 테스트시 주석처리
+//        salePostEsService.delete(salePost); // Elasticsearch에서 게시글 삭제
 
         salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .forEach(SalePostImage::markAsDeleted);
@@ -225,9 +230,10 @@ public class SalePostServiceImpl implements SalePostService {
     private void saveImages(SalePost salePost, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
-        List<SalePostImage> images = imageUrls.stream()
-                .map(url -> SalePostImage.of(salePost, url))
-                .toList();
+        List<SalePostImage> images =
+                IntStream.range(0, imageUrls.size())
+                        .mapToObj(i -> SalePostImage.ofWithOrder(salePost, imageUrls.get(i), i))
+                        .collect(Collectors.toList());
 
         salePostImageRepository.saveAll(images);
     }

@@ -38,9 +38,16 @@ public class MyPageServiceImpl implements MyPageService {
 
         return mySalePosts.stream()
                 .map(mySalePost -> {
-                    String thumbnail = salePostImageRepository
-                            .findTopByPostPkAndDeleteYnOrderByImagePkAsc(mySalePost, Yn.N)
+                    List<SalePostImage> images = salePostImageRepository.findAllByPostPkAndDeleteYn(mySalePost, Yn.N);
+
+                    String thumbnail = images.stream()
+                            .sorted((a, b) -> {
+                                Integer orderA = a.getImageOrder() != null ? a.getImageOrder() : Integer.MAX_VALUE;
+                                Integer orderB = b.getImageOrder() != null ? b.getImageOrder() : Integer.MAX_VALUE;
+                                return orderA.compareTo(orderB);
+                            })
                             .map(SalePostImage::getImageUrl)
+                            .findFirst()
                             .orElse(null);
 
                     boolean isLiked = likedPostPks.contains(mySalePost.getPostPk());
@@ -64,9 +71,16 @@ public class MyPageServiceImpl implements MyPageService {
 
         return myPurchasedPosts.stream()
                 .map(myPurchasedPost -> {
-                    String thumbnail = salePostImageRepository
-                            .findTopByPostPkAndDeleteYnOrderByImagePkAsc(myPurchasedPost, Yn.N)
+                    List<SalePostImage> images = salePostImageRepository.findAllByPostPkAndDeleteYn(myPurchasedPost, Yn.N);
+
+                    String thumbnail = images.stream()
+                            .sorted((a, b) -> {
+                                Integer orderA = a.getImageOrder() != null ? a.getImageOrder() : Integer.MAX_VALUE;
+                                Integer orderB = b.getImageOrder() != null ? b.getImageOrder() : Integer.MAX_VALUE;
+                                return orderA.compareTo(orderB);
+                            })
                             .map(SalePostImage::getImageUrl)
+                            .findFirst()
                             .orElse(null);
 
                     boolean isLiked = likedPostPks.contains(myPurchasedPost.getPostPk());
