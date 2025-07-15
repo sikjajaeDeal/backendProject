@@ -12,6 +12,7 @@ import co.elastic.clients.json.JsonData;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
+import likelion.beanBa.backendProject.product.entity.SalePost;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -30,14 +31,10 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
     private final ElasticsearchClient client;
 
-    private final SalePostEsRepository repository;
-
-    public void save(SalePostEsDocument document) {
-        repository.save(document);
-    }
+    private final SalePostEsRepository esRepository;
 
     public void deleteById(Long id) {
-        repository.deleteById(id);
+        esRepository.deleteById(id);
     }
 
     public Page<SalePostEsDocument> search(SearchRequestDTO searchRequestDTO){
@@ -91,7 +88,11 @@ public class SalePostEsServiceImpl implements SalePostEsService {
                     // 위치 기반 검색 쿼리를 생성하는 메서드 입니다.(기본값은 5km)
                     locationSearchFilter(b, searchRequestDTO);
 
+                    // 가격 범위기반 검색 쿼리를 생성하는 메서드입니다.
                     priceSearchFilter(b, searchRequestDTO.getMinPrice(), searchRequestDTO.getMaxPrice());
+
+                    // 카테고리 검색 쿼리를 생성하는 메서드입니다.
+                    categorySearchFilter(b, searchRequestDTO.getCategoryPk());
 
 
                     return b;
@@ -148,6 +149,40 @@ public class SalePostEsServiceImpl implements SalePostEsService {
         }
 
     }
+// ================ 엘라스틱서치 i/o ====================
+    public void save(SalePost salePost) {
+
+        try {
+            SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+            esRepository.save(doc);
+        } catch (Exception e) {
+            log.error("Elasticsearch 저장 오류: {}", e.getMessage());
+            throw new RuntimeException("Elasticsearch 저장 중 오류 발생", e);
+        }
+
+    }
+
+    public void delete(SalePost salePost) {
+        try {
+            SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+            esRepository.delete(doc);
+        } catch (Exception e) {
+            log.error("Elasticsearch 삭제 오류: {}", e.getMessage());
+            throw new RuntimeException("Elasticsearch 삭제 중 오류 발생", e);
+        }
+    }
+
+    public void update(SalePost salePost) {
+        try {
+            SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+            esRepository.save(doc);
+        } catch (Exception e) {
+            log.error("Elasticsearch 업데이트 오류: {}", e.getMessage());
+            throw new RuntimeException("Elasticsearch 업데이트 중 오류 발생", e);
+        }
+    }
+//================ 엘라스틱서치 i/o ====================
+
 
     /**
      * 접두어, 초성, 중간 글자 검색 쿼리를 생성하는 메서드입니다.
@@ -250,4 +285,18 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             .lte(JsonData.of(maxPrice))
         )));
     }
+
+    private void categorySearchFilter(BoolQuery.Builder boolBuilder, Long categoryPk) {
+
+        if (categoryPk == null || categoryPk <= 0) {
+            return; // 카테고리 검색이 필요하지 않음
+        }
+
+        boolBuilder.filter(TermQuery.of(t -> t
+            .field("categoryPk")
+            .value(categoryPk)
+        )._toQuery());
+    }
+
+
 }

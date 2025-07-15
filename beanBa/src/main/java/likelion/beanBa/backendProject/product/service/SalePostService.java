@@ -23,4 +23,5 @@ public interface SalePostService {
 
     void completeSale(Long postPk, Long buyerPk, Member sellerPk);
 
+
 }

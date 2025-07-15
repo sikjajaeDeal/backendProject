@@ -8,8 +8,7 @@ import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
-import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
-import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
+import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -38,10 +37,7 @@ public class SalePostServiceImpl implements SalePostService {
     private final SalePostImageRepository salePostImageRepository;
     private final MemberRepository memberRepository;
     private final SalePostLikeRepository salePostLikeRepository;
-
-    private final SalePostEsServiceImpl salePostEsServiceImpl;
-    private final SalePostEsRepository salePostEsRepository;
-
+    private final SalePostEsService salePostEsService;
 
     /** 게시글 생성 **/
     @Override
@@ -63,20 +59,10 @@ public class SalePostServiceImpl implements SalePostService {
         salePostRepository.save(salePost);
         saveImages(salePost, salePostRequest.getImageUrls());
 
-//        SalePostEsDocument doc = SalePostEsDocument.from(salePost);  ///테스트 할 때 주석
 
-//        SalePostEsDocument doc = SalePostEsDocument.builder()
-//                .postPk(salePost.getPostPk())
-//                .sellerId(salePost.getSellerPk().getMemberId())
-//                .buyerId(salePost.getBuyerPk() != null ? salePost.getBuyerPk().getMemberId() : null)
-//                .title(salePost.getTitle())
-//                .content(salePost.getContent())
-//                .hopePrice(salePost.getHopePrice())
-//                .deleteYn(salePost.getDeleteYn().toString())
-//                .geoLocation(new GeoPoint(salePost.getLatitude(), salePost.getLongitude()))
-//                .build();
+        //테스트할 때 주석처리
+        salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
 
-//        salePostEsServiceImpl.save(doc);
 
         return salePost;
     }
@@ -181,7 +167,8 @@ public class SalePostServiceImpl implements SalePostService {
             }
         }
 
-        SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+        // 테스트시 주석처리
+        salePostEsService.update(salePost); // Elasticsearch에서 게시글 업데이트
     }
 
 
@@ -218,6 +205,9 @@ public class SalePostServiceImpl implements SalePostService {
         validateWriter(salePost, sellerPk);
 
         salePost.markAsDeleted();
+
+        // 테스트시 주석처리
+        salePostEsService.delete(salePost); // Elasticsearch에서 게시글 삭제
 
         salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .forEach(SalePostImage::markAsDeleted);
