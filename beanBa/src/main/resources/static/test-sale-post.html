@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 수정</title>
+    <style>
+        .image-slot-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .image-slot {
+            width: 120px;
+            height: 120px;
+            border: 1px dashed gray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .image-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .upload-label {
+            font-size: 30px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .image-input {
+            display: none;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h2>게시글 단건 조회</h2>
+<input type="number" id="postPk" placeholder="게시글 PK 입력"/>
+<button onclick="fetchPost()">조회</button>
+<div id="postDetail" style="margin-top: 20px;"></div>
+
+<h2>게시글 수정</h2>
+<form id="updateForm">
+    <input type="text" id="title" placeholder="제목"/><br/>
+    <textarea id="content" placeholder="내용"></textarea><br/>
+    <input type="number" id="hopePrice" placeholder="희망 가격"/><br/>
+    <input type="number" id="categoryPk" placeholder="카테고리 PK (예: 1)"/><br/>
+    <input type="hidden" id="latitude"/>
+    <input type="hidden" id="longitude"/>
+
+    <div class="image-slot-container" id="imageSlots"></div>
+    <br/>
+    <button type="submit">수정 요청</button>
+</form>
+
+<script>
+    let currentPostPk = null;
+    let currentImageUrls = ["", "", "", ""];
+    let newImages = [null, null, null, null];
+    let draggedIndex = null;
+
+    async function fetchPost() {
+        const postPk = document.getElementById("postPk").value;
+        if (!postPk) return alert("게시글 번호 입력!");
+
+        const res = await fetch(`/api/test-sale-post/detail/${postPk}`);
+        if (!res.ok) return alert("조회 실패!");
+
+        const post = await res.json();
+        currentPostPk = postPk;
+
+        document.getElementById("title").value = post.title;
+        document.getElementById("content").value = post.content;
+        document.getElementById("hopePrice").value = post.hopePrice;
+        document.getElementById("categoryPk").value = post.categoryPk || 1;
+        document.getElementById("latitude").value = post.latitude;
+        document.getElementById("longitude").value = post.longitude;
+
+        currentImageUrls = ["", "", "", ""];
+        post.imageUrls.forEach((url, idx) => {
+            if (idx < 4) currentImageUrls[idx] = url;
+        });
+        newImages = [null, null, null, null];
+        renderImageSlots();
+
+        document.getElementById("postDetail").innerHTML = `
+      <strong>${post.title}</strong><br/>
+      ${post.content}<br/>
+      💰 ${post.hopePrice}원
+    `;
+    }
+
+    function renderImageSlots() {
+        const container = document.getElementById("imageSlots");
+        container.innerHTML = "";
+
+        for (let i = 0; i < 4; i++) {
+            const slot = document.createElement("div");
+            slot.className = "image-slot";
+            slot.draggable = true;
+            slot.dataset.index = i;
+
+            slot.ondragstart = () => draggedIndex = i;
+            slot.ondragover = (e) => e.preventDefault();
+            slot.ondrop = (e) => {
+                e.preventDefault();
+                const targetIndex = parseInt(e.currentTarget.dataset.index);
+                [currentImageUrls[draggedIndex], currentImageUrls[targetIndex]] = [currentImageUrls[targetIndex], currentImageUrls[draggedIndex]];
+                [newImages[draggedIndex], newImages[targetIndex]] = [newImages[targetIndex], newImages[draggedIndex]];
+                renderImageSlots();
+            };
+
+            if (currentImageUrls[i]) {
+                const img = document.createElement("img");
+                img.src = currentImageUrls[i];
+                slot.appendChild(img);
+            } else if (newImages[i]) {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(newImages[i]);
+                slot.appendChild(img);
+            } else {
+                const label = document.createElement("label");
+                label.className = "upload-label";
+                label.innerText = "+";
+                label.htmlFor = `upload${i}`;
+
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
+                input.id = `upload${i}`;
+                input.className = "image-input";
+
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        currentImageUrls[i] = "";
+                        newImages[i] = file;
+                        renderImageSlots();
+                    }
+                };
+
+                slot.appendChild(label);
+                slot.appendChild(input);
+            }
+
+            // 삭제 버튼
+            if (currentImageUrls[i] || newImages[i]) {
+                const btn = document.createElement("button");
+                btn.innerText = "X";
+                btn.className = "delete-btn";
+                btn.onclick = () => {
+                    currentImageUrls[i] = "";
+                    newImages[i] = null;
+                    renderImageSlots();
+                };
+                slot.appendChild(btn);
+            }
+
+            container.appendChild(slot);
+        }
+    }
+
+    document.getElementById("updateForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!currentPostPk) return alert("먼저 게시글을 조회하세요.");
+
+        const salePostRequest = {
+            title: document.getElementById("title").value,
+            content: document.getElementById("content").value,
+            hopePrice: parseInt(document.getElementById("hopePrice").value),
+            categoryPk: parseInt(document.getElementById("categoryPk").value),
+            latitude: parseFloat(document.getElementById("latitude").value),
+            longitude: parseFloat(document.getElementById("longitude").value),
+            imageUrls: currentImageUrls
+        };
+
+        const formData = new FormData();
+        formData.append("salePostRequest", new Blob([JSON.stringify(salePostRequest)], { type: "application/json" }));
+
+        newImages.forEach((file) => {
+            if (file) formData.append("salePostImages", file);
+        });
+
+        const res = await fetch(`/api/test-sale-post/${currentPostPk}`, {
+            method: "PUT",
+            body: formData
+        });
+
+        if (res.ok) {
+            alert("✅ 수정 성공");
+            fetchPost();
+        } else {
+            const msg = await res.text();
+            alert("❌ 수정 실패\n" + msg);
+        }
+    });
+</script>
+</body>
+</html>
