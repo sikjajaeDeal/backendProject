@@ -7,6 +7,7 @@ import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
 import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
 import likelion.beanBa.backendProject.product.S3.service.S3Service;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
@@ -91,10 +92,13 @@ public class SalePostController {
 
     /** 전체 게시글 조회 **/
     @GetMapping("/all")
-    public ResponseEntity<List<SalePostSummaryResponse>> getAllPosts(@CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<PageResponse<SalePostSummaryResponse>> getAllPosts(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @CurrentUser CustomUserDetails userDetails) {
 
         Member loginMember = userDetails != null ? userDetails.getMember() : null;
-        List<SalePostSummaryResponse> salePosts = salePostService.getAllPosts(loginMember);
+        PageResponse<SalePostSummaryResponse> salePosts = salePostService.getAllPosts(loginMember, page, size);
         return ResponseEntity.ok(salePosts);
     }
 

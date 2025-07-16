@@ -5,8 +5,10 @@ import likelion.beanBa.backendProject.like.service.SalePostLikeService;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
 import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.querydsl.QPageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,10 +58,13 @@ public class SalePostLikeController {
 
     /** 마이페이지 - 내가 찜한 게시글 목록 조회 **/
     @GetMapping("/mypage")
-    public ResponseEntity<List<SalePostSummaryResponse>> getMyLikedPosts(@CurrentUser CustomUserDetails userDetails) {
+    public ResponseEntity<PageResponse<SalePostSummaryResponse>> getMyLikedPosts(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "20") int size,
+            @CurrentUser CustomUserDetails userDetails) {
 
         Member loginMember = getAuthenticatedMember(userDetails);
-        List<SalePostSummaryResponse> saleLikedPosts = salePostLikeService.getAllLikedPosts(loginMember);
+        PageResponse<SalePostSummaryResponse> saleLikedPosts = salePostLikeService.getAllLikedPosts(loginMember, page, size);
         return ResponseEntity.ok(saleLikedPosts);
     }
 

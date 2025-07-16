@@ -2,6 +2,7 @@ package likelion.beanBa.backendProject.product.service;
 
 
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
@@ -14,7 +15,7 @@ public interface SalePostService {
 
     SalePost createPost(SalePostRequest salePostRequest, Member sellerPk);
 
-    List<SalePostSummaryResponse> getAllPosts(Member member);
+    PageResponse<SalePostSummaryResponse> getAllPosts(Member member, int page, int size);
 
     SalePostDetailResponse getPost(Long postPk, Member member);
 

@@ -73,7 +73,7 @@ public class MyPageServiceImpl implements MyPageService {
                 .map(myPurchasedPost -> {
                     List<SalePostImage> images = salePostImageRepository.findAllByPostPkAndDeleteYn(myPurchasedPost, Yn.N);
 
-                    String thumbnail = images.stream()
+                    String thumbnailUrl = images.stream()
                             .sorted((a, b) -> {
                                 Integer orderA = a.getImageOrder() != null ? a.getImageOrder() : Integer.MAX_VALUE;
                                 Integer orderB = b.getImageOrder() != null ? b.getImageOrder() : Integer.MAX_VALUE;
@@ -87,7 +87,7 @@ public class MyPageServiceImpl implements MyPageService {
 
                     int likeCount = salePostLikeRepository.countByPostPk(myPurchasedPost); // 찜 수 조회
 
-                    return SalePostSummaryResponse.from(myPurchasedPost, thumbnail, isLiked, likeCount);
+                    return SalePostSummaryResponse.from(myPurchasedPost, thumbnailUrl, isLiked, likeCount);
                 })
                 .toList();
     }

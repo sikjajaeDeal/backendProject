@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
@@ -19,6 +20,10 @@ import likelion.beanBa.backendProject.product.repository.SalePostImageRepository
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,8 +78,11 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 전체 조회 **/
     @Override
     @Transactional(readOnly = true)
-    public List<SalePostSummaryResponse> getAllPosts(Member member) {
-        List<SalePost> salePosts = salePostRepository.findAllByDeleteYn(Yn.N);
+    public PageResponse<SalePostSummaryResponse> getAllPosts(Member member, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "postAt"));
+        Page<SalePost> salePostsPage = salePostRepository.findAllByDeleteYn(Yn.N, pageable);
+        List<SalePost> salePosts = salePostsPage.getContent();
 
         // 찜한 게시글 postPk 만 먼저 가져오기
         Set<Long> likedPostPks = member != null
@@ -83,7 +91,7 @@ public class SalePostServiceImpl implements SalePostService {
                 .collect(Collectors.toSet())
                 : Set.of();
 
-        return salePosts.stream()
+        List<SalePostSummaryResponse> SalePostContent = salePosts.stream()
                 .map(salePost -> {
                     // 삭제되지 않은 이미지만 가져오기
                     List<SalePostImage> images = salePostImageRepository
@@ -103,6 +111,16 @@ public class SalePostServiceImpl implements SalePostService {
                     return SalePostSummaryResponse.from(salePost, thumbnailUrl, salePostLiked, likeCount);
                 })
                 .toList();
+
+        return new PageResponse<>(
+                SalePostContent,
+                salePostsPage.getNumber(),
+                salePostsPage.getSize(),
+                salePostsPage.getTotalElements(),
+                salePostsPage.getTotalPages(),
+                salePostsPage.isLast()
+        );
+
     }
 
 
