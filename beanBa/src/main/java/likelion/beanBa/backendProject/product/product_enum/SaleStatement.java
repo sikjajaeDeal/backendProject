@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 public enum SaleStatement {
 
     S("S"),    // 판매중
-    C("C");// 판매완료
+    C("C"), // 판매완료
+    H("H"); //판매 보류
 
     private final String code;
 

@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
+import javax.annotation.Nullable;
 import java.time.LocalDateTime;
 
 @Getter
@@ -63,6 +64,7 @@ public class SalePost {
     private LocalDateTime postAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "state", nullable = false, length = 10)
     private SaleStatement state = SaleStatement.S;
 
     @Enumerated(EnumType.STRING)
@@ -109,10 +111,18 @@ public class SalePost {
         this.stateAt = LocalDateTime.now();
     }
 
-    public void markAsSold(Member buyer) {
-        this.buyerPk = buyer;
-        this.state = SaleStatement.C;
+    public void changeState(SaleStatement newState) {
+        this.state = newState;
         this.stateAt = LocalDateTime.now();
+    }
+
+    public void removeBuyer() {
+        this.buyerPk = null;
+    }
+
+    public void markAsSold(@Nullable Member buyer) {
+        this.buyerPk = buyer;
+        changeState(SaleStatement.C);
     }
 
     public void markAsDeleted() {
