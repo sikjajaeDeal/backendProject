@@ -4,10 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
-import likelion.beanBa.backendProject.product.dto.PageResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
+import likelion.beanBa.backendProject.product.dto.*;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import likelion.beanBa.backendProject.product.entity.Category;
@@ -49,22 +46,26 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 생성 **/
     @Override
     @Transactional
-    public SalePost createPost(SalePostRequest salePostRequest, Member sellerPk) {
-        Category categoryPk = categoryRepository.findById(salePostRequest.getCategoryPk())
+    public SalePost createPost(SalePostCreateRequest salePostCreateRequest, Member sellerPk) {
+        Category categoryPk = categoryRepository.findById(salePostCreateRequest.getCategoryPk())
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카테고리입니다."));
+
+        // Member 엔티티에서 위도, 경도 가져오기
+        Double latitude = sellerPk.getLatitude();
+        Double longitude = sellerPk.getLongitude();
 
         SalePost salePost = SalePost.create(
                 sellerPk,
                 categoryPk,
-                salePostRequest.getTitle(),
-                salePostRequest.getContent(),
-                salePostRequest.getHopePrice(),
-                salePostRequest.getLatitude(),
-                salePostRequest.getLongitude()
+                salePostCreateRequest.getTitle(),
+                salePostCreateRequest.getContent(),
+                salePostCreateRequest.getHopePrice(),
+                latitude,
+                longitude
         );
 
         salePostRepository.save(salePost);
-        saveImages(salePost, salePostRequest.getImageUrls());
+        saveImages(salePost, salePostCreateRequest.getImageUrls());
 
 
         //테스트할 때 주석처리

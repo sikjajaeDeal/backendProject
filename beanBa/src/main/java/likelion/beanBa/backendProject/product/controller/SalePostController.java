@@ -7,10 +7,7 @@ import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
 import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
 import likelion.beanBa.backendProject.product.S3.service.S3Service;
-import likelion.beanBa.backendProject.product.dto.PageResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
+import likelion.beanBa.backendProject.product.dto.*;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
@@ -44,15 +41,15 @@ public class SalePostController {
     /** 게시글 등록 (S3 이미지 업로드 포함) **/
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<SalePostDetailResponse> createPost(
-            @RequestPart("salePostRequest") @Valid SalePostRequest salePostRequest,
+            @RequestPart("salePostCreateRequest") @Valid SalePostCreateRequest salePostCreateRequest,
             @RequestPart("salePostImages") MultipartFile[] salePostImages,
             @CurrentUser CustomUserDetails userDetails) throws IOException {
 
 //        log.info("생성 요청 시작");
 
-        InputValidator.validateHopePrice(salePostRequest.getHopePrice());
+        InputValidator.validateHopePrice(salePostCreateRequest.getHopePrice());
 
-        List<String> fullImageUrls = salePostRequest.getImageUrls(); // 슬롯 순서 유지
+        List<String> fullImageUrls = salePostCreateRequest.getImageUrls(); // 슬롯 순서 유지
         if (fullImageUrls == null) fullImageUrls = new ArrayList<>(List.of("", "", "", "")); // null 방지
 
         List<String> newImageUrls = new ArrayList<>();
@@ -82,10 +79,10 @@ public class SalePostController {
             }
         }
 
-        salePostRequest.setImageUrls(fullImageUrls); // 최종 슬롯 순서 반영
+        salePostCreateRequest.setImageUrls(fullImageUrls); // 최종 슬롯 순서 반영
 
         Member loginMember = getAuthenticatedMember(userDetails);
-        SalePost salePost = salePostService.createPost(salePostRequest, loginMember);
+        SalePost salePost = salePostService.createPost(salePostCreateRequest, loginMember);
 
         return ResponseEntity.ok(SalePostDetailResponse.from(salePost, fullImageUrls, false, 0));
     }

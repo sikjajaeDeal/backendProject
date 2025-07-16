@@ -16,7 +16,7 @@ import java.util.List;
 public class SalePostDetailResponse {
 
     private Long postPk;
-    private Member sellerPk;
+    private Long sellerPk;
     private String sellerNickname;
     private String categoryName;
 
@@ -44,7 +44,7 @@ public class SalePostDetailResponse {
     public static SalePostDetailResponse from(SalePost salePost, List<String> imageUrls, boolean salePostLiked, int likeCount) {
         return SalePostDetailResponse.builder()
                 .postPk(salePost.getPostPk())
-                .sellerPk(salePost.getSellerPk())
+                .sellerPk(salePost.getSellerPk().getMemberPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
                 .categoryName(salePost.getCategoryPk().getCategoryName())
                 .title(salePost.getTitle())
