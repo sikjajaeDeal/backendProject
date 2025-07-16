@@ -9,6 +9,9 @@ build/
 # application.properties 무시 -> 2025.07.16부로 application.properties도 github push 
 # **/application*.properties
 
+# .env파일 무시 추가 2025.07.16
+.env
+
 ### STS ###
 .apt_generated
 .classpath
