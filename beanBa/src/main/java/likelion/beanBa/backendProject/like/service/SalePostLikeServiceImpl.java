@@ -65,7 +65,7 @@ public class SalePostLikeServiceImpl implements SalePostLikeService {
     @Transactional(readOnly = true)
     public PageResponse<SalePostSummaryResponse> getAllLikedPosts(Member member, int page, int size) {
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "likedAt")); // 정렬 기준: 찜한 시간
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "likedAt")); // 정렬 기준: 찜한 시간 최신순
         Page<SalePost> likedPostContent = likeRepository.findLikedSalePosts(member, pageable);
 
         //좋아요 누른 최신 순 정렬해서 보여주기

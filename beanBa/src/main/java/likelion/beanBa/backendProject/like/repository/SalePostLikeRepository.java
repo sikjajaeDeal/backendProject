@@ -28,6 +28,8 @@ public interface SalePostLikeRepository extends JpaRepository<SalePostLike, Long
     // 찜 개수 조회
     int countByPostPk(SalePost salePost);
 
+
+    //내가 찜한 판매글 조회 - JPQL 쿼리로 조회, 찜하기 최신순 정렬은 페이징이 처리
     @Query("""
     SELECT s 
     FROM SalePostLike l

@@ -26,11 +26,16 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
     // 내가 판매한 글 - 최신순 정렬
     List<SalePost> findAllBySellerPkAndDeleteYnOrderByPostAtDesc(Member member, Yn deleteYn);
 
-    //페이징 적용한 내가 판매한 글 - 최신순 정렬
-    Page<SalePost> findAllBySellerPkAndDeleteYnOrderByPostAtDesc(Member member, Yn deleteYn, Pageable pageable);
-
     // 내가 구매한 글 - 상태가 C(판매완료) 이고 최신순 정렬
     List<SalePost> findAllByBuyerPkAndStateAndDeleteYnOrderByPostAtDesc(Member member, SaleStatement state, Yn deleteYn);
+
+    //내가 판매한 글 - 페이징에서 최신순 정렬
+    Page<SalePost> findAllBySellerPkAndDeleteYn(Member seller, Yn deleteYn, Pageable pageable);
+
+    //내가 구매한 글 - 상태가 C(판매완료) 이고 페이징에서 최신순 정렬
+    Page<SalePost> findAllByBuyerPkAndStateAndDeleteYn(Member buyer, SaleStatement state, Yn deleteYn, Pageable pageable);
+
+
 
 
 }
