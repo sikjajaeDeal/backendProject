@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
+
 public interface SalePostLikeRepository extends JpaRepository<SalePostLike, Long> {
 
     // 사용자의 찜 여부 반환
@@ -27,6 +28,9 @@ public interface SalePostLikeRepository extends JpaRepository<SalePostLike, Long
 
     // 찜 개수 조회
     int countByPostPk(SalePost salePost);
+
+    @Query("SELECT s.postPk.postPk, COUNT(s) FROM SalePostLike s WHERE s.postPk IN :posts GROUP BY s.postPk.postPk")
+    List<Object[]> countLikesByPosts(@Param("posts") List<SalePost> posts);
 
 
     //내가 찜한 판매글 조회 - JPQL 쿼리로 조회, 찜하기 최신순 정렬은 페이징이 처리
