@@ -11,6 +11,7 @@ import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
+import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.service.SalePostService;

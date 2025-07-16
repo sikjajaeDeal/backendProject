@@ -14,6 +14,7 @@ import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 @Builder
 public class SalePostEsDocument {
 
