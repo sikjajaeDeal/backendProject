@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.member.auth.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import likelion.beanBa.backendProject.member.auth.dto.*;
 import likelion.beanBa.backendProject.member.auth.service.AuthService;
@@ -28,9 +29,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody @Valid LoginRequest request) {
-        LoginResponse response = authService.login(request);
-        return ResponseEntity.ok(response);
+            @RequestBody @Valid LoginRequest request,
+            HttpServletResponse response) {
+        LoginResponse loginResponse = authService.login(request, response);
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/signup")
