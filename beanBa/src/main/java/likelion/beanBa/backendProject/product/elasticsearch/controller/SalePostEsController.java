@@ -28,8 +28,15 @@ public class SalePostEsController {
   public ResponseEntity<Page<SalePostSummaryResponse>> elasticSearch
       (@RequestBody SearchRequestDTO searchRequestDTO, @CurrentUser CustomUserDetails userDetails) {
 
-    Member member = userDetails != null ? userDetails.getMember() : null;
-    return ResponseEntity.ok(salePostEsService.search(searchRequestDTO, member));
+    try {
+      Member member = userDetails != null ? userDetails.getMember() : null;
+      return ResponseEntity.ok(salePostEsService.search(searchRequestDTO, member));
+    } catch (RuntimeException e) {
+      System.out.println(e.getMessage());
+
+      return null;
+    }
+
   }
 
 }

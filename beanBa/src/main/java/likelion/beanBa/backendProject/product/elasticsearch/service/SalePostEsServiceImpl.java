@@ -9,7 +9,9 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
@@ -53,7 +55,7 @@ public class SalePostEsServiceImpl implements SalePostEsService {
     }
 
 
-    public Page<SalePostSummaryResponse> search(SearchRequestDTO searchRequestDTO, Member member){
+    public Page<SalePostSummaryResponse> search(SearchRequestDTO searchRequestDTO, Member member) throws RuntimeException{
 
         try{
             System.out.println("검색 시작 : ");
@@ -152,11 +154,31 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
             //이게 맞는건지 모르겠네요..
             // 엘라스틱 서치 반환 값을 SalePostSummaryResponse 객체로 변환
+            long startTime = System.currentTimeMillis();
+
+            List<Long> postPks = content.stream()
+                .map(SalePostEsDocument::getPostPk)
+                .collect(Collectors.toList());
+
+            List<SalePost> salePosts = salePostRepository.findAllByPostPks(postPks);
+            List<Object[]> likeCounts = salePostLikeRepository.countLikesByPosts(salePosts);
+
+            Map<Long, Integer> likeCountMap = likeCounts.stream()
+                .collect(Collectors.toMap(
+                    o -> (Long) o[0],
+                    o -> ((Long) o[1]).intValue()  // 괄호 수정!
+                ));
+
+            Map<Long, SalePost> salePostMap = salePosts.stream()
+                .collect(Collectors.toMap(SalePost::getPostPk, Function.identity()));
+
+
             List<SalePostSummaryResponse> responses = content.stream()
                 .map(esDocument -> {
-                    SalePost salePost = salePostRepository.findById(esDocument.getPostPk())
-                        .orElseThrow(() -> new RuntimeException("db에서 게시글을 찾을 수 없습니다." + esDocument.getPostPk()));
-                    int likeCount = salePostLikeRepository.countByPostPk(salePost); // 찜 수 조회
+                    SalePost salePost = salePostMap.get(esDocument.getPostPk());
+                        //.orElseThrow(() -> new RuntimeException("db에서 게시글을 찾을 수 없습니다." + esDocument.getPostPk()));
+
+                    int likeCount = likeCountMap.getOrDefault(salePost.getPostPk(), 0); // 찜 수 조회
 
                     // 삭제되지 않은 이미지만 가져오기
                     List<SalePostImage> images = salePostImageRepository
@@ -202,6 +224,9 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
                 }).toList();
 
+            long endTime = System.currentTimeMillis();
+            System.out.println("검색 결과 변환 시간: " + (endTime - startTime) + "ms");
+
 
 
 
@@ -214,7 +239,7 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
 
         }catch(Exception e){
-            log.error("검색 오류",e.getMessage());
+            log.error("검색 오류: " + e.getMessage());
             throw new RuntimeException("검색 중 오류 발생",e);
 
         }
