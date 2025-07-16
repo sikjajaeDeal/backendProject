@@ -30,12 +30,12 @@ public class SalePost {
     /** 연관관계 매핑 **/
     //작성자 판매자 PK
     //다대일 연관관계 매핑
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "member_pk", nullable = false)
     private Member sellerPk;
 
     //카테고리
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_pk", nullable = false)
     private Category categoryPk;
 
