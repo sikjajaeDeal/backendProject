@@ -1,6 +1,7 @@
 package likelion.beanBa.backendProject.product.repository;
 
 
+import java.util.Iterator;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
@@ -9,6 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
 
 public interface SalePostRepository extends JpaRepository<SalePost, Long> {
 
@@ -24,5 +26,6 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
     // 내가 구매한 글 - 상태가 C(판매완료) 이고 최신순 정렬
     List<SalePost> findAllByBuyerPkAndStateAndDeleteYnOrderByPostAtDesc(Member member, SaleStatement state, Yn deleteYn);
 
-
+    @Query("SELECT s FROM SalePost s WHERE s.postPk IN :ids")
+    List<SalePost> findAllByPostPks(List<Long> ids);
 }

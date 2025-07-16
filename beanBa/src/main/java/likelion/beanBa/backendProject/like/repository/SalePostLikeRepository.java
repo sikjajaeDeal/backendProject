@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface SalePostLikeRepository extends JpaRepository<SalePostLike, Long> {
 
@@ -21,4 +23,10 @@ public interface SalePostLikeRepository extends JpaRepository<SalePostLike, Long
 
     // 찜 개수 조회
     int countByPostPk(SalePost salePost);
+
+    @Query("SELECT s.postPk.postPk, COUNT(s) FROM SalePostLike s WHERE s.postPk IN :posts GROUP BY s.postPk.postPk")
+    List<Object[]> countLikesByPosts(@Param("posts") List<SalePost> posts);
+
+
+
 }
