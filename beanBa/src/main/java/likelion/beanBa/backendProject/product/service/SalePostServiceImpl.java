@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostRequest;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
@@ -12,12 +13,17 @@ import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsSe
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
+import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
 import likelion.beanBa.backendProject.product.repository.CategoryRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
 import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +32,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -71,8 +78,11 @@ public class SalePostServiceImpl implements SalePostService {
     /** 게시글 전체 조회 **/
     @Override
     @Transactional(readOnly = true)
-    public List<SalePostSummaryResponse> getAllPosts(Member member) {
-        List<SalePost> salePosts = salePostRepository.findAllByDeleteYn(Yn.N);
+    public PageResponse<SalePostSummaryResponse> getAllPosts(Member member, int page, int size) {
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "postAt"));
+        Page<SalePost> salePostsPage = salePostRepository.findAllByDeleteYn(Yn.N, pageable);
+        List<SalePost> salePosts = salePostsPage.getContent();
 
         // 찜한 게시글 postPk 만 먼저 가져오기
         Set<Long> likedPostPks = member != null
@@ -81,7 +91,7 @@ public class SalePostServiceImpl implements SalePostService {
                 .collect(Collectors.toSet())
                 : Set.of();
 
-        return salePosts.stream()
+        List<SalePostSummaryResponse> SalePostContent = salePosts.stream()
                 .map(salePost -> {
                     // 삭제되지 않은 이미지만 가져오기
                     List<SalePostImage> images = salePostImageRepository
@@ -89,8 +99,9 @@ public class SalePostServiceImpl implements SalePostService {
 
                     // 썸네일 추출
                     String thumbnailUrl = images.stream()
-                            .findFirst()
+                            .sorted(Comparator.comparing(i -> i.getImageOrder() != null ? i.getImageOrder() : Integer.MAX_VALUE))
                             .map(SalePostImage::getImageUrl)
+                            .findFirst()
                             .orElse(null);
 
                     boolean salePostLiked = likedPostPks.contains(salePost.getPostPk()); // 찜 여부 판단
@@ -100,6 +111,16 @@ public class SalePostServiceImpl implements SalePostService {
                     return SalePostSummaryResponse.from(salePost, thumbnailUrl, salePostLiked, likeCount);
                 })
                 .toList();
+
+        return new PageResponse<>(
+                SalePostContent,
+                salePostsPage.getNumber(),
+                salePostsPage.getSize(),
+                salePostsPage.getTotalElements(),
+                salePostsPage.getTotalPages(),
+                salePostsPage.isLast()
+        );
+
     }
 
 
@@ -115,6 +136,7 @@ public class SalePostServiceImpl implements SalePostService {
 
         List<String> imageUrls = salePostImageRepository.findAllByPostPkAndDeleteYn(salePost, Yn.N)
                 .stream()
+                .sorted(Comparator.comparing(i -> i.getImageOrder() != null ? i.getImageOrder() : Integer.MAX_VALUE))
                 .map(SalePostImage::getImageUrl)
                 .toList();
 
@@ -159,10 +181,12 @@ public class SalePostServiceImpl implements SalePostService {
 
         // 현재 순서 그대로 새 이미지 등록
         List<String> requestUrls = salePostRequest.getImageUrls(); // 순서 유지
+
         if (requestUrls != null) {
-            for (String url : requestUrls) {
+            for (int i = 0; i < requestUrls.size(); i++) {
+                String url = requestUrls.get(i);
                 if (url != null && !url.isBlank()) {
-                    salePostImageRepository.save(SalePostImage.of(salePost, url));
+                    salePostImageRepository.save(SalePostImage.ofWithOrder(salePost, url, i));
                 }
             }
         }
@@ -174,22 +198,56 @@ public class SalePostServiceImpl implements SalePostService {
 
     /** 판매와료 처리 시 호출 **/
     @Transactional
-    public void completeSale(Long postPk, Long buyerPk, Member sellerPk) { //sellerPk 는 로그인된 사용자 정보이므로 Member 객체로 받기
+    public String changeSaleStatus(Long postPk, SaleStatement newStatus, Long buyerPk, Member sellerPk) { //sellerPk 는 로그인된 사용자 정보이므로 Member 객체로 받기
         SalePost salePost = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new EntityNotFoundException("해당 게시글이 존재하지 않습니다."));
 
         validateWriter(salePost, sellerPk);
 
-        Member buyer = null; //분기에 따라 markAsSold 를 중복하지 않기 위해
-
-        if (buyerPk != null) {
-            buyer = memberRepository.findById(buyerPk)
-                    .orElseThrow(() -> new EntityNotFoundException("해당 구매자가 존재하지 않습니다."));
-        } else {
-            log.info("구매자 없이 판매자가 거래완료 처리했습니다.");
+        if (newStatus == null) {
+            throw new IllegalArgumentException("상태 값이 지정되지 않았습니다.");
         }
 
-        salePost.markAsSold(buyer);
+        switch (newStatus) {
+            case S: // 판매중
+            case H: // 판매보류
+                if (salePost.getState() == newStatus) {
+                    log.info("이미 '{}' 상태인 게시글입니다. 상태 변경 생략.", newStatus);
+                    return "이미 " + newStatus.name() + " 상태입니다.";
+                }
+
+                salePost.changeState(newStatus);
+                salePost.removeBuyer(); // 구매자 정보 제거
+                log.info("게시글 [{}] 상태가 {}로 변경되었습니다. (구매자 정보 제거)", postPk, newStatus);
+                return "판매 상태가 '" + newStatus.name() + "'로 변경되었습니다. (구매자 없음/제거)";
+
+            case C: // 판매완료
+                if (salePost.getState() == SaleStatement.C) {
+                    Member currentBuyer = salePost.getBuyerPk();
+                    if (buyerPk == null && currentBuyer == null) {
+                        throw new IllegalStateException("이미 구매자 없이 판매 완료된 게시글입니다.");
+                    }
+                    if (buyerPk != null && currentBuyer != null &&
+                            currentBuyer.getMemberPk().equals(buyerPk)) {
+                        throw new IllegalStateException("이미 동일한 구매자로 판매 완료된 게시글입니다.");
+                    }
+                }
+
+                if (buyerPk == null) {
+                    log.info("판매자가 구매자를 선택하지 않고 구매 완료 처리했습니다.");
+                    salePost.markAsSold(null); // 구매자 없이 처리
+                    return "구매자 없이 판매 완료 처리되었습니다.";
+                }
+
+                Member buyer = memberRepository.findById(buyerPk)
+                        .orElseThrow(() -> new EntityNotFoundException("해당 구매자가 존재하지 않습니다."));
+                salePost.markAsSold(buyer);
+                log.info("게시글 [{}]이(가) 구매자 [{}]에 의해 판매 완료 처리되었습니다.", postPk, buyerPk);
+                return "구매자 [" + buyer.getNickname() + "]에 의해 판매 완료 처리되었습니다.";
+
+            default:
+                throw new IllegalArgumentException("지원하지 않는 상태입니다: " + newStatus);
+        }
     }
 
 
@@ -225,9 +283,10 @@ public class SalePostServiceImpl implements SalePostService {
     private void saveImages(SalePost salePost, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) return;
 
-        List<SalePostImage> images = imageUrls.stream()
-                .map(url -> SalePostImage.of(salePost, url))
-                .toList();
+        List<SalePostImage> images =
+                IntStream.range(0, imageUrls.size())
+                        .mapToObj(i -> SalePostImage.ofWithOrder(salePost, imageUrls.get(i), i))
+                        .collect(Collectors.toList());
 
         salePostImageRepository.saveAll(images);
     }
