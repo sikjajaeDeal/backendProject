@@ -159,7 +159,6 @@ public class SalePostController {
             }
         }
 
-//        List<String> imageUrls = s3Service.uploadFiles(salePostImages);
 
         salePostRequest.setImageUrls(fullImageUrls); //최종 슬롯 순서 반영
 
