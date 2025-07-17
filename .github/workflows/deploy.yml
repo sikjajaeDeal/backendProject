@@ -46,12 +46,10 @@ jobs:
           distribution: 'temurin'
 
       - name: 🔧 Grant Gradle permission
-        run: chmod +x ./gradlew
-        working-directory: ./beanBa
+        run: chmod +x ./beanBa/gradlew
 
       - name: 🔄 Build without running tests
         run: ./beanBa/gradlew clean build -x test
-        working-directory: ./beanBa
 
       - name: ❌ Leave comment on PR if build fails
         if: failure() && github.event_name == 'pull_request'
@@ -98,8 +96,7 @@ jobs:
           distribution: 'temurin'
 
       - name: ✉️ Build JAR file
-        run: ./gradlew bootJar
-        working-directory: ./beanBa
+        run: ./beanBa/gradlew bootJar
 
       - name: 🔐 Save SSH key
         run: |
