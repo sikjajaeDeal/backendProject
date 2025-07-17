@@ -46,4 +46,8 @@ public class Member {
 
     @Column(name = "longitude")
     private Double longitude;
+
+    public void markAsBlind() {
+        this.deleteYn = "B";
+    }
 }

@@ -38,8 +38,9 @@ public class Report {
     @Column(nullable = false)
     private String reportReason;
 
-    @Column(nullable = false)
-    private String reportKind;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "report_kind",nullable = false, length = 1)
+    private ReportKind reportKind;
 
     @CreationTimestamp
     private LocalDateTime reportAt;

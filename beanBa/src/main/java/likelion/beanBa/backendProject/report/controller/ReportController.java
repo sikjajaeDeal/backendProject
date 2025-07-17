@@ -19,13 +19,12 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping
-    public ResponseEntity<String> reportUser(
+    public ResponseEntity<String> reportMember(
             @CurrentUser CustomUserDetails userDetails,
             @RequestBody ReportRequest request) {
 
-        reportService.reportUser(request, userDetails.getMember());
+        reportService.createReport(request, userDetails.getMember());
 
         return ResponseEntity.ok("신고가 정상적으로 완료되었습니다.");
     }
-
 }
