@@ -4,15 +4,13 @@ import jakarta.persistence.*;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Entity
 @Builder
 @NoArgsConstructor
@@ -112,6 +110,11 @@ public class SalePost {
     public void markAsSold(Member buyer) {
         this.buyerPk = buyer;
         this.state = SaleStatement.C;
+        this.stateAt = LocalDateTime.now();
+    }
+
+    public void markAsBlind() {
+        this.deleteYn = Yn.B;
         this.stateAt = LocalDateTime.now();
     }
 

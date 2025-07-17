@@ -24,5 +24,6 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
     // 내가 구매한 글 - 상태가 C(판매완료) 이고 최신순 정렬
     List<SalePost> findAllByBuyerPkAndStateAndDeleteYnOrderByPostAtDesc(Member member, SaleStatement state, Yn deleteYn);
 
-
+    // 특정 멤버의 블라인드 된 글 갯수 반환
+    long countBySellerPk_MemberPkAndDeleteYn(Long memberPk, Yn deleteYn);
 }
