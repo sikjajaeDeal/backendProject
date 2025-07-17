@@ -19,6 +19,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomUserDetailsService customUserDetailsService;
 
+
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, CustomUserDetailsService customUserDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.customUserDetailsService = customUserDetailsService;
@@ -29,6 +30,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = extractToken(request);
+        String path = request.getRequestURI();
+        // ✅ 인증 없이 접근 가능한 경로들 //0717 임시 추가
+        if (path.startsWith("/admin-test.html") || path.startsWith("/admin/members")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
 
         if(token != null && jwtTokenProvider.validateToken(token)) {
             String memberId = jwtTokenProvider.getMemberIdFromToken(token);

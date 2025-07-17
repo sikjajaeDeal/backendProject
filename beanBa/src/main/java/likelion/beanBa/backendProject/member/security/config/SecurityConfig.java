@@ -60,8 +60,16 @@ public class SecurityConfig {
                 "/upload",
                 "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
                 "/api/sale-post/all/",
-                "/api/sale-post/detail/**"
-            ).permitAll()
+                "/api/sale-post/detail/**",
+                    "/api/admin/**" //admin 확인을 위해 추가 0717
+
+            ).permitAll().requestMatchers(
+                            "/adminPage.html",
+                            "/css/**",
+                            "/js/**",
+                            "/images/**",
+                            "/favicon.ico"
+                    ).permitAll()//0717 김송이 추가
             .anyRequest().authenticated()
         )
         .oauth2Login(oauth2 -> oauth2
