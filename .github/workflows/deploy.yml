@@ -46,11 +46,11 @@ jobs:
           distribution: 'temurin'
 
       - name: 🔧 Grant Gradle permission
-        run: chmod +x ./beanBa/gradlew
+        run: chmod +x ./gradlew
         working-directory: ./beanBa
 
       - name: 🔄 Build and run tests
-        run: ./beanBa/gradlew clean build
+        run: ./gradlew clean build
         working-directory: ./beanBa
 
       - name: ❌ Leave comment on PR if build fails
@@ -98,7 +98,7 @@ jobs:
           distribution: 'temurin'
 
       - name: ✉️ Build JAR file
-        run: ./beanBa/gradlew bootJar
+        run: ./gradlew bootJar
         working-directory: ./beanBa
 
       - name: 🔐 Save SSH key
