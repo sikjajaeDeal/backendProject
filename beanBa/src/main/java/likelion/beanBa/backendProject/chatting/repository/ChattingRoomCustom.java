@@ -10,7 +10,12 @@ import java.util.List;
  * */
 public interface ChattingRoomCustom {
     /*
-    * 채팅룸 리스트 가져오기
-    * */
-    List<ChattingRoomListResponse> getChattingRoomList(Long memberPk);
+     * 모든 채팅룸 리스트 가져오기
+     */
+    List<ChattingRoomListResponse> getAllChattingRoomList(Long memberPk);
+
+    /*
+     * 특정 상품에 대한 채팅룸 리스트 가져오기 in 상품상세화면
+     */
+    List<ChattingRoomListResponse> getChattingRoomListByPostPk(Long postPk);
 }
