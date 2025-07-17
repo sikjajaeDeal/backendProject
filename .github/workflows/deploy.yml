@@ -4,10 +4,12 @@ on:
   push:
     branches:
       - main
+      - develop
 
   pull_request:
     branches:
       - main
+      - develop
 
 jobs:
   build:
@@ -49,7 +51,7 @@ jobs:
         run: chmod +x ./gradlew
         working-directory: ./beanBa
 
-      - name: 🔄 Build without and run tests
+      - name: 🔄 Build without running tests
         run: ./gradlew clean build -x test
         working-directory: ./beanBa
 
@@ -85,7 +87,9 @@ jobs:
     name: 🚀 Deploy to EC2
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: >
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
 
     steps:
       - name: ✅ Checkout repository
