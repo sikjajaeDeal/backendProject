@@ -68,6 +68,8 @@ dependencies {
 
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	implementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
 }
 
 tasks.named('test') {

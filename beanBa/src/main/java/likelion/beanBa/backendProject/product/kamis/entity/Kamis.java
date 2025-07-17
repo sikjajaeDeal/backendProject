@@ -5,15 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import likelion.beanBa.backendProject.product.kamis.dto.response.KamisSearchResponseDTO;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.LastModifiedDate;
 
 @Entity
 @Getter
+@Table(name = "market_prict")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Kamis {
 
@@ -50,6 +52,17 @@ public class Kamis {
         .itemCode(itemCode)
         .baseDate(baseDate)
         .price(price)
+        .updatedAt(LocalDateTime.now())
+        .build();
+  }
+
+  public static Kamis from(KamisSearchResponseDTO responseDTO) {
+
+    return Kamis.builder()
+        .id(null)
+        .itemCode(responseDTO.getCondition().get(0).getItemCode())
+        .baseDate(responseDTO.getData().getItem().get(responseDTO.getData().getItem().size() - 1).getBaseDate())
+        .price(responseDTO.getData().getItem().get(responseDTO.getData().getItem().size() - 1).getPrice())
         .updatedAt(LocalDateTime.now())
         .build();
   }
