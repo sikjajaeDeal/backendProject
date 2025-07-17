@@ -135,7 +135,8 @@
 
 
                 //  const socket = new WebSocket('/ws-chat');
-                const socket = new WebSocket('/ws-chat?nickname=' + nickname);
+<!--                const socket = new WebSocket('/ws-chat?nickname=' + nickname ='&memberPk=1');-->
+                const socket = new WebSocket('/ws-chat?memberPk=1');
                 stompClient = Stomp.over(socket);
 
                 stompClient.connect({}, function (frame) {

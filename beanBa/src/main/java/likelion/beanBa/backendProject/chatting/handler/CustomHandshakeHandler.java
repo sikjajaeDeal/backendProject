@@ -5,7 +5,7 @@ import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
 
 import java.security.Principal;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Websocket에서 사용자의 식별자를 추출하기 위한 핸드쉐이크 핸들러 클래스
@@ -19,16 +19,18 @@ public class CustomHandshakeHandler extends DefaultHandshakeHandler {
     @Override
     protected Principal determineUser(ServerHttpRequest request, WebSocketHandler wsHandler, Map<String, Object> attributes) {
 
-        String nickname = getNickname(request.getURI().getQuery());
-        return new StompPrincipal(nickname);
+        Long memberPk = getMemberPk(request.getURI().getQuery());
+//        return new StompPrincipal(nickname);
+        return new StompPrincipal(memberPk);
     }
 
-    private String getNickname(String query) {
-        if (query == null || !query.contains("nickname=")) {
-            return "닉네임없음";
-        } else {
-            return query.split("nickname=")[1];
+    private Long getMemberPk(String query) {
+        Long memberPk = null;
+        if (query != null && query.contains("memberPk=")) {
+            memberPk = Long.parseLong(query.split("memberPk=")[1]);
         }
+
+        return memberPk;
     }
 
 }

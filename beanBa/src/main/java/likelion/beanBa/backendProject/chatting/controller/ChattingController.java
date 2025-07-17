@@ -8,6 +8,7 @@ import likelion.beanBa.backendProject.chatting.dto.ChattingMessageResponse;
 import likelion.beanBa.backendProject.chatting.dto.ChattingRoomListResponse;
 import likelion.beanBa.backendProject.chatting.entity.ChattingMessage;
 import likelion.beanBa.backendProject.chatting.entity.ChattingRoom;
+import likelion.beanBa.backendProject.chatting.handler.StompPrincipal;
 import likelion.beanBa.backendProject.chatting.repository.ChattingMessageRepository;
 import likelion.beanBa.backendProject.chatting.repository.ChattingRoomRepository;
 import likelion.beanBa.backendProject.chatting.repository.impl.ChattingRoomCustomImpl;
@@ -28,6 +29,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.*;
 
 /**
@@ -184,7 +186,9 @@ public class ChattingController {
     * (방이 없을 시)동적으로 방 생성 및 채팅
     */
     @MessageMapping("/chatting/chat.sendMessage")
-    public void sendmessage(ChattingRequest message, @CurrentUser CustomUserDetails userDetails
+    public void sendmessage(ChattingRequest message
+//            , @CurrentUser CustomUserDetails userDetails // 웹소켓 통신은 @CurrentUser사용불가
+              , Principal principal
             ) throws JsonProcessingException {
 
         // 테스트용
@@ -195,10 +199,16 @@ public class ChattingController {
         message.setMemberPkFrom(1L);
         */
 
-
         String channel = null;
         String msg = null;
-        Long memberPk = userDetails.getMember().getMemberPk(); // 현 로그인 한 사용자 member pk
+        Long memberPk = ((StompPrincipal) principal).getMemberPk(); // 현 로그인 한 사용자 member pk
+        String nickName = null; // 현 로그인 한 사용자 member 닉네임
+        Member memberFrom = memberRepository.findByMemberPk(memberPk).orElse(null);
+        if(memberFrom != null) {
+            nickName = memberFrom.getNickname();
+        }
+
+        message.setFrom(nickName);
         message.setMemberPkFrom(memberPk);
 
         // 일반 메시지
