@@ -29,12 +29,16 @@ public class SalePostImage {
     @Column(name = "delete_yn", nullable = false, length = 1)
     private Yn deleteYn;
 
+    @Column(name = "image_order")
+    private Integer imageOrder;
+
     // 정적 팩토리 메서드
-    public static SalePostImage of(SalePost salePost, String imageUrl) {
+    public static SalePostImage ofWithOrder(SalePost salePost, String imageUrl, int imageOrder) {
         return SalePostImage.builder()
                 .postPk(salePost)
                 .imageUrl(imageUrl)
                 .deleteYn(Yn.N)
+                .imageOrder(imageOrder)
                 .build();
     }
 

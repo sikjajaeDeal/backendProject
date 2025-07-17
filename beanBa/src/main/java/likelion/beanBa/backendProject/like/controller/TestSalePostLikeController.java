@@ -2,6 +2,7 @@ package likelion.beanBa.backendProject.like.controller;
 
 import likelion.beanBa.backendProject.like.service.SalePostLikeService;
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,8 +49,11 @@ public class TestSalePostLikeController {
 
     /** 내가 찜한 게시글 목록 조회 */
     @GetMapping("/mypage")
-    public ResponseEntity<List<SalePostSummaryResponse>> getMyLikedPosts() {
-        List<SalePostSummaryResponse> saleLikedPosts = salePostLikeService.getAllLikedPosts(testMember);
+    public ResponseEntity<PageResponse<SalePostSummaryResponse>> getMyLikedPosts(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "2") int size
+    ) {
+        PageResponse<SalePostSummaryResponse> saleLikedPosts = salePostLikeService.getAllLikedPosts(testMember, page, size);
         return ResponseEntity.ok(saleLikedPosts);
     }
 }
