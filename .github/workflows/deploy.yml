@@ -97,6 +97,10 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: 🔧 Grant Gradle permission
+        run: chmod +x ./gradlew
+        working-directory: ./beanBa
+
       - name: ✉️ Build JAR file
         run: ./gradlew bootJar
         working-directory: ./beanBa
