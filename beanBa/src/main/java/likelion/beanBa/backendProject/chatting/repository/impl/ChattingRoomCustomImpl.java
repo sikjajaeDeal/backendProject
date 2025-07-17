@@ -73,7 +73,7 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                 "                       , ROW_NUMBER() OVER (PARTITION BY cm.chat_room_pk ORDER BY cm.chat_message_pk DESC) AS rn " +
                 "                  FROM chat_room cr LEFT OUTER JOIN chat_message cm ON cr.chat_room_pk = cm.chat_room_pk " +
                 "                       LEFT OUTER JOIN sale_post sp on cr.post_pk = sp.post_pk" +
-                "                 WHERE cr.post_pk = :memberPk " +
+                "                 WHERE cr.post_pk = :postPk " +
                 "               ) AS ranked " +
                 "         WHERE ranked.rn = 1" +
                 "      ORDER BY ranked.message_at DESC) chat_list " +

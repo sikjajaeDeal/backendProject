@@ -37,7 +37,7 @@ import java.util.*;
  * */
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/chatting")
+@RequestMapping("/api/chatting")
 @Slf4j
 public class ChattingController {
 
@@ -124,7 +124,7 @@ public class ChattingController {
      */
     @GetMapping("/getChattingRoomListByPostPk")
     @ResponseBody
-    public ResponseEntity<?> getChattingRoomListByPostPk(@RequestParam Long postPk) {
+    public ResponseEntity<?> getChattingRoomListByPostPk(@RequestParam("postPk") Long postPk) {
         if (postPk == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("새로고침 후 다시 시도해 주시기 바랍니다.");
@@ -185,7 +185,7 @@ public class ChattingController {
     /*
     * (방이 없을 시)동적으로 방 생성 및 채팅
     */
-    @MessageMapping("/chatting/chat.sendMessage")
+    @MessageMapping("/chatting/sendMessage")
     public void sendmessage(ChattingRequest message
 //            , @CurrentUser CustomUserDetails userDetails // 웹소켓 통신은 @CurrentUser사용불가
               , Principal principal
