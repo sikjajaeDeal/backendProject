@@ -1,4 +1,4 @@
-name: "CI/CD: PR + Deploy on develop"
+name: "BeanBar - CI/CD: PR + Deploy (main & develop)"
 
 on:
   push:
