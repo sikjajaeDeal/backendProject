@@ -9,10 +9,21 @@ import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.json.JsonData;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
+import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
+import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
 import likelion.beanBa.backendProject.product.entity.SalePost;
+import likelion.beanBa.backendProject.product.entity.SalePostImage;
+import likelion.beanBa.backendProject.product.product_enum.Yn;
+import likelion.beanBa.backendProject.product.repository.SalePostImageRepository;
+import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,11 +44,18 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
     private final SalePostEsRepository esRepository;
 
+    private final SalePostRepository salePostRepository;
+    private final SalePostEsRepository salePostEsRepository;
+
+    private final SalePostLikeRepository salePostLikeRepository;
+    private final SalePostImageRepository salePostImageRepository;
+
     public void deleteById(Long id) {
         esRepository.deleteById(id);
     }
 
-    public Page<SalePostEsDocument> search(SearchRequestDTO searchRequestDTO){
+
+    public Page<SalePostSummaryResponse> search(SearchRequestDTO searchRequestDTO, Member member) throws RuntimeException{
 
         try{
             System.out.println("검색 시작 : ");
@@ -134,16 +152,94 @@ public class SalePostEsServiceImpl implements SalePostEsService {
                     .collect(Collectors.toList()); // 위에서 꺼낸 객체를 자바 List에 넣음
 
 
+            //이게 맞는건지 모르겠네요..
+            // 엘라스틱 서치 반환 값을 SalePostSummaryResponse 객체로 변환
+            long startTime = System.currentTimeMillis();
+
+            List<Long> postPks = content.stream()
+                .map(SalePostEsDocument::getPostPk)
+                .collect(Collectors.toList());
+
+            List<SalePost> salePosts = salePostRepository.findAllByPostPks(postPks);
+            List<Object[]> likeCounts = salePostLikeRepository.countLikesByPosts(salePosts);
+
+            Map<Long, Integer> likeCountMap = likeCounts.stream()
+                .collect(Collectors.toMap(
+                    o -> (Long) o[0],
+                    o -> ((Long) o[1]).intValue()  // 괄호 수정!
+                ));
+
+            Map<Long, SalePost> salePostMap = salePosts.stream()
+                .collect(Collectors.toMap(SalePost::getPostPk, Function.identity()));
+
+
+            List<SalePostSummaryResponse> responses = content.stream()
+                .map(esDocument -> {
+                    SalePost salePost = salePostMap.get(esDocument.getPostPk());
+                        //.orElseThrow(() -> new RuntimeException("db에서 게시글을 찾을 수 없습니다." + esDocument.getPostPk()));
+
+                    int likeCount = likeCountMap.getOrDefault(salePost.getPostPk(), 0); // 찜 수 조회
+
+                    // 삭제되지 않은 이미지만 가져오기
+                    List<SalePostImage> images = salePostImageRepository
+                        .findAllByPostPkAndDeleteYn(salePost, Yn.N);
+
+                    // 썸네일 추출
+                    String thumbnailUrl = images.stream()
+                        .findFirst()
+                        .map(SalePostImage::getImageUrl)
+                        .orElse(null);
+
+                    // 찜한 게시글 postPk 만 먼저 가져오기
+                    Set<Long> likedPostPks = member != null
+                        ? salePostLikeRepository.findAllByMemberPk(member).stream()
+                        .map(like -> like.getPostPk().getPostPk())
+                        .collect(Collectors.toSet())
+                        : Set.of();
+
+                    boolean salePostLiked = likedPostPks.contains(salePost.getPostPk()); // 찜 여부 판단
+
+                    return SalePostSummaryResponse.builder()
+                        .postPk(esDocument.getPostPk())
+                        .sellerNickname(salePost.getSellerPk().getNickname())
+                        .categoryName(salePost.getCategoryPk().getCategoryName())
+
+                        .title(salePost.getTitle())
+                        .content(salePost.getContent())
+                        .hopePrice(salePost.getHopePrice())
+                        .viewCount(salePost.getViewCount())
+                        .likeCount(likeCount)
+
+                        .postAt(salePost.getPostAt())
+                        .stateAt(salePost.getStateAt())
+                        .state(salePost.getState())
+
+                        .latitude(salePost.getLatitude())
+                        .longitude(salePost.getLongitude())
+
+                        .thumbnailUrl(thumbnailUrl)
+
+                        .salePostLiked(salePostLiked)
+                        .build();
+
+                }).toList();
+
+            long endTime = System.currentTimeMillis();
+            System.out.println("검색 결과 변환 시간: " + (endTime - startTime) + "ms");
+
+
+
+
             //전체 검색 결과 수(총 문서의 갯수)
             long total = response.hits().total().value();
 
             //PageImpl 객체를 사용해서 Spring에서 사용할 수 있는 page 객체로 변환
 
-            return new PageImpl<>(content, PageRequest.of(page,size),total);
+            return new PageImpl<>(responses, PageRequest.of(page,size),total);
 
 
         }catch(Exception e){
-            log.error("검색 오류",e.getMessage());
+            log.error("검색 오류: " + e.getMessage());
             throw new RuntimeException("검색 중 오류 발생",e);
 
         }
@@ -154,10 +250,11 @@ public class SalePostEsServiceImpl implements SalePostEsService {
 
         try {
             SalePostEsDocument doc = SalePostEsDocument.from(salePost);
+            System.out.println("SalePostEsServiceImpl.save : " + doc.toString());
             esRepository.save(doc);
         } catch (Exception e) {
             log.error("Elasticsearch 저장 오류: {}", e.getMessage());
-            throw new RuntimeException("Elasticsearch 저장 중 오류 발생", e);
+            //throw new RuntimeException("Elasticsearch 저장 중 오류 발생", e);
         }
 
     }
@@ -168,7 +265,7 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             esRepository.delete(doc);
         } catch (Exception e) {
             log.error("Elasticsearch 삭제 오류: {}", e.getMessage());
-            throw new RuntimeException("Elasticsearch 삭제 중 오류 발생", e);
+            //throw new RuntimeException("Elasticsearch 삭제 중 오류 발생", e);
         }
     }
 
@@ -178,7 +275,7 @@ public class SalePostEsServiceImpl implements SalePostEsService {
             esRepository.save(doc);
         } catch (Exception e) {
             log.error("Elasticsearch 업데이트 오류: {}", e.getMessage());
-            throw new RuntimeException("Elasticsearch 업데이트 중 오류 발생", e);
+            //throw new RuntimeException("Elasticsearch 업데이트 중 오류 발생", e);
         }
     }
 //================ 엘라스틱서치 i/o ====================
@@ -250,7 +347,10 @@ public class SalePostEsServiceImpl implements SalePostEsService {
      */
     private void locationSearchFilter(BoolQuery.Builder b, SearchRequestDTO searchRequestDTO) {
 
-        Integer distance = 5;     //거리 5km
+        //==============거리 (km 단위)================
+        Integer distance = (searchRequestDTO.getDistance() == null || searchRequestDTO.getDistance() <= 0)
+            ? 0 : searchRequestDTO.getDistance();
+        //============================================
 
         if(searchRequestDTO.getLatitude() == 0.0 || searchRequestDTO.getLongitude() == 0.0) {
             return; //위도나 경도 값이 없을 경우 쿼리를 생성하지 않음

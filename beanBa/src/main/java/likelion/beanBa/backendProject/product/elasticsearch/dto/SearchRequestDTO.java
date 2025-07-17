@@ -14,6 +14,9 @@ public class SearchRequestDTO {
   private double latitude;
   private double longitude;
 
+  //검색 거리 기준
+  private Integer distance; // 거리 기준 (단위: km)
+
   //가격범위
   private int minPrice;
   private int maxPrice;

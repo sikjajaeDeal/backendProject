@@ -1,6 +1,7 @@
 package likelion.beanBa.backendProject.like.service;
 
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 
 import java.util.List;
@@ -18,6 +19,6 @@ public interface SalePostLikeService {
     boolean isPostLiked(Member member, Long postPk);
 
     //좋아요 한 모든 목록 보기
-    List<SalePostSummaryResponse> getAllLikedPosts(Member member);
+    PageResponse<SalePostSummaryResponse> getAllLikedPosts(Member member, int page, int size);
 
 }
