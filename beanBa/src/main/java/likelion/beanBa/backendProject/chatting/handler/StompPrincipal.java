@@ -4,18 +4,22 @@ import java.security.Principal;
 
 /**
  *  Principal  <- 사용자 인증 정보 구현체
- *  고유 식별자(username,email)를 반환
+ *  사용자 고유 식별자(memberPk)를 반환
  **/
 public class StompPrincipal implements Principal {
 
-    private final String name;
+    private final Long memberPk;
 
-    public StompPrincipal(String name) {
-        this.name = name;
+    public StompPrincipal(Long memberPk) {
+        this.memberPk = memberPk;
+    }
+
+    public Long getMemberPk() {
+        return this.memberPk;
     }
 
     @Override
     public String getName() {
-        return this.name;
+        return String.valueOf(memberPk);
     }
 }
