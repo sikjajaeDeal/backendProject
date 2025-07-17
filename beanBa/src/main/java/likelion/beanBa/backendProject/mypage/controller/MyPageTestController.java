@@ -2,11 +2,14 @@ package likelion.beanBa.backendProject.mypage.controller;
 
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.mypage.service.MyPageService;
+import likelion.beanBa.backendProject.product.dto.PageResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -27,15 +30,21 @@ public class MyPageTestController {
 
     /** 내가 판매한 글 조회 (테스트용) **/
     @GetMapping("/sales")
-    public ResponseEntity<List<SalePostSummaryResponse>> getMySalePostsTest() {
-        List<SalePostSummaryResponse> responses = myPageService.getMySalePosts(testMember);
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<PageResponse<SalePostSummaryResponse>> getMySalePostsTest(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "2") int size
+    ) {
+        PageResponse<SalePostSummaryResponse> mySalePosts = myPageService.getMySalePosts(testMember, page, size);
+        return ResponseEntity.ok(mySalePosts);
     }
 
     /** 내가 구매한 글 조회 (테스트용) **/
     @GetMapping("/purchases")
-    public ResponseEntity<List<SalePostSummaryResponse>> getMyPurchasedPostsTest() {
-        List<SalePostSummaryResponse> responses = myPageService.getMyPurchasedPosts(testMember);
-        return ResponseEntity.ok(responses);
+    public ResponseEntity<PageResponse<SalePostSummaryResponse>> getMyPurchasedPostsTest(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "2") int size
+    ) {
+        PageResponse<SalePostSummaryResponse> myPurchasedPosts = myPageService.getMyPurchasedPosts(testMember, page, size);
+        return ResponseEntity.ok(myPurchasedPosts);
     }
 }

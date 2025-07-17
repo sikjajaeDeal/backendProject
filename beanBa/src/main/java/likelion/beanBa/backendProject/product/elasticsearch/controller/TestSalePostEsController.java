@@ -31,22 +31,22 @@ public class TestSalePostEsController {
     private final SalePostEsRepository salePostEsRepository;
 
     //private final KafkaTemplate<String, SearchLogMessage> kafkaTemplate;
-    @PostMapping("/elasticsearch")
-    //엘라스틱서치 검색 결과를 page 형태로 감싼 다음 HTTP 응답을 json으로 반환
-    public ResponseEntity<Page<SalePostEsDocument>> elasticSearch(
-            @RequestBody SearchRequestDTO searchRequestDTO) {
-
-
-        //검색어 정보 카프카 전송(0701(카프카랑 연결))
-        String userId = "1";
-        String searchedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-
-        //SearchLogMessage message = new SearchLogMessage(keyword, userId, searchedAt);
-        //kafkaTemplate.send("search-log", message); //search-log 토픽으로 메세지 전달
-
-
-        return ResponseEntity.ok(salePostEsService.search(searchRequestDTO));
-    }
+//    @PostMapping("/elasticsearch")
+//    //엘라스틱서치 검색 결과를 page 형태로 감싼 다음 HTTP 응답을 json으로 반환
+//    public ResponseEntity<Page<SalePostEsDocument>> elasticSearch(
+//            @RequestBody SearchRequestDTO searchRequestDTO) {
+//
+//
+//        //검색어 정보 카프카 전송(0701(카프카랑 연결))
+//        String userId = "1";
+//        String searchedAt = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+//
+//        //SearchLogMessage message = new SearchLogMessage(keyword, userId, searchedAt);
+//        //kafkaTemplate.send("search-log", message); //search-log 토픽으로 메세지 전달
+//
+//
+//        return ResponseEntity.ok(salePostEsService.search(searchRequestDTO));
+//    }
 
     //엘라스틱서치에 SalePostEsDocument를 저장하는 API
     @PostMapping("/elasticsearch/insert")
@@ -60,6 +60,7 @@ public class TestSalePostEsController {
                     .title(requestDTO.getTitle())
                     .content(requestDTO.getContent())
                     .hopePrice(requestDTO.getHopePrice())
+                    .categoryPk(requestDTO.getCategoryPk())
                     .deleteYn(requestDTO.getDeleteYn())
                     .geoLocation(new GeoPoint(requestDTO.getLatitude(), requestDTO.getLongitude()))
                     .build()).toList();

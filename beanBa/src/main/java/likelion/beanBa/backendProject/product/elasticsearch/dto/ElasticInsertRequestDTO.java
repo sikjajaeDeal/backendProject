@@ -12,6 +12,7 @@ public class ElasticInsertRequestDTO {
   private String title;
   private String content;
   private int hopePrice;
+  private Long categoryPk;
   private String deleteYn;
   private double latitude;
   private double longitude;
