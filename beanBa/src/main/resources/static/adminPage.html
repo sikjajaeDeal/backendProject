@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Member List</title>
     <style>
         table {
@@ -22,12 +21,26 @@
 
 <h1>Admin Member List</h1>
 
+<!-- 검색 필드 -->
 <div>
+    <label for="category">Category:</label>
+    <select id="category" name="category">
+        <option value="memberId">Member ID</option>
+        <option value="email">Email</option>
+        <option value="nickName">Nickname</option>
+    </select>
+
+    <label for="keyword">Keyword:</label>
+    <input type="text" id="keyword" name="keyword" />
+
     <label for="page">Page:</label>
     <input type="number" id="page" name="page" value="0" min="0" />
+
     <label for="size">Size:</label>
     <input type="number" id="size" name="size" value="10" min="1" />
-    <button onclick="loadMembers()">Load Members</button>
+
+    <button onclick="searchMembers()">🔍 Search</button>
+    <button onclick="loadMembers()">📋 Load All</button>
 </div>
 
 <h2>Member List</h2>
@@ -47,40 +60,65 @@
 </table>
 
 <script>
-    // Function to load members from the backend API
+    // 공통으로 테이블을 그리는 함수
+    function renderTable(data) {
+        const tableBody = document.querySelector("#memberTable tbody");
+        tableBody.innerHTML = ""; // Clear existing rows
+
+        data.content.forEach(member => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${member.memberId}</td>
+                <td>${member.email}</td>
+                <td>${member.nickname}</td>
+                <td>${member.provider}</td>
+                <td>${member.role}</td>
+                <td>${member.latitude}</td>
+                <td>${member.longitude}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // 전체 멤버 로드
     async function loadMembers() {
         const page = document.getElementById("page").value;
         const size = document.getElementById("size").value;
-
-        const url = `/api/admin/member?page=${page}&size=${size}`; // Update with your actual endpoint
+        const url = `/api/admin/member?page=${page}&size=${size}`;
 
         try {
             const response = await fetch(url);
             const data = await response.json();
-
-            const tableBody = document.querySelector("#memberTable tbody");
-            tableBody.innerHTML = ""; // Clear existing rows
-
-            // Iterate through the members and append rows to the table
-            data.content.forEach(member => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                        <td>${member.memberId}</td>
-                        <td>${member.email}</td>
-                        <td>${member.nickname}</td>
-                        <td>${member.provider}</td>
-                        <td>${member.role}</td>
-                        <td>${member.latitude}</td>
-                        <td>${member.longitude}</td>
-                    `;
-                tableBody.appendChild(row);
-            });
+            renderTable(data);
         } catch (error) {
             console.error("Error loading members:", error);
         }
     }
 
-    // Load members on page load
+    // 멤버 검색
+    async function searchMembers() {
+        const page = document.getElementById("page").value;
+        const size = document.getElementById("size").value;
+        const category = document.getElementById("category").value;
+        const keyword = document.getElementById("keyword").value;
+
+        if (!keyword.trim()) {
+            alert("검색어를 입력해주세요.");
+            return;
+        }
+
+        const url = `/api/admin/member/search?page=${page}&size=${size}&category=${category}&keyword=${encodeURIComponent(keyword)}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            renderTable(data);
+        } catch (error) {
+            console.error("Error searching members:", error);
+        }
+    }
+
+    // 페이지 로딩 시 전체 목록 불러오기
     window.onload = loadMembers;
 </script>
 

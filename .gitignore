@@ -41,3 +41,5 @@ out/
 .vscode/
 .idea/
 
+
+.env

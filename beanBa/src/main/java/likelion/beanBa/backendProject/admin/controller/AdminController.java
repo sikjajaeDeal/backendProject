@@ -25,13 +25,41 @@ public class AdminController {
     @GetMapping("/member")
     public ResponseEntity<PageResponse<MemberResponse>> getAllMembers(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "10") int size
             ) {
         System.out.println("🔥 Controller 도착함");
         PageResponse<MemberResponse> response = adminService.getAllMembers(page, size);
         System.out.println("🔥 전체 멤버 수: " + response.getTotalElements());
         System.out.println("📄 현재 페이지 멤버 수: " + response.getContent().size());
         return ResponseEntity.ok(response);
+    }
+
+    /**특정 멤버 검색
+     category(memberId, email, nickName) 구분으로 검색
+     **/
+
+    @GetMapping("/member/search")
+    public ResponseEntity<PageResponse<MemberResponse>> memberSearch(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "memberId") String category,
+            @RequestParam String keyword
+    ){
+        PageResponse<MemberResponse> response;
+        if(category.equals("email")){
+            System.out.println("🔥 searchEmail 도착함");
+            response = adminService.memberSearchEmail(keyword, page, size);
+
+        }else if(category.equals("nickName")){
+            System.out.println("🔥 searchNickname 도착함");
+            response = adminService.memberSearchNickName(keyword, page, size);
+        }else{
+            System.out.println("🔥 memberId 도착함");
+            response = adminService.memberSearchId(keyword, page, size);
+        }
+
+        return ResponseEntity.ok(response);
+
     }
 
 
