@@ -47,9 +47,11 @@ jobs:
 
       - name: 🔧 Grant Gradle permission
         run: chmod +x ./beanBa/gradlew
+        working-directory: ./beanBa
 
       - name: 🔄 Build and run tests
         run: ./beanBa/gradlew clean build
+        working-directory: ./beanBa
 
       - name: ❌ Leave comment on PR if build fails
         if: failure() && github.event_name == 'pull_request'
@@ -97,6 +99,7 @@ jobs:
 
       - name: ✉️ Build JAR file
         run: ./beanBa/gradlew bootJar
+        working-directory: ./beanBa
 
       - name: 🔐 Save SSH key
         run: |
