@@ -63,10 +63,10 @@ public class SecurityConfig {
                 "/api/sale-post/detail/**"
             ).permitAll()
             .requestMatchers(
-                    "/chatting/**",
+                    "api/chatting/**",
                     "/*.html",
                     "/js/**", // chatting 테스트 하느라고 잠시 넣어놨습니다.
-                    "/ws-gpt", "/ws-chat",
+                    "/api/ws-chat",
                     "/app/**",
                     "/api/rooms/**"
             ).permitAll()
