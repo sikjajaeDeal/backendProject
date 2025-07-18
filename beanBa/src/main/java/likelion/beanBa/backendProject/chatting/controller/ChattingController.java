@@ -100,6 +100,7 @@ public class ChattingController {
 //        return ResponseEntity.ok(chattingRoom.getId());
         Map<String, Object> returnMap = new HashMap<>();
         returnMap.put("roomPk", chattingRoom.getId());
+        returnMap.put("memberPk", memberPk);
 
         return ResponseEntity.ok(returnMap);
     }
