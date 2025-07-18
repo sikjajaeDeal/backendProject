@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f5f5;
+        }
+        header {
+            background: #0077cc;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        nav {
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        nav a {
+            text-decoration: none;
+            background: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            color: #333;
+            font-size: 16px;
+            transition: background 0.3s ease;
+        }
+        nav a:hover {
+            background: #e6e6e6;
+        }
+        #content {
+            margin: 30px auto;
+            width: 90%;
+            max-width: 1200px;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>🤖 관리자 대시보드</h1>
+</header>
+
+<nav>
+    <a href="#" onclick="loadSection('users')">사용자 관리</a>
+    <a href="#" onclick="loadSection('reports')">신고자 리스트</a>
+    <a href="#" onclick="loadSection('products')">상품 리스트</a>
+    <a href="#" onclick="loadSection('categories')">카테고리 관리</a>
+</nav>
+
+<div id="content">
+    <h2>환영합니다, 관리자님!</h2>
+    <p>원하는 메뉴를 클릭하시면 해당 기능을 확인하거나 관리할 수 있습니다.</p>
+</div>
+
+<script>
+    const sectionUrl = {
+        users: 'adminMain.html'
+
+    };
+
+    function loadSection(key) {
+        const url = sectionUrl[key];
+        const container = document.getElementById('content');
+        container.innerHTML = `<p style="text-align:center;">로딩 중...</p>`;
+        fetch(url)
+            .then(res => res.text())
+            .then(html => {
+                container.innerHTML = html;
+            })
+            .catch(err => {
+                console.error(err);
+                container.innerHTML = `<p style="color:red;">죄송합니다. 해당 페이지를 불러올 수 없습니다.</p>`;
+            });
+    }
+</script>
+</body>
+</html>
