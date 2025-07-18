@@ -125,11 +125,11 @@ jobs:
             beanBa/build/libs/*.jar \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
 
-      - name: ⚡ SSH into EC2 and restart app
+      - name: ⚡ SSH into EC2 and deploy with PM2 ecosystem
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
-          pkill -f 'java -jar' || true
-          nohup java -jar /home/ubuntu/app.jar > app.log 2>&1 &
+          cd /home/ubuntu/BeanBa/backendProject/beanBa
+          pm2 startOrReload ecosystem.config.js --env dev
           EOF
 
 permissions:
