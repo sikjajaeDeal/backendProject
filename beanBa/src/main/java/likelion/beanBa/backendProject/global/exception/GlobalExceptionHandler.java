@@ -57,4 +57,12 @@ public class GlobalExceptionHandler {
         error.put("error", e.getMessage());
         return ResponseEntity.status(404).body(error); // ← 여기가 상태코드 결정함
     }
+
+    //잘못된 상태입력 or 중복 상태 입력
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalState(IllegalStateException e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", e.getMessage());
+        return ResponseEntity.badRequest().body(error);
+    }
 }

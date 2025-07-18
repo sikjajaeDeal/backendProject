@@ -179,4 +179,10 @@ public class TestSalePostController {
         String changeStatusMessage = salePostService.changeSaleStatus(postPk, status, buyerPk, testMember);
         return ResponseEntity.ok(Map.of("message", changeStatusMessage));
     }
+
+    @GetMapping("/top-view")
+    public ResponseEntity<List<SalePostSummaryResponse>> getTopViewCountPosts() {
+        List<SalePostSummaryResponse> salePosts = salePostService.getTop4SalePostsByLikeAndView(testMember);
+        return ResponseEntity.ok(salePosts);
+    }
 }

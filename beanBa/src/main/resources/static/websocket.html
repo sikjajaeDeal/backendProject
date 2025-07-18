@@ -136,14 +136,14 @@
 
                 //  const socket = new WebSocket('/ws-chat');
 <!--                const socket = new WebSocket('/ws-chat?nickname=' + nickname ='&memberPk=1');-->
-                const socket = new WebSocket('/ws-chat?memberPk=1');
+                const socket = new WebSocket('/api/ws-chat?memberPk=10');
                 stompClient = Stomp.over(socket);
 
                 stompClient.connect({}, function (frame) {
                     // 채팅방 입장할 때 채팅창을 초기화
                     document.getElementById("chatArea").innerHTML = "";
 
-                    fetchWithAuth(`/chatting/getMessageList?roomPk=5`, {
+                    fetchWithAuth(`/chatting/getMessageList?roomPk=6`, {
                         method: "GET",
                         credentials: "include",
                         headers: Object.assign(
@@ -222,9 +222,9 @@
                 }
 
                 const payload = {
-                    from: nickname,
+                    postPk: 64,
                     message: msg,
-                    roomId: roomId
+                    roomPk: 6
                 };
 
                 console.log("msg = ",msg)
@@ -233,7 +233,7 @@
                     payload.to = toUser; // 귓속말 대상이 있으면 to 추가
                 }
 
-                stompClient.send("/app/chatting/chat.sendMessage", {}, JSON.stringify(payload));
+                stompClient.send("/api/chatting/sendMessage", {}, JSON.stringify(payload));
                 document.getElementById("msg").value = "";
             }
 

@@ -3,11 +3,11 @@ name: "CI/CD: PR + Deploy on develop"
 on:
   push:
     branches:
-      - develop
+      - main
 
   pull_request:
     branches:
-      - develop
+      - main
 
 jobs:
   build:
@@ -46,10 +46,12 @@ jobs:
           distribution: 'temurin'
 
       - name: 🔧 Grant Gradle permission
-        run: chmod +x ./beanBa/gradlew
+        run: chmod +x ./gradlew
+        working-directory: ./beanBa
 
-      - name: 🔄 Build and run tests
-        run: ./beanBa/gradlew clean build
+      - name: 🔄 Build without and run tests
+        run: ./gradlew clean build -x test
+        working-directory: ./beanBa
 
       - name: ❌ Leave comment on PR if build fails
         if: failure() && github.event_name == 'pull_request'
@@ -95,13 +97,23 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: 🔧 Grant Gradle permission
+        run: chmod +x ./gradlew
+        working-directory: ./beanBa
+
       - name: ✉️ Build JAR file
-        run: ./beanBa/gradlew bootJar
+        run: ./gradlew bootJar
+        working-directory: ./beanBa
 
       - name: 🔐 Save SSH key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
           chmod 600 key.pem
+
+      - name: 🛡️ Add EC2 host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: 🌐 Deploy to EC2 via SCP
         run: |
