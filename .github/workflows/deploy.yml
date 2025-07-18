@@ -142,10 +142,10 @@ jobs:
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
           cd /home/ubuntu/BeanBa/backendProject/beanBa
-          set -a
-          source .env
-          set +a
-          rm .env
+#          set -a
+#          source .env
+#          set +a
+#          rm .env
           pm2 startOrReload ecosystem.config.js --env dev
           EOF
 
