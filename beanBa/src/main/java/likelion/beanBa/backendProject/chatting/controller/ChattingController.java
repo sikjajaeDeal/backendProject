@@ -97,7 +97,11 @@ public class ChattingController {
             return chattingRoomRepository.save(newRoom);
         });
 
-        return ResponseEntity.ok(chattingRoom.getId());
+//        return ResponseEntity.ok(chattingRoom.getId());
+        Map<String, Object> returnMap = new HashMap<>();
+        returnMap.put("roomPk", chattingRoom.getId());
+
+        return ResponseEntity.ok(returnMap);
     }
 
     /*
