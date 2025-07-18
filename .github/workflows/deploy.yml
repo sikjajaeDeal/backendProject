@@ -145,7 +145,6 @@ jobs:
           set -a
           source .env
           set +a
-#          rm .env
           pm2 startOrReload ecosystem.config.js --env dev
           EOF
 
