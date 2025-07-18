@@ -3,7 +3,9 @@ package likelion.beanBa.backendProject.product.kamis.dto.response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import likelion.beanBa.backendProject.product.kamis.entity.Kamis;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +14,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KamisSearchResponseDTO {
   private List<Condition> condition;
@@ -21,6 +24,7 @@ public class KamisSearchResponseDTO {
   @Setter
   @NoArgsConstructor
   @AllArgsConstructor
+  @Builder
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Condition {
 
@@ -62,6 +66,7 @@ public class KamisSearchResponseDTO {
   @Setter
   @NoArgsConstructor
   @AllArgsConstructor
+  @Builder
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Data {
 
@@ -74,11 +79,12 @@ public class KamisSearchResponseDTO {
   @Setter
   @NoArgsConstructor
   @AllArgsConstructor
+  @Builder
   @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Item {
 
-//    @JsonProperty("itemname")
-//    private Object itemName;
+    @JsonProperty("itemname")
+    private Object itemName;
 //
 //    @JsonProperty("kindname")
 //    private Object kindName;
@@ -89,8 +95,8 @@ public class KamisSearchResponseDTO {
 //    @JsonProperty("marketname")
 //    private Object marketName;
 
-    @JsonProperty("yyyy")
-    private String year;
+//    @JsonProperty("yyyy")
+//    private String year;
 
     @JsonProperty("regday")
     private String baseDate;
@@ -107,6 +113,25 @@ public class KamisSearchResponseDTO {
 
   }
 
+
+//  public static KamisSearchResponseDTO from(Kamis kamis) {
+//
+//    return KamisSearchResponseDTO.builder()
+//        .condition(List.of(
+//            Condition.builder()
+//                .itemCode(kamis.getItemCode())
+//                .build()
+//        ))
+//        .data(Data.builder()
+//            .item(List.of(
+//                Item.builder()
+//                    .baseDate(kamis.getBaseDate())
+//                    .price(kamis.getPrice().toString()) // Integer를 String으로 변환
+//                    .build()
+//            ))
+//            .build())
+//        .build();
+//  }
 
 
 

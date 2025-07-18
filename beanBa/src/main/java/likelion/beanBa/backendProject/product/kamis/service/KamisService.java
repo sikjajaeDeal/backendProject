@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import likelion.beanBa.backendProject.product.kamis.KamisClient;
 import likelion.beanBa.backendProject.product.kamis.dto.response.KamisCodeResponseDTO.info;
+import likelion.beanBa.backendProject.product.kamis.dto.response.KamisGetAllResponseDTO;
 import likelion.beanBa.backendProject.product.kamis.dto.response.KamisSearchResponseDTO;
 import likelion.beanBa.backendProject.product.kamis.entity.Kamis;
 import likelion.beanBa.backendProject.product.kamis.repository.KamisRespotiroy;
@@ -60,7 +61,14 @@ public class KamisService {
           }
         )
         .filter(Objects::nonNull)
-        .map(Kamis::from)
+        .map(kamisSearchResponseDTO -> {
+          try {
+            return Kamis.from(kamisSearchResponseDTO);
+          } catch (Exception e) {
+            log.error("Kamis 엔티티 변환 실패: " + e.getMessage());
+            return null;
+          }
+        })
         .toList();
 
     // 3. 변환된 엔티티를 데이터베이스에 저장합니다.
@@ -72,4 +80,16 @@ public class KamisService {
   }
 
 
+  public List<KamisGetAllResponseDTO> getAllKamisData() {
+    try {
+      List<Kamis> kamisList = kamisRespotiroy.findAll();
+      return kamisList.stream()
+          .map(KamisGetAllResponseDTO::from)
+          .toList();
+
+    } catch (Exception e) {
+      log.error("Kamis 데이터 조회 실패 : " + e.getMessage());
+      throw new RuntimeException("Kamis 데이터 조회 실패: " + e.getMessage());
+    }
+  }
 }

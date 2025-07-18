@@ -61,6 +61,16 @@ public class KamisClient {
     }
   }
 
+  public String searchKamisItemNameByitemCode(String itemCode) throws Exception {
+    KamisCodeResponseDTO responseDTO = this.searchKamisCode();
+
+    return responseDTO.getInfo().stream()
+        .filter(info -> info.getItemCode().equals(itemCode))
+        .map(KamisCodeResponseDTO.info::getItemName)
+        .findFirst()
+        .orElseThrow(() -> new Exception("해당 상품 코드에 대한 이름을 찾을 수 없습니다: " + itemCode));
+  }
+
   public KamisCodeResponseDTO searchKamisCode() throws Exception {
     String url = "http://www.kamis.or.kr/service/price/xml.do?action=productInfo&p_returntype=json";
 

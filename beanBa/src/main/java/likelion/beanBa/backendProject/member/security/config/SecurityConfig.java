@@ -60,7 +60,8 @@ public class SecurityConfig {
                 "/upload",
                 "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
                 "/api/sale-post/all/",
-                "/api/sale-post/detail/**"
+                "/api/sale-post/detail/**",
+                "/api/**"
             ).permitAll()
             .anyRequest().authenticated()
         )

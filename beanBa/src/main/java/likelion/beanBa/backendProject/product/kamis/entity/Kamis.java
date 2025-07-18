@@ -7,6 +7,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import likelion.beanBa.backendProject.product.kamis.KamisClient;
 import likelion.beanBa.backendProject.product.kamis.dto.response.KamisSearchResponseDTO;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -24,6 +25,9 @@ public class Kamis {
   @Column(name = "market_pk")
   private Long id;
 
+  @Column(length = 50, nullable = false)
+  private String itemName;
+
   @Column(name = "p_itemcode", length = 50, nullable = false)
   private String itemCode;
 
@@ -38,17 +42,19 @@ public class Kamis {
 
 
   @Builder
-  private Kamis(Long id, String itemCode, String baseDate, String price, LocalDateTime updatedAt) {
+  private Kamis(Long id, String itemName, String itemCode, String baseDate, String price, LocalDateTime updatedAt) {
     this.id = id;
+    this.itemName = itemName;
     this.itemCode = itemCode;
     this.baseDate = baseDate;
     this.price = price;
     this.updatedAt = updatedAt;
   }
 
-  public static Kamis of(Long id, String itemCode, String baseDate, String price) {
+  public static Kamis of(Long id, String itemName, String itemCode, String baseDate, String price) {
     return Kamis.builder()
         .id(id)
+        .itemName(itemName)
         .itemCode(itemCode)
         .baseDate(baseDate)
         .price(price)
@@ -56,10 +62,12 @@ public class Kamis {
         .build();
   }
 
-  public static Kamis from(KamisSearchResponseDTO responseDTO) {
+  public static Kamis from(KamisSearchResponseDTO responseDTO) throws Exception {
+    KamisClient kamisClient = new KamisClient();
 
     return Kamis.builder()
         .id(null)
+        .itemName(kamisClient.searchKamisItemNameByitemCode(responseDTO.getCondition().get(0).getItemCode()))
         .itemCode(responseDTO.getCondition().get(0).getItemCode())
         .baseDate(responseDTO.getData().getItem().get(responseDTO.getData().getItem().size() - 1).getBaseDate())
         .price(responseDTO.getData().getItem().get(responseDTO.getData().getItem().size() - 1).getPrice())
