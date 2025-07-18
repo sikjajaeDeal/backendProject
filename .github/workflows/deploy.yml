@@ -134,7 +134,7 @@ jobs:
       - name: 🌐 Deploy to EC2 via SCP
         run: |
           scp -i key.pem \
-            beanBa/build/libs/*.jar \
+            beanBa/build/libs/app.jar \
             .env \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/
 
@@ -142,8 +142,9 @@ jobs:
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
           cd /home/ubuntu/BeanBa/backendProject/beanBa
-          export $(grep -v '^#' .env | xargs)
-          unset $(grep -v '^#' .env | cut -d= -f1)
+          set -a
+          source .env
+          set +a
           rm .env
           pm2 startOrReload ecosystem.config.js --env dev
           EOF
