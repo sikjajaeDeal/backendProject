@@ -136,6 +136,7 @@ jobs:
           scp -i key.pem \
             beanBa/build/libs/app.jar \
             beanBa/.env \
+            beanBa/.env.template \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/
 
       - name: ⚡ SSH into EC2 and deploy with PM2 ecosystem
