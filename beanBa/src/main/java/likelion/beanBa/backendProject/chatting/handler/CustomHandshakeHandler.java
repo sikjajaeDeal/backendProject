@@ -13,7 +13,7 @@ import java.util.*;
 public class CustomHandshakeHandler extends DefaultHandshakeHandler {
 
     /*
-    * Websocket이 연결이 시작될 때 클라이언트의 nickname 파라미터를 읽어서 Add commentMore actions
+    * Websocket이 연결이 시작될 때 클라이언트의 memberPk 파라미터를 읽어서 Add commentMore actions
     * 그 값을 Principal(인증정보)로 사용
     */
     @Override
