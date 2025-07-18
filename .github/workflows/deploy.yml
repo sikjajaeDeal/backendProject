@@ -94,35 +94,31 @@ jobs:
       - name: 📄 Write .env file safely
         run: |
           {
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
-            echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}"
-            echo "GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}"
-            echo "KAKAO_OAUTH_CLIENT_ID=${{ secrets.KAKAO_OAUTH_CLIENT_ID }}"
-            echo "KAKAO_OAUTH_CLIENT_SECRET=${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}"
-
-            echo "SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}"
-            echo "SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}"
-            echo "SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}"
-            echo "SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}"
-
-            echo "SPRING_ELASTICSEARCH_URIS=${{ secrets.SPRING_ELASTICSEARCH_URIS }}"
-
-            echo "SPRING_DATASOURCE_URL_PROD=${{ secrets.SPRING_DATASOURCE_URL_PROD }}"
-            echo "SPRING_DATASOURCE_USERNAME_PROD=${{ secrets.SPRING_DATASOURCE_USERNAME_PROD }}"
-            echo "SPRING_DATASOURCE_PASSWORD_PROD=${{ secrets.SPRING_DATASOURCE_PASSWORD_PROD }}"
-            echo "REDIS_HOST_PROD=${{ secrets.REDIS_HOST_PROD }}"
-            echo "REDIS_PORT_PROD=${{ secrets.REDIS_PORT_PROD }}"
-
-            echo "SPRING_DATASOURCE_URL_DEV=${{ secrets.SPRING_DATASOURCE_URL_DEV }}"
-            echo "SPRING_DATASOURCE_USERNAME_DEV=${{ secrets.SPRING_DATASOURCE_USERNAME_DEV }}"
-            echo "SPRING_DATASOURCE_PASSWORD_DEV=${{ secrets.SPRING_DATASOURCE_PASSWORD_DEV }}"
-            echo "REDIS_HOST_DEV=${{ secrets.REDIS_HOST_DEV }}"
-            echo "REDIS_PORT_DEV=${{ secrets.REDIS_PORT_DEV }}"
-
-            echo "S3_REION_STATIC=${{ secrets.S3_REION_STATIC }}"
-            echo "S3_ACCESSKEY=${{ secrets.S3_ACCESSKEY }}"
-            echo "S3_SECRETKEY=${{ secrets.S3_SECRETKEY }}"
-            echo "S3_BUCKET=${{ secrets.S3_BUCKET }}"
+            echo 'SPRING_PROFILES_ACTIVE="dev"'
+            echo 'JWT_SECRET="${{ secrets.JWT_SECRET }}"'
+            echo 'GOOGLE_OAUTH_CLIENT_ID="${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}"'
+            echo 'GOOGLE_OAUTH_CLIENT_SECRET="${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}"'
+            echo 'KAKAO_OAUTH_CLIENT_ID="${{ secrets.KAKAO_OAUTH_CLIENT_ID }}"'
+            echo 'KAKAO_OAUTH_CLIENT_SECRET="${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}"'
+            echo 'SPRING_MAIL_HOST="${{ secrets.SPRING_MAIL_HOST }}"'
+            echo 'SPRING_MAIL_PORT="${{ secrets.SPRING_MAIL_PORT }}"'
+            echo 'SPRING_MAIL_USERNAME="${{ secrets.SPRING_MAIL_USERNAME }}"'
+            echo 'SPRING_MAIL_PASSWORD="${{ secrets.SPRING_MAIL_PASSWORD }}"'
+            echo 'SPRING_ELASTICSEARCH_URIS="${{ secrets.SPRING_ELASTICSEARCH_URIS }}"'
+            echo 'SPRING_DATASOURCE_URL_PROD="${{ secrets.SPRING_DATASOURCE_URL_PROD }}"'
+            echo 'SPRING_DATASOURCE_USERNAME_PROD="${{ secrets.SPRING_DATASOURCE_USERNAME_PROD }}"'
+            echo 'SPRING_DATASOURCE_PASSWORD_PROD="${{ secrets.SPRING_DATASOURCE_PASSWORD_PROD }}"'
+            echo 'REDIS_HOST_PROD="${{ secrets.REDIS_HOST_PROD }}"'
+            echo 'REDIS_PORT_PROD="${{ secrets.REDIS_PORT_PROD }}"'
+            echo 'SPRING_DATASOURCE_URL_DEV="${{ secrets.SPRING_DATASOURCE_URL_DEV }}"'
+            echo 'SPRING_DATASOURCE_USERNAME_DEV="${{ secrets.SPRING_DATASOURCE_USERNAME_DEV }}"'
+            echo 'SPRING_DATASOURCE_PASSWORD_DEV="${{ secrets.SPRING_DATASOURCE_PASSWORD_DEV }}"'
+            echo 'REDIS_HOST_DEV="${{ secrets.REDIS_HOST_DEV }}"'
+            echo 'REDIS_PORT_DEV="${{ secrets.REDIS_PORT_DEV }}"'
+            echo 'S3_REION_STATIC="${{ secrets.S3_REION_STATIC }}"'
+            echo 'S3_ACCESSKEY="${{ secrets.S3_ACCESSKEY }}"'
+            echo 'S3_SECRETKEY="${{ secrets.S3_SECRETKEY }}"'
+            echo 'S3_BUCKET="${{ secrets.S3_BUCKET }}"'
           } > beanBa/.env
 
       - name: 🔐 Save SSH key
