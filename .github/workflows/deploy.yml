@@ -89,7 +89,7 @@ jobs:
         working-directory: ./beanBa
 
       - name: 🔄 Rename jar file to app.jar
-        run: mv beanBa/build/libs/*SNAPSHOT.jar beanBa/build/libs/app.jar
+        run: mv beanBa/build/libs/backendProject-0.0.1-SNAPSHOT.jar beanBa/build/libs/app.jar
 
       - name: 📄 Create .env file from template
         run: |
