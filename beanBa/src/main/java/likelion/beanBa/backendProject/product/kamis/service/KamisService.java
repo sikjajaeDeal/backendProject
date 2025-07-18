@@ -24,7 +24,7 @@ public class KamisService {
   private final KamisRespotiroy kamisRespotiroy;
 
   @Transactional
-  @Scheduled(fixedRate = 86400000)
+  @Scheduled(fixedRate = 86400000, initialDelay = 86400000)
   public void updateKamisData() throws Exception {
 
     System.out.println("Kamis 데이터 업데이트 시작");
