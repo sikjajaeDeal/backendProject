@@ -18,5 +18,8 @@ public interface SalePostImageRepository extends JpaRepository<SalePostImage, Lo
     //삭제되지 않은 글만 단건 조회
     Optional<SalePostImage> findByPostPkAndDeleteYn(SalePost postPk, Yn deleteYn);
 
+    // 삭제되지 않은 이미지 중에서 imageOrder 가장 낮은 이미지 1개
+    Optional<SalePostImage> findTopByPostPkAndDeleteYnOrderByImageOrderAsc(SalePost postPk, Yn deleteYn);
+
 
 }
