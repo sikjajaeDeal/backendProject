@@ -28,7 +28,7 @@ public class KamisGetAllResponseDTO {
         .itemCode(kamis.getItemCode())
         .itemName(kamis.getItemName())
         .baseDate(kamis.getBaseDate())
-        .price(kamis.getPrice())
+        .price(String.valueOf(kamis.getPrice()))
         .updatedAt(kamis.getUpdatedAt())
         .build();
   }

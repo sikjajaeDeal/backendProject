@@ -35,7 +35,7 @@ public class Kamis {
   private String baseDate;
 
   @Column(length = 255)
-  private String price;
+  private Integer price;
 
   @Column
   private LocalDateTime updatedAt;
@@ -47,19 +47,14 @@ public class Kamis {
     this.itemName = itemName;
     this.itemCode = itemCode;
     this.baseDate = baseDate;
-    this.price = price;
-    this.updatedAt = updatedAt;
-  }
 
-  public static Kamis of(Long id, String itemName, String itemCode, String baseDate, String price) {
-    return Kamis.builder()
-        .id(id)
-        .itemName(itemName)
-        .itemCode(itemCode)
-        .baseDate(baseDate)
-        .price(price)
-        .updatedAt(LocalDateTime.now())
-        .build();
+    try {
+      this.price = Integer.parseInt(price);
+    } catch (Exception e) {
+      this.price = 0; // 예외 발생 시 가격을 0으로 설정
+    }
+
+    this.updatedAt = updatedAt;
   }
 
   public static Kamis from(KamisSearchResponseDTO responseDTO) throws Exception {
