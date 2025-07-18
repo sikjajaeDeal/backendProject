@@ -91,35 +91,39 @@ jobs:
       - name: 🔄 Rename jar file to app.jar
         run: mv beanBa/build/libs/backendProject-0.0.1-SNAPSHOT.jar beanBa/build/libs/app.jar
 
-      - name: 📄 Create .env file from template
+      - name: 📄 Write .env file safely
         run: |
-          set +x  # 👉 명령 출력 방지
+          cat <<EOF > beanBa/.env
+      JWT_SECRET=${{ secrets.JWT_SECRET }}
+      GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+      GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+      KAKAO_OAUTH_CLIENT_ID=${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
+      KAKAO_OAUTH_CLIENT_SECRET=${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
 
-          cp beanBa/.env.template beanBa/.env
-          sed -i "s|^JWT_SECRET=.*|JWT_SECRET='${{ secrets.JWT_SECRET }}'|" beanBa/.env
-          sed -i "s|^GOOGLE_OAUTH_CLIENT_ID=.*|GOOGLE_OAUTH_CLIENT_ID='${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}'|" beanBa/.env
-          sed -i "s|^GOOGLE_OAUTH_CLIENT_SECRET=.*|GOOGLE_OAUTH_CLIENT_SECRET='${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}'|" beanBa/.env
-          sed -i "s|^KAKAO_OAUTH_CLIENT_ID=.*|KAKAO_OAUTH_CLIENT_ID='${{ secrets.KAKAO_OAUTH_CLIENT_ID }}'|" beanBa/.env
-          sed -i "s|^KAKAO_OAUTH_CLIENT_SECRET=.*|KAKAO_OAUTH_CLIENT_SECRET='${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}'|" beanBa/.env
-          sed -i "s|^SPRING_MAIL_HOST=.*|SPRING_MAIL_HOST='${{ secrets.SPRING_MAIL_HOST }}'|" beanBa/.env
-          sed -i "s|^SPRING_MAIL_PORT=.*|SPRING_MAIL_PORT='${{ secrets.SPRING_MAIL_PORT }}'|" beanBa/.env
-          sed -i "s|^SPRING_MAIL_USERNAME=.*|SPRING_MAIL_USERNAME='${{ secrets.SPRING_MAIL_USERNAME }}'|" beanBa/.env
-          sed -i "s|^SPRING_MAIL_PASSWORD=.*|SPRING_MAIL_PASSWORD='${{ secrets.SPRING_MAIL_PASSWORD }}'|" beanBa/.env
-          sed -i "s|^SPRING_ELASTICSEARCH_URIS=.*|SPRING_ELASTICSEARCH_URIS='${{ secrets.SPRING_ELASTICSEARCH_URIS }}'|" beanBa/.env
-          sed -i "s|^SPRING_DATASOURCE_URL_PROD=.*|SPRING_DATASOURCE_URL_PROD='${{ secrets.SPRING_DATASOURCE_URL_PROD }}'|" beanBa/.env
-          sed -i "s|^SPRING_DATASOURCE_USERNAME_PROD=.*|SPRING_DATASOURCE_USERNAME_PROD='${{ secrets.SPRING_DATASOURCE_USERNAME_PROD }}'|" beanBa/.env
-          sed -i "s|^SPRING_DATASOURCE_PASSWORD_PROD=.*|SPRING_DATASOURCE_PASSWORD_PROD='${{ secrets.SPRING_DATASOURCE_PASSWORD_PROD }}'|" beanBa/.env
-          sed -i "s|^REDIS_HOST_PROD=.*|REDIS_HOST_PROD='${{ secrets.REDIS_HOST_PROD }}'|" beanBa/.env
-          sed -i "s|^REDIS_PORT_PROD=.*|REDIS_PORT_PROD='${{ secrets.REDIS_PORT_PROD }}'|" beanBa/.env
-          sed -i "s|^SPRING_DATASOURCE_URL_DEV=.*|SPRING_DATASOURCE_URL_DEV='${{ secrets.SPRING_DATASOURCE_URL_DEV }}'|" beanBa/.env
-          sed -i "s|^SPRING_DATASOURCE_USERNAME_DEV=.*|SPRING_DATASOURCE_USERNAME_DEV='${{ secrets.SPRING_DATASOURCE_USERNAME_DEV }}'|" beanBa/.env
-          sed -i "s|^SPRING_DATASOURCE_PASSWORD_DEV=.*|SPRING_DATASOURCE_PASSWORD_DEV='${{ secrets.SPRING_DATASOURCE_PASSWORD_DEV }}'|" beanBa/.env
-          sed -i "s|^REDIS_HOST_DEV=.*|REDIS_HOST_DEV='${{ secrets.REDIS_HOST_DEV }}'|" beanBa/.env
-          sed -i "s|^REDIS_PORT_DEV=.*|REDIS_PORT_DEV='${{ secrets.REDIS_PORT_DEV }}'|" beanBa/.env
-          sed -i "s|^S3_REION_STATIC=.*|S3_REION_STATIC='${{ secrets.S3_REION_STATIC }}'|" beanBa/.env
-          sed -i "s|^S3_ACCESSKEY=.*|S3_ACCESSKEY='${{ secrets.S3_ACCESSKEY }}'|" beanBa/.env
-          sed -i "s|^S3_SECRETKEY=.*|S3_SECRETKEY='${{ secrets.S3_SECRETKEY }}'|" beanBa/.env
-          sed -i "s|^S3_BUCKET=.*|S3_BUCKET='${{ secrets.S3_BUCKET }}'|" beanBa/.env
+      SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}
+      SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}
+      SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}
+      SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}
+
+      SPRING_ELASTICSEARCH_URIS=${{ secrets.SPRING_ELASTICSEARCH_URIS }}
+
+      SPRING_DATASOURCE_URL_PROD=${{ secrets.SPRING_DATASOURCE_URL_PROD }}
+      SPRING_DATASOURCE_USERNAME_PROD=${{ secrets.SPRING_DATASOURCE_USERNAME_PROD }}
+      SPRING_DATASOURCE_PASSWORD_PROD=${{ secrets.SPRING_DATASOURCE_PASSWORD_PROD }}
+      REDIS_HOST_PROD=${{ secrets.REDIS_HOST_PROD }}
+      REDIS_PORT_PROD=${{ secrets.REDIS_PORT_PROD }}
+
+      SPRING_DATASOURCE_URL_DEV=${{ secrets.SPRING_DATASOURCE_URL_DEV }}
+      SPRING_DATASOURCE_USERNAME_DEV=${{ secrets.SPRING_DATASOURCE_USERNAME_DEV }}
+      SPRING_DATASOURCE_PASSWORD_DEV=${{ secrets.SPRING_DATASOURCE_PASSWORD_DEV }}
+      REDIS_HOST_DEV=${{ secrets.REDIS_HOST_DEV }}
+      REDIS_PORT_DEV=${{ secrets.REDIS_PORT_DEV }}
+
+      S3_REION_STATIC=${{ secrets.S3_REION_STATIC }}
+      S3_ACCESSKEY=${{ secrets.S3_ACCESSKEY }}
+      S3_SECRETKEY=${{ secrets.S3_SECRETKEY }}
+      S3_BUCKET=${{ secrets.S3_BUCKET }}
+      EOF
 
       - name: 🔐 Save SSH key
         run: |
