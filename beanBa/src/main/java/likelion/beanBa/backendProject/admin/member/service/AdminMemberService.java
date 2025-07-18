@@ -1,12 +1,11 @@
-package likelion.beanBa.backendProject.admin.service;
+package likelion.beanBa.backendProject.admin.member.service;
 
 import likelion.beanBa.backendProject.member.dto.AdminMemberDTO;
-import likelion.beanBa.backendProject.member.dto.MemberResponse;
 import likelion.beanBa.backendProject.product.dto.PageResponse;
 
 import java.util.List;
 
-public interface AdminService {
+public interface AdminMemberService {
 
     PageResponse<AdminMemberDTO> getAllMembers(int page, int size);
 

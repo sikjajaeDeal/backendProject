@@ -1,10 +1,9 @@
-package likelion.beanBa.backendProject.admin.service;
+package likelion.beanBa.backendProject.admin.member.service;
 
 
 
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.dto.AdminMemberDTO;
-import likelion.beanBa.backendProject.member.dto.MemberResponse;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.member.service.MemberService;
 import likelion.beanBa.backendProject.product.dto.PageResponse;
@@ -21,7 +20,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
-public class AdminServiceImpl implements AdminService {
+public class AdminMemberServiceImpl implements AdminMemberService {
 
     private final MemberRepository memberRepository;
     private final MemberService memberService;

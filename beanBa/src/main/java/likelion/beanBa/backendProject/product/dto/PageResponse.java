@@ -19,7 +19,7 @@ public class PageResponse<T> {
     private int totalPage;
     private boolean last;
 
-    public static PageResponse<AdminMemberDTO> from(Page<AdminMemberDTO> responsePage) {
+    public static <T> PageResponse<T> from(Page<T> responsePage) {
         return new PageResponse<>(
                 responsePage.getContent(),
                 responsePage.getNumber(),

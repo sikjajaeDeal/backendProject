@@ -1,14 +1,11 @@
-package likelion.beanBa.backendProject.admin.controller;
+package likelion.beanBa.backendProject.admin.member.controller;
 
-import likelion.beanBa.backendProject.admin.service.AdminService;
+import likelion.beanBa.backendProject.admin.member.service.AdminMemberService;
 import likelion.beanBa.backendProject.member.dto.AdminMemberDTO;
-import likelion.beanBa.backendProject.member.dto.MemberResponse;
-import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.member.service.MemberService;
 import likelion.beanBa.backendProject.product.dto.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +13,9 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin")
-public class AdminController {
+public class AdminMemberController {
 
-    private final AdminService adminService;
+    private final AdminMemberService adminService;
     private final MemberService memberService;
 
     /**사용자 전체 조회**/
