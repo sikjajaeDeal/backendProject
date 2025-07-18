@@ -95,7 +95,7 @@ jobs:
         run: |
           set +x  # 👉 명령 출력 방지
 
-          cp beanBa/.env.template .env
+          cp beanBa/.env.template beanBa/.env
           sed -i "s|^JWT_SECRET=.*|JWT_SECRET=${{ secrets.JWT_SECRET }}|" .env
           sed -i "s|^GOOGLE_OAUTH_CLIENT_ID=.*|GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}|" .env
           sed -i "s|^GOOGLE_OAUTH_CLIENT_SECRET=.*|GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}|" .env
@@ -135,17 +135,13 @@ jobs:
         run: |
           scp -i key.pem \
             beanBa/build/libs/app.jar \
-            .env \
+            beanBa/.env \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/
 
       - name: ⚡ SSH into EC2 and deploy with PM2 ecosystem
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
           cd /home/ubuntu/BeanBa/backendProject/beanBa
-#          set -a
-#          source .env
-#          set +a
-#          rm .env
           pm2 startOrReload ecosystem.config.js --env dev
           EOF
 
