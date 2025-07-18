@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.product.dto;
 
+import likelion.beanBa.backendProject.member.dto.AdminMemberDTO;
 import likelion.beanBa.backendProject.member.dto.MemberResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,7 +19,7 @@ public class PageResponse<T> {
     private int totalPage;
     private boolean last;
 
-    public static PageResponse<MemberResponse> from(Page<MemberResponse> responsePage) {
+    public static PageResponse<AdminMemberDTO> from(Page<AdminMemberDTO> responsePage) {
         return new PageResponse<>(
                 responsePage.getContent(),
                 responsePage.getNumber(),
