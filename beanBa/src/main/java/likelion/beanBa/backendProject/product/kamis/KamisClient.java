@@ -46,6 +46,13 @@ public class KamisClient {
 
     try {
       String responseStr = restTemplate.getForObject(rqUrl, String.class);
+      System.out.println("responseStrData = " + responseStr);
+
+      //data 필드가 비어있는 배열 형태일 경우 null 반환
+      if (responseStr.contains("\"data\":[")) {
+        log.info("배열 형태 응답 감지 - 상품코드: {} 건너뜀", itemCode);
+        return null; // 또는 빈 응답 객체 반환
+      }
       KamisSearchResponseDTO response = objectMapper.readValue(responseStr, KamisSearchResponseDTO.class);
       return response;
     } catch (Exception e) {
@@ -58,8 +65,10 @@ public class KamisClient {
     String url = "http://www.kamis.or.kr/service/price/xml.do?action=productInfo&p_returntype=json";
 
     try {
-      KamisCodeResponseDTO response = restTemplate.getForObject(url, KamisCodeResponseDTO.class);
-      return response;
+      String responseStr = restTemplate.getForObject(url, String.class);
+      System.out.println("responseStrCode = " + responseStr);
+      KamisCodeResponseDTO responseDTO = objectMapper.readValue(responseStr, KamisCodeResponseDTO.class);
+      return responseDTO;
     } catch (Exception e) {
       log.error("kamis API 호출 실패: {}", e.getMessage());
       throw new Exception("Kamis API 호출 실패: " + e.getMessage());
@@ -70,10 +79,10 @@ public class KamisClient {
 
 
   public String getTodayAsString() {
-    return LocalDate.now().format(DATE_FORMAT);
+    return LocalDate.now().minusDays(3).format(DATE_FORMAT);
   }
 
   public String getWeekAgoAsString() {
-    return LocalDate.now().minusDays(7).format(DATE_FORMAT);
+    return LocalDate.now().minusDays(10).format(DATE_FORMAT);
   }
 }

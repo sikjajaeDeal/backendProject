@@ -54,10 +54,10 @@ public class KamisCodeResponseDTO {
     private Object wholesaleUnitSize;
 
     @JsonProperty("retail_unit")
-    private String retailUnit;
+    private Object retailUnit;
 
     @JsonProperty("retail_unitsize")
-    private String retailUnitSize;
+    private Object retailUnitSize;
 
     @JsonProperty("eco_unit")
     private Object ecoUnit;
@@ -66,7 +66,7 @@ public class KamisCodeResponseDTO {
     private Object ecoUnitSize;
 
     @JsonProperty("whole_productrankcode")
-    private String wholeProductrankCode;
+    private Object wholeProductrankCode;
 
     @JsonProperty("retail_productrankcode")
     private Object retailProductrankCode;

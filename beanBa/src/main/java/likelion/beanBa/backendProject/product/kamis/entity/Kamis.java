@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
-@Table(name = "market_prict")
+@Table(name = "market_price")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Kamis {
 

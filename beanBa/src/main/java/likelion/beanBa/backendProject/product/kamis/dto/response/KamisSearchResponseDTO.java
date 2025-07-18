@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.product.kamis.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class KamisSearchResponseDTO {
   private List<Condition> condition;
   private Data data;
@@ -19,6 +21,7 @@ public class KamisSearchResponseDTO {
   @Setter
   @NoArgsConstructor
   @AllArgsConstructor
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Condition {
 
     @JsonProperty("p_startday")
@@ -33,8 +36,8 @@ public class KamisSearchResponseDTO {
     @JsonProperty("p_itemcode")
     private String itemCode;
 
-    @JsonProperty("p_kindcode")
-    private String kindCode;
+//    @JsonProperty("p_kindcode")
+//    private String kindCode;
 
     @JsonProperty("p_productrankcode")
     private String productRankCode;
@@ -59,6 +62,7 @@ public class KamisSearchResponseDTO {
   @Setter
   @NoArgsConstructor
   @AllArgsConstructor
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Data {
 
     @JsonProperty("error_code")
@@ -70,19 +74,20 @@ public class KamisSearchResponseDTO {
   @Setter
   @NoArgsConstructor
   @AllArgsConstructor
+  @JsonIgnoreProperties(ignoreUnknown = true)
   public static class Item {
 
-    @JsonProperty("itemname")
-    private Object itemName;
-
-    @JsonProperty("kindname")
-    private Object kindName;
-
-    @JsonProperty("countyname")
-    private String countyName;
-
-    @JsonProperty("marketname")
-    private Object marketName;
+//    @JsonProperty("itemname")
+//    private Object itemName;
+//
+//    @JsonProperty("kindname")
+//    private Object kindName;
+//
+//    @JsonProperty("countyname")
+//    private String countyName;
+//
+//    @JsonProperty("marketname")
+//    private Object marketName;
 
     @JsonProperty("yyyy")
     private String year;
