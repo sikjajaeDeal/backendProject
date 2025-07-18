@@ -212,6 +212,7 @@ public class SalePostServiceImpl implements SalePostService {
         switch (newStatus) {
             case S: // 판매중
             case H: // 판매보류
+            case R:
                 if (salePost.getState() == newStatus) {
                     log.info("이미 '{}' 상태인 게시글입니다. 상태 변경 생략.", newStatus);
                     return "이미 " + newStatus.name() + " 상태입니다.";

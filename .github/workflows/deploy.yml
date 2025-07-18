@@ -1,13 +1,15 @@
-name: "CI/CD: PR + Deploy on develop"
+name: "BeanBar - CI/CD: PR + Deploy (main & develop)"
 
 on:
   push:
     branches:
       - main
+      - develop
 
   pull_request:
     branches:
       - main
+      - develop
 
 jobs:
   build:
@@ -49,7 +51,7 @@ jobs:
         run: chmod +x ./gradlew
         working-directory: ./beanBa
 
-      - name: 🔄 Build without and run tests
+      - name: 🔄 Build without running tests
         run: ./gradlew clean build -x test
         working-directory: ./beanBa
 
@@ -85,7 +87,9 @@ jobs:
     name: 🚀 Deploy to EC2
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: >
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
 
     steps:
       - name: ✅ Checkout repository
@@ -121,11 +125,11 @@ jobs:
             beanBa/build/libs/*.jar \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
 
-      - name: ⚡ SSH into EC2 and restart app
+      - name: ⚡ SSH into EC2 and deploy with PM2 ecosystem
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
-          pkill -f 'java -jar' || true
-          nohup java -jar /home/ubuntu/app.jar > app.log 2>&1 &
+          cd /home/ubuntu/BeanBa/backendProject/beanBa
+          pm2 startOrReload ecosystem.config.js --env dev
           EOF
 
 permissions:
