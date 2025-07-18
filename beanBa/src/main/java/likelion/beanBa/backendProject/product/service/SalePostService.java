@@ -22,5 +22,4 @@ public interface SalePostService {
 
     String changeSaleStatus(Long postPk, SaleStatement newStatus, Long buyerPk, Member sellerPk);
 
-
 }

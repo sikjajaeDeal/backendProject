@@ -59,8 +59,16 @@ public class SecurityConfig {
             .requestMatchers(
                 "/upload",
                 "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
-                "/api/sale-post/all/",
+                "/api/sale-post/all/**",
                 "/api/sale-post/detail/**"
+            ).permitAll()
+            .requestMatchers(
+                    "/chatting/**",
+                    "/*.html",
+                    "/js/**", // chatting 테스트 하느라고 잠시 넣어놨습니다.
+                    "/ws-gpt", "/ws-chat",
+                    "/app/**",
+                    "/api/rooms/**"
             ).permitAll()
             .anyRequest().authenticated()
         )

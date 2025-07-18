@@ -1,233 +1,256 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>WebSocket STOMP Chat</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: #f7f8fa; }
-        .container {
-            width: 400px; margin: 60px auto; background: #fff; padding: 32px 30px;
-            border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        }
-        h2 { text-align: center; color: #2c3e50; margin-bottom: 20px;}
-        #chatArea {
-            width: 100%; height: 250px; border: 1px solid #aaa;
-            margin-bottom: 18px; overflow-y: auto; padding: 10px 7px; border-radius: 8px;
-            background: #fafdff; font-size: 15px;
-        }
-        .row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
-        input[type="text"] {
-            box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px;
-            font-size: 15px; padding: 9px; outline: none; background: #f9fafd;
-            transition: border 0.2s;
-        }
-        input[type="text"]:focus { border-color: #4078c0; background: #fff; }
-        #user, #room { width: 110px; }
-        #msg { flex: 1; min-width: 0; }
-        button {
-            background: #4078c0; color: white; font-weight: bold;
-            border: none; border-radius: 6px; padding: 10px 20px;
-            font-size: 15px; cursor: pointer; transition: background 0.2s;
-        }
-        button:hover { background: #285690; }
-        .btn-disconnect {
-            background: #eee; color: #285690; font-weight: bold;
-        }
-        .btn-disconnect:hover { background: #e0e8f5; }
-        .sysmsg { color: #666; font-style: italic; margin: 7px 0 3px 0;}
-        .msgrow { margin-bottom: 3px;}
-        .from { font-weight: bold; color: #4078c0;}
-        .hidden { display: none; }
-        #roomList { margin-bottom: 20px; }
-        .room-item {
-            padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 5px;
-            cursor: pointer;
-        }
-        .room-item:hover { background: #e8f0ff; }
-    </style>
-</head>
-<body>
-<div class="container">
-    <h2>Spring WebSocket + STOMP Chat</h2>
+    <head>
+        <meta charset="UTF-8">
+        <title>WebSocket STOMP Chat</title>
+        <style>
+            body { font-family: 'Segoe UI', sans-serif; background: #f7f8fa; }
+            .container {
+                width: 400px; margin: 60px auto; background: #fff; padding: 32px 30px;
+                border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            }
+            h2 { text-align: center; color: #2c3e50; margin-bottom: 20px;}
+            #chatArea {
+                width: 100%; height: 250px; border: 1px solid #aaa;
+                margin-bottom: 18px; overflow-y: auto; padding: 10px 7px; border-radius: 8px;
+                background: #fafdff; font-size: 15px;
+            }
+            .row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+            input[type="text"] {
+                box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px;
+                font-size: 15px; padding: 9px; outline: none; background: #f9fafd;
+                transition: border 0.2s;
+            }
+            input[type="text"]:focus { border-color: #4078c0; background: #fff; }
+            #user, #room { width: 110px; }
+            #msg { flex: 1; min-width: 0; }
+            button {
+                background: #4078c0; color: white; font-weight: bold;
+                border: none; border-radius: 6px; padding: 10px 20px;
+                font-size: 15px; cursor: pointer; transition: background 0.2s;
+            }
+            button:hover { background: #285690; }
+            .btn-disconnect {
+                background: #eee; color: #285690; font-weight: bold;
+            }
+            .btn-disconnect:hover { background: #e0e8f5; }
+            .sysmsg { color: #666; font-style: italic; margin: 7px 0 3px 0;}
+            .msgrow { margin-bottom: 3px;}
+            .from { font-weight: bold; color: #4078c0;}
+            .hidden { display: none; }
+            #roomList { margin-bottom: 20px; }
+            .room-item {
+                padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 5px;
+                cursor: pointer;
+            }
+            .room-item:hover { background: #e8f0ff; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Spring WebSocket + STOMP Chat</h2>
 
-    <!-- 방 목록 -->
-    <div id="roomList">
-        <strong>방 목록:</strong>
-        <div id="rooms"></div>
-    </div>
+            <!-- 방 목록 -->
+            <div id="roomList">
+                <strong>방 목록:</strong>
+                <div id="rooms"></div>
+            </div>
 
-    <!-- 입장 영역 -->
-    <div class="row" id="enterRow">
-        <input type="text" id="user" placeholder="닉네임">
-        <input type="text" id="room" placeholder="방 번호">
-        <button onclick="connect()">Connect</button>
-    </div>
+            <!-- 입장 영역 -->
+            <div class="row" id="enterRow">
+                <input type="text" id="user" placeholder="닉네임">
+                <input type="text" id="room" placeholder="방 번호">
+                <button onclick="connect()">Connect</button>
+            </div>
 
-    <!-- 귓속말 대상 -->
-    <div class="row hidden" id="whisperRow">
-        <input type="text" id="whisperTo" placeholder="귓속말 대상 (닉네임)">
-    </div>
+            <!-- 귓속말 대상 -->
+            <div class="row hidden" id="whisperRow">
+                <input type="text" id="whisperTo" placeholder="귓속말 대상 (닉네임)">
+            </div>
 
-    <!-- 채팅 영역 (입장 후에만 표시) -->
-    <div id="chatWrapper" class="hidden">
-        <div id="chatArea"></div>
-        <div class="row">
-            <input type="text" id="msg" placeholder="메시지">
-            <button onclick="sendMessage()">Send</button>
-            <button class="btn-disconnect" onclick="disconnect()">Disconnect</button>
+            <!-- 채팅 영역 (입장 후에만 표시) -->
+            <div id="chatWrapper" class="hidden">
+                <div id="chatArea"></div>
+                <div class="row">
+                    <input type="text" id="msg" placeholder="메시지">
+                    <button onclick="sendMessage()">Send</button>
+                    <button class="btn-disconnect" onclick="disconnect()">Disconnect</button>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
-<script src="js/fetchWithAuth.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-<script>
-    let stompClient = null;
-    let nickname = "";
-    let roomId = "";
+        <script src="js/fetchWithAuth.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+        <script>
+            let stompClient = null;
+            let nickname = "";
+            let roomId = "";
 
-    window.onload = function () {
-        loadRoomList();
-    };
+            window.onload = function () {
+<!--                loadRoomList();-->
+            };
 
-    function loadRoomList() {
+            function loadRoomList() {
 
-        fetchWithAuth("/api/rooms", {
-            credentials: "include",
-            headers: (localStorage.getItem("accessToken"))
-                ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") }
-                : {}
-        })
-            .then(response => response.json())
-            .then(data => {
-                const roomsDiv = document.getElementById("rooms");
-                const roomListDiv = document.getElementById("roomList");
-                roomsDiv.innerHTML = "";
-                if (data.length === 0) {
-                    roomListDiv.classList.add("hidden");
-                } else {
-                    roomListDiv.classList.remove("hidden");
-                    data.forEach(room => {
-                        const div = document.createElement("div");
-                        div.className = "room-item";
-                        div.textContent = `방 번호: ${room.roomId}`;
-                        div.onclick = () => {
-                            const nick = prompt("닉네임을 입력하세요:");
-                            if (!nick) return;
-                            document.getElementById("user").value = nick;
-                            document.getElementById("room").value = room.roomId;
-                            connect();
-                        };
-                        roomsDiv.appendChild(div);
+                fetchWithAuth("/api/rooms", {
+                    credentials: "include",
+                    headers: (localStorage.getItem("accessToken"))
+                        ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") }
+                        : {}
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        const roomsDiv = document.getElementById("rooms");
+                        const roomListDiv = document.getElementById("roomList");
+                        roomsDiv.innerHTML = "";
+                        if (data.length === 0) {
+                            roomListDiv.classList.add("hidden");
+                        } else {
+                            roomListDiv.classList.remove("hidden");
+                            data.forEach(room => {
+                                const div = document.createElement("div");
+                                div.className = "room-item";
+                                div.textContent = `방 번호: ${room.roomId}`;
+                                div.onclick = () => {
+                                    const nick = prompt("닉네임을 입력하세요:");
+                                    if (!nick) return;
+                                    document.getElementById("user").value = nick;
+                                    document.getElementById("room").value = room.roomId;
+                                    connect();
+                                };
+                                roomsDiv.appendChild(div);
+                            });
+                        }
                     });
+            }
+
+            function connect() {
+                nickname = document.getElementById("user").value;
+                roomId = document.getElementById("room").value;
+
+                if (!nickname || !roomId) {
+                    alert("닉네임과 방 번호를 입력하세요!");
+                    return;
                 }
+
+
+
+                //  const socket = new WebSocket('/ws-chat');
+<!--                const socket = new WebSocket('/ws-chat?nickname=' + nickname ='&memberPk=1');-->
+                const socket = new WebSocket('/ws-chat?memberPk=1');
+                stompClient = Stomp.over(socket);
+
+                stompClient.connect({}, function (frame) {
+                    // 채팅방 입장할 때 채팅창을 초기화
+                    document.getElementById("chatArea").innerHTML = "";
+
+                    fetchWithAuth(`/chatting/getMessageList?roomPk=5`, {
+                        method: "GET",
+                        credentials: "include",
+                        headers: Object.assign(
+                            { "Content-Type": "application/json" },
+                            localStorage.getItem("accessToken")
+                                ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") }
+                                : {}
+                        )
+                    })
+                    .then(response => {
+
+                        console.log("response is ",response);
+                        if (!response.ok) {
+                            const text = response.text();
+                            console.error("HTML 에러 응답 : ", text);
+                            throw new Error("메시지 목록을 불러오지 못했습니다.");
+                        }
+                        return response.json();
+                    })
+                    .then(messageList => {
+                        console.log("채팅 메시지 리스트:", messageList);
+                        // 여기서 messageList를 렌더링하거나 상태에 저장
+                        messageList.forEach(message => {
+                           showSysMsg(`[${message.message}] - [${message.messageAt}]에 입장했습니다.`);
+                        });
+
+                    })
+                    .catch(error => {
+                        console.error("에러 발생:", error);
+                    });
+
+                    document.getElementById("chatWrapper").classList.remove("hidden");
+                    document.getElementById("enterRow").classList.add("hidden");
+                    document.getElementById("roomList").classList.add("hidden");
+
+                    document.getElementById("whisperRow").classList.remove("hidden"); // ✅ 여기!  닉네임 작성
+
+
+                    //일반채팅
+                    stompClient.subscribe(`/topic/room.${roomId}`, function (chat) {
+                        const message = JSON.parse(chat.body);
+                        showMessage(message.from, message.message);
+                    });
+
+                    //귓속말
+                    stompClient.subscribe('/user/queue/private', function (message) {
+                        const msg = JSON.parse(message.body);
+                        alert("💬 귓속말: " + msg.from + " - " + msg.message);
+                    });
+
+                });
+
+
+            }
+
+            function disconnect() {
+                if (stompClient !== null) {
+                    stompClient.disconnect();
+                }
+                showSysMsg('Disconnected');
+                document.getElementById("chatWrapper").classList.add("hidden");
+                document.getElementById("enterRow").classList.remove("hidden");
+                document.getElementById("roomList").classList.remove("hidden");
+                document.getElementById("whisperRow").classList.add("hidden"); // ✅ 추가
+                loadRoomList();
+            }
+
+            function sendMessage() {
+                const msg = document.getElementById("msg").value;
+
+                const toUser = document.getElementById("whisperTo").value.trim();
+
+                if (!nickname || !msg || !roomId) {
+                    alert("모든 정보를 입력해주세요!");
+                    return;
+                }
+
+                const payload = {
+                    from: nickname,
+                    message: msg,
+                    roomId: roomId
+                };
+
+                console.log("msg = ",msg)
+
+                if (toUser) {
+                    payload.to = toUser; // 귓속말 대상이 있으면 to 추가
+                }
+
+                stompClient.send("/app/chatting/chat.sendMessage", {}, JSON.stringify(payload));
+                document.getElementById("msg").value = "";
+            }
+
+            function showMessage(from, message) {
+                const chatArea = document.getElementById("chatArea");
+                chatArea.innerHTML += `<div class="msgrow"><span class="from">${from}:</span> ${message}</div>`;
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+            function showSysMsg(msg) {
+                const chatArea = document.getElementById("chatArea");
+                chatArea.innerHTML += `<div class="sysmsg">${msg}</div>`;
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+
+            document.getElementById('msg').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') sendMessage();
             });
-    }
-
-    function connect() {
-        nickname = document.getElementById("user").value;
-        roomId = document.getElementById("room").value;
-
-        if (!nickname || !roomId) {
-            alert("닉네임과 방 번호를 입력하세요!");
-            return;
-        }
-
-        //방생성기능
-        //방생성기능
-        fetchWithAuth(`/api/rooms/${roomId}`, {
-            method: "POST",
-            credentials: "include",  // 쿠키/세션 포함
-            headers: Object.assign(
-                { "Content-Type": "application/json" },
-                (localStorage.getItem("accessToken"))
-                    ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") }
-                    : {}
-            )
-        })
-
-        //  const socket = new WebSocket('/ws-chat');
-        const socket = new WebSocket('/ws-chat?nickname=' + nickname);
-        stompClient = Stomp.over(socket);
-
-        stompClient.connect({}, function (frame) {
-            // 채팅방 입장할 때 채팅창을 초기화
-            document.getElementById("chatArea").innerHTML = "";
-
-            showSysMsg(`[${nickname}]님이 방 [${roomId}]에 입장했습니다.`);
-            document.getElementById("chatWrapper").classList.remove("hidden");
-            document.getElementById("enterRow").classList.add("hidden");
-            document.getElementById("roomList").classList.add("hidden");
-
-            document.getElementById("whisperRow").classList.remove("hidden"); // ✅ 여기!  닉네임 작성
-
-
-            //일반채팅
-            stompClient.subscribe(`/topic/room.${roomId}`, function (chat) {
-                const message = JSON.parse(chat.body);
-                showMessage(message.from, message.message);
-            });
-
-            //귓속말
-            stompClient.subscribe('/user/queue/private', function (message) {
-                const msg = JSON.parse(message.body);
-                alert("💬 귓속말: " + msg.from + " - " + msg.message);
-            });
-
-        });
-
-
-    }
-
-    function disconnect() {
-        if (stompClient !== null) {
-            stompClient.disconnect();
-        }
-        showSysMsg('Disconnected');
-        document.getElementById("chatWrapper").classList.add("hidden");
-        document.getElementById("enterRow").classList.remove("hidden");
-        document.getElementById("roomList").classList.remove("hidden");
-        document.getElementById("whisperRow").classList.add("hidden"); // ✅ 추가
-        loadRoomList();
-    }
-
-    function sendMessage() {
-        const msg = document.getElementById("msg").value;
-
-        const toUser = document.getElementById("whisperTo").value.trim();
-
-        if (!nickname || !msg || !roomId) {
-            alert("모든 정보를 입력해주세요!");
-            return;
-        }
-
-        const payload = {
-            from: nickname,
-            message: msg,
-            roomId: roomId
-        };
-
-        if (toUser) {
-            payload.to = toUser; // 귓속말 대상이 있으면 to 추가
-        }
-
-        stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(payload));
-        document.getElementById("msg").value = "";
-    }
-
-    function showMessage(from, message) {
-        const chatArea = document.getElementById("chatArea");
-        chatArea.innerHTML += `<div class="msgrow"><span class="from">${from}:</span> ${message}</div>`;
-        chatArea.scrollTop = chatArea.scrollHeight;
-    }
-    function showSysMsg(msg) {
-        const chatArea = document.getElementById("chatArea");
-        chatArea.innerHTML += `<div class="sysmsg">${msg}</div>`;
-        chatArea.scrollTop = chatArea.scrollHeight;
-    }
-
-    document.getElementById('msg').addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') sendMessage();
-    });
-</script>
-</body>
+        </script>
+    </body>
 </html>

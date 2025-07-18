@@ -1,0 +1,120 @@
+name: "CI/CD: PR + Deploy on develop"
+
+on:
+  push:
+    branches:
+      - develop
+
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
+      KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
+      KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
+      SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
+      SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
+      SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
+      SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
+      SPRING_ELASTICSEARCH_URIS: ${{ secrets.SPRING_ELASTICSEARCH_URIS }}
+      SPRING_DATASOURCE_URL_PROD: ${{ secrets.SPRING_DATASOURCE_URL_PROD }}
+      SPRING_DATASOURCE_USERNAME_PROD: ${{ secrets.SPRING_DATASOURCE_USERNAME_PROD }}
+      SPRING_DATASOURCE_PASSWORD_PROD: ${{ secrets.SPRING_DATASOURCE_PASSWORD_PROD }}
+      REDIS_HOST_PROD: ${{ secrets.REDIS_HOST_PROD }}
+      REDIS_PORT_PROD: ${{ secrets.REDIS_PORT_PROD }}
+      S3_REION_STATIC: ${{ secrets.S3_REION_STATIC }}
+      S3_ACCESSKEY: ${{ secrets.S3_ACCESSKEY }}
+      S3_SECRETKEY: ${{ secrets.S3_SECRETKEY }}
+      S3_BUCKET: ${{ secrets.S3_BUCKET }}
+
+    steps:
+      - name: ✅ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: 🔧 Grant Gradle permission
+        run: chmod +x ./beanBa/gradlew
+
+      - name: 🔄 Build and run tests
+        run: ./beanBa/gradlew clean build
+
+      - name: ❌ Leave comment on PR if build fails
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: "🚨 **CI 실패**: 빌드 또는 테스트에 실패했습니다. 로그를 확인하고 수정해주세요!"
+            });
+
+      - name: ✅ Leave comment on PR if build succeeds
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: "✅ **CI 성공**: 빌드 및 테스트를 통과했습니다! 🎉"
+            });
+
+  deploy:
+    name: 🚀 Deploy to EC2
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: ✅ Checkout repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: ✉️ Build JAR file
+        run: ./beanBa/gradlew bootJar
+
+      - name: 🔐 Save SSH key
+        run: |
+          echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+          chmod 600 key.pem
+
+      - name: 🌐 Deploy to EC2 via SCP
+        run: |
+          scp -i key.pem \
+            beanBa/build/libs/*.jar \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
+
+      - name: ⚡ SSH into EC2 and restart app
+        run: |
+          ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
+          pkill -f 'java -jar' || true
+          nohup java -jar /home/ubuntu/app.jar > app.log 2>&1 &
+          EOF
+
+permissions:
+  pull-requests: write
