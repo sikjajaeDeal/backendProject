@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>게시글 생성</title>
+    <style>
+        .image-slot-container {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .image-slot {
+            width: 120px;
+            height: 120px;
+            border: 1px dashed gray;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .image-slot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .upload-label {
+            font-size: 30px;
+            cursor: pointer;
+            color: #aaa;
+        }
+        .image-input {
+            display: none;
+        }
+        .delete-btn {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: red;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h2>게시글 생성</h2>
+<form id="createForm">
+    <input type="text" id="title" placeholder="제목" required /><br/>
+    <textarea id="content" placeholder="내용" required></textarea><br/>
+    <input type="number" id="hopePrice" placeholder="희망 가격" required /><br/>
+    <input type="number" id="categoryPk" placeholder="카테고리 PK (예: 1)" required /><br/>
+    <input type="hidden" id="latitude" value="37.5665" />
+    <input type="hidden" id="longitude" value="126.9780" />
+
+    <div class="image-slot-container" id="imageSlots"></div>
+    <br/>
+    <button type="submit">등록</button>
+</form>
+
+<script>
+    let imageUrls = ["", "", "", ""];
+    let newImages = [null, null, null, null];
+
+    function renderImageSlots() {
+        const container = document.getElementById("imageSlots");
+        container.innerHTML = "";
+
+        for (let i = 0; i < 4; i++) {
+            const slot = document.createElement("div");
+            slot.className = "image-slot";
+
+            if (imageUrls[i]) {
+                const img = document.createElement("img");
+                img.src = imageUrls[i];
+                slot.appendChild(img);
+            } else if (newImages[i]) {
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(newImages[i]);
+                slot.appendChild(img);
+            } else {
+                const label = document.createElement("label");
+                label.className = "upload-label";
+                label.innerText = "+";
+                label.htmlFor = `upload${i}`;
+
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/*";
+                input.id = `upload${i}`;
+                input.className = "image-input";
+
+                input.onchange = (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        imageUrls[i] = "";
+                        newImages[i] = file;
+                        renderImageSlots();
+                    }
+                };
+
+                slot.appendChild(label);
+                slot.appendChild(input);
+            }
+
+            // 삭제 버튼
+            if (imageUrls[i] || newImages[i]) {
+                const btn = document.createElement("button");
+                btn.innerText = "X";
+                btn.className = "delete-btn";
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    imageUrls[i] = "";
+                    newImages[i] = null;
+                    renderImageSlots();
+                };
+                slot.appendChild(btn);
+            }
+
+            container.appendChild(slot);
+        }
+    }
+
+    document.getElementById("createForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const salePostRequest = {
+            title: document.getElementById("title").value,
+            content: document.getElementById("content").value,
+            hopePrice: parseInt(document.getElementById("hopePrice").value),
+            categoryPk: parseInt(document.getElementById("categoryPk").value),
+            latitude: parseFloat(document.getElementById("latitude").value),
+            longitude: parseFloat(document.getElementById("longitude").value),
+            imageUrls: imageUrls
+        };
+
+        const formData = new FormData();
+        formData.append("salePostRequest", new Blob([JSON.stringify(salePostRequest)], { type: "application/json" }));
+
+        newImages.forEach((file) => {
+            if (file) formData.append("salePostImages", file);
+        });
+
+        const res = await fetch("/api/test-sale-post", {
+            method: "POST",
+            body: formData
+        });
+
+        if (res.ok) {
+            alert("✅ 등록 성공");
+            location.reload();
+        } else {
+            const msg = await res.text();
+            alert("❌ 등록 실패\n" + msg);
+        }
+    });
+
+    renderImageSlots();
+</script>
+</body>
+</html>
