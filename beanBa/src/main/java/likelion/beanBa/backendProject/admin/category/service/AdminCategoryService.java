@@ -5,7 +5,6 @@ import likelion.beanBa.backendProject.member.dto.AdminMemberDTO;
 import likelion.beanBa.backendProject.product.dto.CategoryRequest;
 import likelion.beanBa.backendProject.product.dto.CategoryResponse;
 import likelion.beanBa.backendProject.product.dto.PageResponse;
-import likelion.beanBa.backendProject.product.entity.Category;
 
 import java.util.List;
 

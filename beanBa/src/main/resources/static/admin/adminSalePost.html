@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>📦 관리자 상품 관리</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #aaa; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    input, select { padding: 5px; margin: 5px; }
+    .pagination { margin-top: 15px; text-align: center; }
+    .pagination button {
+      margin: 0 3px;
+      padding: 5px 10px;
+      border: 1px solid #aaa;
+      background-color: white;
+      cursor: pointer;
+    }
+    .pagination button.active {
+      background-color: #ddd;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📋 판매글 관리 (관리자)</h1>
+
+<!-- 컨트롤 영역 -->
+<div>
+  <label>Page: <input type="number" id="page" value="0" min="0"></label>
+  <label>Size: <input type="number" id="size" value="10" min="1"></label>
+  <label>
+    삭제 포함:
+    <select id="includeDeleted">
+      <option value="false">❌ 제외</option>
+      <option value="true">✅ 포함</option>
+    </select>
+  </label>
+  <button onclick="loadPosts()">🔍 조회</button>
+</div>
+
+<div id="postCount" style="margin: 10px 0; font-weight: bold;"></div>
+
+<table>
+  <thead>
+  <tr>
+    <th>No</th>
+    <th>PostPk</th>
+    <th>제목</th>
+    <th>작성자</th>
+    <th>카테고리</th>
+    <th>썸네일</th>
+    <th>작성일</th>
+    <th>삭제 여부</th>
+  </tr>
+  </thead>
+  <tbody id="postTableBody"></tbody>
+</table>
+
+<!-- 페이지네이션 -->
+<div id="pageNavigation" class="pagination"></div>
+
+<!-- JavaScript -->
+<script>
+  async function loadPosts(page = 0) {
+    document.getElementById("page").value = page;
+
+    const size = document.getElementById("size").value;
+    const includeDeleted = document.getElementById("includeDeleted").value;
+
+    try {
+      const res = await fetch(`/api/admin/sale-post?page=${page}&size=${size}&includeDeleted=${includeDeleted}`);
+      if (!res.ok) throw new Error("서버 응답 오류");
+
+      const data = await res.json();
+      renderTable(data.content, page, size);
+      renderPagination(data.totalPage, page);
+      document.getElementById("postCount").textContent = `총 ${data.totalElements}건 / 총 ${data.totalPage}페이지`;
+
+
+
+    } catch (err) {
+      console.error("불러오기 실패:", err);
+      alert("❌ 판매글 목록 불러오기 실패");
+    }
+  }
+
+  function renderTable(posts, page, size) {
+    const tbody = document.getElementById("postTableBody");
+    tbody.innerHTML = "";
+
+    posts.forEach((post, idx) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${parseInt(page) * parseInt(size) + idx + 1}</td>
+        <td>${post.postPk}</td>
+        <td><a href="/admin/adminSalePostDetail.html?postPk=${post.postPk}">${post.title}</a></td>
+        <td>${post.sellerName}</td>
+        <td>${post.categoryName}</td>
+        <td>${post.thumbnailUrl ? `<img src="${post.thumbnailUrl}" alt="썸네일" width="80">` : "없음"}</td>
+        <td>${post.postAt?.split('T')[0]}</td>
+        <td>${post.deleteYn}</td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function renderPagination(totalPage, currentPage) {
+    console.log('pagination:', totalPage, currentPage);
+    const nav = document.getElementById("pageNavigation");
+    nav.innerHTML = "";
+
+    for (let i = 0; i < totalPage; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i + 1;
+      btn.classList.toggle("active", i === parseInt(currentPage));
+      btn.onclick = () => loadPosts(i);
+      nav.appendChild(btn);
+    }
+  }
+
+  window.onload = () => loadPosts();
+</script>
+
+</body>
+</html>

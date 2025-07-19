@@ -27,6 +27,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
 
 
     /** 사용자 전체 조회 **/
+    @Transactional(readOnly = true)
     public PageResponse<AdminMemberDTO> getAllMembers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Member> memberPage = memberRepository.findAll(pageable);
@@ -51,6 +52,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
 
 
     }
+
 
     public PageResponse<AdminMemberDTO>memberSearchNickName(String nickName, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);

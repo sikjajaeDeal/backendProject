@@ -24,6 +24,8 @@ public class AdminCategoryController {
 
     private final AdminCategoryService adminCategoryService;
 
+
+    /**카테고리 조회**/
     @GetMapping
     public ResponseEntity<PageResponse<CategoryResponse>> getAllCategory(
             @RequestParam(defaultValue = "0") int page,
@@ -38,6 +40,7 @@ public class AdminCategoryController {
     }
 
 
+    /**카테고리 생성**/
     @PostMapping("/create")
     public ResponseEntity<?> createCategory(@RequestBody CategoryRequest categoryRequest){
         System.out.println("🔥 생성 Controller 도착함");
@@ -51,6 +54,7 @@ public class AdminCategoryController {
         }
     }
 
+    /**카테고리 수정**/
     @PutMapping("/update")
     public ResponseEntity<?> updateCategories(@RequestBody List<CategoryRequest> categoryRequests) {
         try {
@@ -63,6 +67,7 @@ public class AdminCategoryController {
         }
     }
 
+    /**카테고리 삭제**/
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteCategories(@RequestBody List<Long> categoryPkList) {
         adminCategoryService.deleteCategoryAdmin(categoryPkList);
