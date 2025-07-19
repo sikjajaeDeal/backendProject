@@ -1,6 +1,7 @@
 package likelion.beanBa.backendProject.product.entity;
 
 import jakarta.persistence.*;
+import likelion.beanBa.backendProject.product.dto.CategoryRequest;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -58,5 +59,40 @@ public class Category {
     public void setParent(Category parent) {
         this.parent = parent;
     }
+
+
+
+
+    /**카테고리 생성 함수 **/
+    public static Category create(CategoryRequest req, Category parent) {
+        int level = (parent != null) ? parent.getLevel() + 1 : 0;
+
+        return Category.builder()
+                .categoryName(req.getCategoryName())
+                .parent(parent)
+                .level(level)
+                .useYn(req.getUseYn() != null ? req.getUseYn() : "Y")
+                .deleteYn(req.getDeleteYn() != null ? req.getDeleteYn() : "N")
+                .build();
+    }
+
+    /**카테고리 수정 함수**/
+    public void update(CategoryRequest req, Category parent) {
+        if (req.getCategoryName() != null) this.categoryName = req.getCategoryName();
+        if (req.getUseYn() != null) this.useYn = req.getUseYn();
+        if (req.getDeleteYn() != null) this.deleteYn = req.getDeleteYn();
+
+        this.setParent(parent);
+        this.level = req.getLevel(); // 🔥 직접 입력받아 수정
+    }
+
+    /**카테고리 삭제**/
+    public void delete(){
+        this.deleteYn="Y";
+        this.useYn = "N";
+    }
+
 }
+
+
 

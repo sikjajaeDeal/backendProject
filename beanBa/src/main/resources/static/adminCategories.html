@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>🗂️ 관리자 카테고리 관리</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #aaa;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input, select {
+            padding: 4px;
+            margin: 2px;
+        }
+        #controls, #createForm {
+            margin-top: 20px;
+        }
+        #createForm {
+            border: 1px solid #ccc;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+
+<h1>📋 카테고리 목록</h1>
+
+<!-- 페이지 조회 컨트롤 -->
+<div id="controls">
+    <label>Page: <input type="number" id="page" value="0" min="0" /></label>
+    <label>Size: <input type="number" id="size" value="10" min="1" /></label>
+    <button onclick="loadCategories()">🔍 조회</button>
+</div>
+
+<div id="categoryCount" style="margin-top: 10px; font-weight: bold;"></div>
+
+<!-- 카테고리 테이블 -->
+<table>
+    <thead>
+    <tr>
+        <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"/></th>
+        <th>No</th>
+        <th>PK</th>
+        <th>이름</th>
+        <th>상위 PK</th>
+        <th>레벨</th>
+        <th>사용</th>
+        <th>삭제</th>
+        <th>🔍</th>
+    </tr>
+    </thead>
+    <tbody id="categoryTableBody"></tbody>
+</table>
+
+<button onclick="submitUpdates()">💾 수정 저장</button>
+<button onclick="deleteSelectedCategories()">🗑️ 선택 삭제</button>
+
+<!-- 생성 폼 -->
+<div id="createForm">
+    <h3>➕ 새 카테고리 추가</h3>
+    <form onsubmit="createCategory(event)">
+        <label>이름: <input type="text" id="newName" required /></label><br/>
+        <label>상위 카테고리:
+            <select id="newParent">
+                <option value="">-- 없음 (최상위) --</option>
+            </select>
+        </label><br/>
+        <label>레벨: <input type="number" id="newLevel" min="0" required /></label><br/>
+        <label>사용 여부:
+            <select id="newUseYn">
+                <option value="Y">Y</option>
+                <option value="N">N</option>
+            </select>
+        </label>
+        <label>삭제 여부:
+            <select id="newDeleteYn">
+                <option value="N">N</option>
+                <option value="Y">Y</option>
+            </select>
+        </label><br/>
+        <button type="submit">📌 생성</button>
+    </form>
+</div>
+
+<!-- JS -->
+<script>
+    async function loadCategories() {
+        const page = document.getElementById("page").value;
+        const size = document.getElementById("size").value;
+
+        try {
+            const res = await fetch(`/api/admin/category?page=${page}&size=${size}`);
+            const data = await res.json();
+            renderCategoryTable(data);
+            loadParentCategoryOptions(data.content);
+        } catch (err) {
+            console.error("불러오기 실패:", err);
+            alert("❌ 카테고리 불러오기 실패");
+        }
+    }
+
+    function renderCategoryTable(data) {
+        const tbody = document.getElementById("categoryTableBody");
+        tbody.innerHTML = "";
+
+        const page = parseInt(document.getElementById("page").value);
+        const size = parseInt(document.getElementById("size").value);
+
+        data.content.forEach((category, index) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td><input type="checkbox" class="delete-checkbox" data-id="${category.categoryPk}"></td>
+                <td>${page * size + index + 1}</td>
+                <td>${category.categoryPk}</td>
+                <td><input class="edit-name" data-id="${category.categoryPk}" value="${category.categoryName}"/></td>
+                <td><input class="edit-parent" value="${category.parentPk ?? ''}"/></td>
+                <td><input class="edit-level" type="number" value="${category.level}"/></td>
+                <td>
+                    <select class="edit-useYn">
+                        <option value="Y" ${category.useYn === "Y" ? "selected" : ""}>Y</option>
+                        <option value="N" ${category.useYn === "N" ? "selected" : ""}>N</option>
+                    </select>
+                </td>
+                <td>
+                    <select class="edit-deleteYn">
+                        <option value="N" ${category.deleteYn === "N" ? "selected" : ""}>N</option>
+                        <option value="Y" ${category.deleteYn === "Y" ? "selected" : ""}>Y</option>
+                    </select>
+                </td>
+                <td><button onclick="viewDetail(${category.categoryPk})">🔍</button></td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        document.getElementById("categoryCount").textContent = `총 ${data.totalElements}개`;
+    }
+
+    function loadParentCategoryOptions(categories) {
+        const parentSelect = document.getElementById("newParent");
+        parentSelect.innerHTML = `<option value="">-- 없음 (최상위) --</option>`;
+        categories.forEach(cat => {
+            const option = document.createElement("option");
+            option.value = cat.categoryPk;
+            option.textContent = `[${cat.categoryPk}] ${cat.categoryName}`;
+            parentSelect.appendChild(option);
+        });
+    }
+
+    async function createCategory(event) {
+        event.preventDefault();
+
+        const confirmCreate = confirm("새 카테고리를 생성하시겠습니까?");
+        if (!confirmCreate) return;
+
+        const newCategory = {
+            categoryName: document.getElementById("newName").value,
+            parentPk: document.getElementById("newParent").value || null,
+            level: parseInt(document.getElementById("newLevel").value),
+            useYn: document.getElementById("newUseYn").value,
+            deleteYn: document.getElementById("newDeleteYn").value
+        };
+
+        try {
+            const res = await fetch("/api/admin/category/create", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(newCategory)
+            });
+
+            if (!res.ok) throw new Error("생성 실패");
+
+            alert("✅ 생성 완료");
+            document.querySelector("#createForm form").reset();
+            loadCategories();
+        } catch (err) {
+            console.error(err);
+            alert("❌ 생성 실패");
+        }
+    }
+
+    async function submitUpdates() {
+        const rows = document.querySelectorAll("#categoryTableBody tr");
+        const updatedList = [];
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("td");
+            const categoryPk = parseInt(cells[2].textContent.trim());
+            const categoryName = row.querySelector(".edit-name").value.trim();
+            const parentPkRaw = row.querySelector(".edit-parent").value.trim();
+            const level = parseInt(row.querySelector(".edit-level").value);
+            const useYn = row.querySelector(".edit-useYn").value;
+            const deleteYn = row.querySelector(".edit-deleteYn").value;
+
+            updatedList.push({
+                categoryPk,
+                categoryName,
+                parentPk: parentPkRaw === "" ? null : parseInt(parentPkRaw),
+                level,
+                useYn,
+                deleteYn
+            });
+        });
+
+        if (!confirm("선택한 카테고리를 수정하시겠습니까?")) return;
+
+        try {
+            const res = await fetch("/api/admin/category/update", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(updatedList)
+            });
+
+            if (!res.ok) throw new Error("수정 실패");
+            alert("✅ 수정 완료");
+            loadCategories();
+        } catch (err) {
+            console.error(err);
+            alert("❌ 수정 실패");
+        }
+    }
+
+    function viewDetail(categoryPk) {
+        alert(`🔍 상세 확인:\n카테고리 PK: ${categoryPk}\n※ 상세 페이지가 필요하면 확장 가능합니다.`);
+    }
+
+    function toggleSelectAll(source) {
+        const checkboxes = document.querySelectorAll(".delete-checkbox");
+        checkboxes.forEach(cb => cb.checked = source.checked);
+    }
+
+    async function deleteSelectedCategories() {
+        const checkedBoxes = document.querySelectorAll(".delete-checkbox:checked");
+        if (checkedBoxes.length === 0) {
+            alert("삭제할 카테고리를 선택해주세요.");
+            return;
+        }
+
+        if (!confirm(`${checkedBoxes.length}개의 카테고리를 삭제하시겠습니까?`)) {
+            return;
+        }
+
+        const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.getAttribute("data-id")));
+
+        try {
+            const res = await fetch("/api/admin/category/delete", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(idsToDelete)
+            });
+
+            if (!res.ok) throw new Error("삭제 실패");
+
+            alert("✅ 삭제 완료");
+            loadCategories();
+        } catch (err) {
+            console.error(err);
+            alert("❌ 삭제 실패");
+        }
+    }
+
+    window.onload = loadCategories;
+</script>
+
+</body>
+</html>

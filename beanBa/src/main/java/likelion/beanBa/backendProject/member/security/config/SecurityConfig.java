@@ -66,6 +66,7 @@ public class SecurityConfig {
             ).permitAll().requestMatchers(
                             "/adminMember.html",
                             "/adminMain.html",
+                              "/adminCategories.html",
                             "/css/**",
                             "/js/**",
                             "/images/**",
