@@ -52,7 +52,7 @@
 
             <!-- 방 목록 -->
             <div id="roomList">
-                <strong>방 목록:</strong>
+                <strong>방 목록 :</strong>
                 <div id="rooms"></div>
             </div>
 
@@ -60,7 +60,10 @@
             <div class="row" id="enterRow">
                 <input type="text" id="user" placeholder="닉네임">
                 <input type="text" id="room" placeholder="방 번호">
+<!--                <input type="text" id="postPk" placeholder="postPk">-->
+<!--                <input type="text" id="memberPk" placeholder="방 번호">-->
                 <button onclick="connect()">Connect</button>
+<!--                <button onclick="connect2()">Connect2</button>-->
             </div>
 
             <!-- 귓속말 대상 -->
@@ -135,7 +138,6 @@
 
 
                 //  const socket = new WebSocket('/ws-chat');
-<!--                const socket = new WebSocket('/ws-chat?nickname=' + nickname ='&memberPk=1');-->
                 const socket = new WebSocket('/api/ws-chat?memberPk=10');
                 stompClient = Stomp.over(socket);
 
@@ -143,7 +145,7 @@
                     // 채팅방 입장할 때 채팅창을 초기화
                     document.getElementById("chatArea").innerHTML = "";
 
-                    fetchWithAuth(`api/chatting/getMessageList?roomPk=6`, {
+                    fetchWithAuth(`api/chatting/getMessageList?roomPk=7`, {
                         method: "GET",
                         credentials: "include",
                         headers: Object.assign(
@@ -199,6 +201,107 @@
 
             }
 
+
+            async function connect2() {
+                let postPk = document.getElementById("postPk").value;
+                let memberPk = document.getElementById("memberPk").value;
+
+                let response;
+                try {
+                    response = await fetchWithAuth(`/api/chatting/openChattingRoom`, {
+                        method: "POST",
+                        credentials: "include",
+                        headers: Object.assign(
+                            { "Content-Type": "application/json" },
+                            (localStorage.getItem("accessToken"))
+                                ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") }
+                                : {}
+                        ),
+                        body: JSON.stringify({ "postPk": postPk }) // 👈 필요한 요청 body 넣기
+                    });
+
+                    console.log("response : ", response);
+                    if (!response.ok) {
+                        const errorText = await response.text(); // 혹은 .json()도 가능
+                        throw new Error("서버 오류: " + errorText);
+                    }
+
+                    const roomId = await response.json(); // 서버에서 보낸 chattingRoom.getId()
+                    console.log("생성된 채팅방 ID:", roomId);
+
+                    // 여기서 roomId를 다른 로직에 사용
+                    // 예: 채팅방으로 이동
+                    // window.location.href = `/chat/${roomId}`;
+
+                    return roomId;
+                } catch (error) {
+                    console.error("채팅방 생성 중 오류:", error);
+                }
+
+
+                const socket = new WebSocket('/api/ws-chat?memberPk='+memberPk);
+                stompClient = Stomp.over(socket);
+
+                stompClient.connect({}, function (frame) {
+                    // 채팅방 입장할 때 채팅창을 초기화
+                    document.getElementById("chatArea").innerHTML = "";
+
+                    fetchWithAuth(`api/chatting/getMessageList?roomPk=`+roomPk, {
+                        method: "GET",
+                        credentials: "include",
+                        headers: Object.assign(
+                            { "Content-Type": "application/json" },
+                            localStorage.getItem("accessToken")
+                                ? { "Authorization": "Bearer " + localStorage.getItem("accessToken") }
+                                : {}
+                        )
+                    })
+                    .then(response => {
+
+                        console.log("response is ",response);
+                        if (!response.ok) {
+                            const text = response.text();
+                            console.error("HTML 에러 응답 : ", text);
+                            throw new Error("메시지 목록을 불러오지 못했습니다.");
+                        }
+                        return response.json();
+                    })
+                    .then(messageList => {
+                        console.log("채팅 메시지 리스트:", messageList);
+                        // 여기서 messageList를 렌더링하거나 상태에 저장
+                        messageList.forEach(message => {
+                           showSysMsg(`[${message.message}]`);
+                        });
+
+                    })
+                    .catch(error => {
+                        console.error("에러 발생:", error);
+                    });
+
+                    document.getElementById("chatWrapper").classList.remove("hidden");
+                    document.getElementById("enterRow").classList.add("hidden");
+                    document.getElementById("roomList").classList.add("hidden");
+
+                    document.getElementById("whisperRow").classList.remove("hidden"); // ✅ 여기!  닉네임 작성
+
+
+                    //일반채팅
+                    stompClient.subscribe(`/topic/room.${roomId}`, function (chat) {
+                        const message = JSON.parse(chat.body);
+                        showMessage(message.from, message.message);
+                    });
+
+                    //귓속말
+                    stompClient.subscribe('/user/queue/private', function (message) {
+                        const msg = JSON.parse(message.body);
+                        alert("💬 귓속말: " + msg.from + " - " + msg.message);
+                    });
+
+                });
+
+
+            }
+
             function disconnect() {
                 if (stompClient !== null) {
                     stompClient.disconnect();
@@ -222,9 +325,9 @@
                 }
 
                 const payload = {
-                    postPk: 64,
+                    postPk: 48,
                     message: msg,
-                    roomPk: 6
+                    roomPk: 7
                 };
 
                 console.log("msg = ",msg)

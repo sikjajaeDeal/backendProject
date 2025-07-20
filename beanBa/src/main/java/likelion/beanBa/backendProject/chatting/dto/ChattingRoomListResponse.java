@@ -29,4 +29,7 @@ public class ChattingRoomListResponse {
     // 채팅룸 대화상대 이름
     private String chatWithNickname;
 
+    // 내가 메시지 읽었는 지 유무
+    private String readYn;
+
 }

@@ -2,6 +2,8 @@ package likelion.beanBa.backendProject.chatting.dto;
 
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,6 +27,8 @@ public class ChattingRequest {
     // 등록한 상품 Pk
     private Long postPk;
 
+    // 전송 시간
+    private LocalDateTime messageAt;
 
     public ChattingRequest(String from, String message) {
         this.from = from;

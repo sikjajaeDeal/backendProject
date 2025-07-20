@@ -1,4 +1,4 @@
-package likelion.beanBa.backendProject.chatting.config;
+package likelion.beanBa.backendProject.chatting.websocket.config;
 
 
 import likelion.beanBa.backendProject.chatting.handler.CustomHandshakeHandler;

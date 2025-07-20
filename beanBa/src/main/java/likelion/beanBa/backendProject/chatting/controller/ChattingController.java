@@ -12,6 +12,7 @@ import likelion.beanBa.backendProject.chatting.handler.StompPrincipal;
 import likelion.beanBa.backendProject.chatting.repository.ChattingMessageRepository;
 import likelion.beanBa.backendProject.chatting.repository.ChattingRoomRepository;
 import likelion.beanBa.backendProject.chatting.repository.impl.ChattingRoomCustomImpl;
+import likelion.beanBa.backendProject.chatting.service.ChattingService;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
@@ -30,6 +31,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -45,7 +47,7 @@ public class ChattingController {
     private final RedisPublisher redisPublisher;
 
     // json<->dto 를 위한 객체
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     private final ChattingRoomRepository chattingRoomRepository;
     private final ChattingMessageRepository chattingMessageRepository;
@@ -54,7 +56,7 @@ public class ChattingController {
     private final MemberRepository memberRepository;
     private final SalePostRepository salePostRepository;
 
-
+    private final ChattingService chattingService;
     /*
      *  상품 상세화면에서 채팅방 열 때
      *  return : 채팅방 pk
@@ -191,7 +193,7 @@ public class ChattingController {
     * (방이 없을 시)동적으로 방 생성 및 채팅
     */
     @MessageMapping("/chatting/sendMessage")
-    public void sendmessage(ChattingRequest message
+    public void sendmessage(ChattingRequest chattingRequest
 //            , @CurrentUser CustomUserDetails userDetails // 웹소켓 통신은 @CurrentUser사용불가
               , Principal principal
             ) throws JsonProcessingException {
@@ -213,19 +215,22 @@ public class ChattingController {
             nickName = memberFrom.getNickname();
         }
 
-        message.setFrom(nickName);
-        message.setMemberPkFrom(memberPk);
+        chattingRequest.setFrom(nickName);
+        chattingRequest.setMemberPkFrom(memberPk);
+
+        LocalDateTime nowTime = LocalDateTime.now();
+        chattingRequest.setMessageAt(nowTime); // 전송시간 세팅
 
         // 일반 메시지
-        channel = "room."+message.getRoomPk();
+        channel = "room."+chattingRequest.getRoomPk();
 //        channel = "room.5"; // 테스트용
-        msg = objectMapper.writeValueAsString(message);
+        msg = objectMapper.writeValueAsString(chattingRequest);
 
         redisPublisher.publish(channel, msg);
 
         try {
             // DB에 메시지 저장
-            saveMessage(message);
+            saveMessage(chattingRequest);
         } catch (RuntimeException e) {
             log.error("전송 메시지 mysql 저장 실패 : {}", e.getMessage());
 
@@ -235,9 +240,21 @@ public class ChattingController {
     }
 
     /*
+    * 상대방이 보낸 메시지 읽음 처리
+    * */
+    @PatchMapping("/messageRead/{roomPk}")
+    public ResponseEntity<?> messageRead(@PathVariable("roomPk") Long roomPk, @CurrentUser CustomUserDetails userDetails){
+        Long memberPk = userDetails.getMember().getMemberPk(); // 현 로그인 한 사용자 member pk
+
+        chattingService.messageRead(roomPk, memberPk);
+        return ResponseEntity.ok().build();
+
+    }
+
+    /*
      *  DB에 메시지 저장
      **/
-    public void saveMessage(ChattingRequest chattingRequest) {
+    private void saveMessage(ChattingRequest chattingRequest) {
         Long roomPk = chattingRequest.getRoomPk(); // 대화 중인 chatting room pk
         String errorMessage = "채팅 전송 중 에러가 발생하였습니다. 새로 고침 후 다시 시도해 주시기 바랍니다.";
 
@@ -254,6 +271,7 @@ public class ChattingController {
         chattingMessage.setMessage(chattingRequest.getMessage());
         chattingMessage.setMember(member);
         chattingMessage.setChattingRoom(chattingRoom);
+        chattingMessage.setMessageAt(chattingRequest.getMessageAt());
 
         chattingMessageRepository.save(chattingMessage);
     }
