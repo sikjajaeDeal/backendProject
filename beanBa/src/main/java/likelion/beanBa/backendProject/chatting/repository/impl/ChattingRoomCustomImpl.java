@@ -33,7 +33,7 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                 "  FROM (SELECT * " +
                 "          FROM (SELECT cr.chat_room_pk, cm.message, cm.message_at" +
                 "                       , IF(cr.buy_member_pk = :memberPk, sp.member_pk, cr.buy_member_pk) AS chat_with " +
-                "                       , IF(cm.read_yn !='Y' AND cm.member_pk_from != 1, 'N', 'Y') AS read_yn " +
+                "                       , IF(cm.read_yn !='Y' AND cm.member_pk_from != :memberPk, 'N', 'Y') AS read_yn " +
                 "                       , ROW_NUMBER() OVER (PARTITION BY cm.chat_room_pk ORDER BY cm.chat_message_pk DESC) AS rn " +
                 "                  FROM chat_room cr LEFT OUTER JOIN chat_message cm ON cr.chat_room_pk = cm.chat_room_pk " +
                 "                       LEFT OUTER JOIN sale_post sp on cr.post_pk = sp.post_pk" +
@@ -66,14 +66,14 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
      * 특정 상품에 대한 채팅룸 리스트 가져오기 in 상품상세화면
      */
     @Override
-    public List<ChattingRoomListResponse> getChattingRoomListByPostPk(Long postPk) {
+    public List<ChattingRoomListResponse> getChattingRoomListByPostPk(Long postPk, Long memberPk) {
 
         String sql = "SELECT chat_list.chat_room_pk, chat_list.message, chat_list.message_at, chat_list.chat_with" +
                 "            , m.nickname as chat_with_nickname, read_yn " +
                 "  FROM (SELECT * " +
                 "          FROM (SELECT cr.chat_room_pk, cm.message, cm.message_at" +
                 "                       , cr.buy_member_pk AS chat_with " +
-                "                       , IF(cm.read_yn !='Y' AND cm.member_pk_from != 1, 'N', 'Y') AS read_yn " +
+                "                       , IF(cm.read_yn !='Y' AND cm.member_pk_from != :memberPk, 'N', 'Y') AS read_yn " +
                 "                       , ROW_NUMBER() OVER (PARTITION BY cm.chat_room_pk ORDER BY cm.chat_message_pk DESC) AS rn " +
                 "                  FROM chat_room cr LEFT OUTER JOIN chat_message cm ON cr.chat_room_pk = cm.chat_room_pk " +
                 "                       LEFT OUTER JOIN sale_post sp on cr.post_pk = sp.post_pk" +
@@ -87,6 +87,7 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
 
         List<Object[]> resultList = entityManager.createNativeQuery(sql)
                 .setParameter("postPk", postPk)
+                .setParameter("memberPk", memberPk)
                 .getResultList();
 
         return resultList.stream()

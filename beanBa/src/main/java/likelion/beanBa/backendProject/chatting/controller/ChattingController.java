@@ -131,13 +131,22 @@ public class ChattingController {
      */
     @GetMapping("/getChattingRoomListByPostPk")
     @ResponseBody
-    public ResponseEntity<?> getChattingRoomListByPostPk(@RequestParam("postPk") Long postPk) {
+    public ResponseEntity<?> getChattingRoomListByPostPk(@RequestParam("postPk") Long postPk
+            , @CurrentUser CustomUserDetails userDetails) {
+        Long memberPk = userDetails.getMember().getMemberPk(); // 현 로그인 한 사용자 member pk
+
+        // jwt에서 가져온 로그인 정보가 옳지 않은 경우
+        if (memberPk == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("로그인을 다시 확인해 주시기 바랍니다.");
+        }
+
         if (postPk == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("새로고침 후 다시 시도해 주시기 바랍니다.");
         }
 
-        List<ChattingRoomListResponse> chattingRoomList = chattingRoomCustomImpl.getChattingRoomListByPostPk(postPk);
+        List<ChattingRoomListResponse> chattingRoomList = chattingRoomCustomImpl.getChattingRoomListByPostPk(postPk, memberPk);
 
         return ResponseEntity.ok(chattingRoomList);
     }
