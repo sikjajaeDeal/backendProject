@@ -86,6 +86,12 @@ public class Category {
         this.level = req.getLevel(); // 🔥 직접 입력받아 수정
     }
 
+    public void updateDeleteYn(String deleteYn) {
+        if (deleteYn != null) {
+            this.deleteYn = deleteYn;
+        }
+    }
+
     /**카테고리 삭제**/
     public void delete(){
         this.deleteYn="Y";

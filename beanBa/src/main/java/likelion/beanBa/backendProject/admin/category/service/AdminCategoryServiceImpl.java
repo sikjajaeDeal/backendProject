@@ -68,8 +68,14 @@ public class AdminCategoryServiceImpl implements AdminCategoryService {
                     .orElseThrow(() -> new IllegalArgumentException("ID: " + req.getCategoryPk() + "에 해당하는 카테고리가 없습니다."));
 
             if ("Y".equals(category.getDeleteYn())) {
-                System.out.println("⛔ 삭제된 카테고리는 수정할 수 없습니다. (ID: " + category.getCategoryPk() + ")");
-                continue; // 삭제된 카테고리는 건너뜀
+                if (req.getDeleteYn() != null) {
+                    category.updateDeleteYn(req.getDeleteYn());
+                    categoryRepository.save(category);
+                    System.out.println("♻️ 삭제된 카테고리 deleteYn만 수정 완료 (ID: " + category.getCategoryPk() + ")");
+                } else {
+                    System.out.println("⛔ 삭제된 카테고리는 deleteYn만 수정할 수 있습니다. (ID: " + category.getCategoryPk() + ")");
+                }
+                continue;
             }
             Category parent =null;
 
