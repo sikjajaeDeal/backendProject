@@ -4,11 +4,9 @@ package likelion.beanBa.backendProject.admin.product.controller;
 import likelion.beanBa.backendProject.admin.product.service.AdminSalePostService;
 import likelion.beanBa.backendProject.global.util.InputValidator;
 import likelion.beanBa.backendProject.product.S3.service.S3Service;
-import likelion.beanBa.backendProject.product.dto.PageResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
+import likelion.beanBa.backendProject.product.dto.*;
 import likelion.beanBa.backendProject.product.entity.Category;
+import likelion.beanBa.backendProject.product.product_enum.Yn;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,20 +28,20 @@ public class AdminSalePostController {
 
 
     @GetMapping
-    public ResponseEntity<PageResponse<SalePostSummaryResponse>> getAllPostsAdmin(
+    public ResponseEntity<PageResponse<AdminSalePostSummaryResponse>> getAllPostsAdmin(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "false") boolean includeDeleted
     ) {
         System.out.println("product controller start");
-        PageResponse<SalePostSummaryResponse> posts = adminSalePostService.getAllPostsAdmin(page, size, includeDeleted);
+        PageResponse<AdminSalePostSummaryResponse> posts = adminSalePostService.getAllPostsAdmin(page, size, includeDeleted);
         return ResponseEntity.ok(posts);
     }
 
     /** 조회 **/
     @GetMapping("/{postPk}")
-    public ResponseEntity<SalePostDetailResponse> getPostDetailAdmin(@PathVariable Long postPk) {
-        SalePostDetailResponse postDetail = adminSalePostService.getPostDetailAdmin(postPk);
+    public ResponseEntity<AdminSalePostDetailResponse> getPostDetailAdmin(@PathVariable Long postPk) {
+        AdminSalePostDetailResponse postDetail = adminSalePostService.getPostDetailAdmin(postPk);
         return ResponseEntity.ok(postDetail);
     }
 
@@ -53,8 +51,9 @@ public class AdminSalePostController {
     public ResponseEntity<?> updateSalePostAdmin(
             @PathVariable Long postPk,
             @RequestPart("salePostRequest") SalePostRequest request,
-            @RequestPart(value = "salePostImages", required = false) MultipartFile[] salePostImages
-    ) {
+            @RequestPart(value = "salePostImages", required = false) MultipartFile[] salePostImages,
+            @RequestParam("deleteYn") Yn deleteYn
+            ) {
         try {
             System.out.println("update salePostAdmin controller  start");
             InputValidator.validateHopePrice(request.getHopePrice()); // ✅ 희망 가격 검증 추가
@@ -99,7 +98,7 @@ public class AdminSalePostController {
             request.setImageUrls(fullImageUrls); //최종 슬롯 순서 반영
 
             System.out.println("update salePostAdmin controller end");
-            adminSalePostService.updateSalePostAdmin(postPk, request);
+            adminSalePostService.updateSalePostAdmin(postPk, request, deleteYn);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             System.out.println("수정 실패 : "+e.getMessage());

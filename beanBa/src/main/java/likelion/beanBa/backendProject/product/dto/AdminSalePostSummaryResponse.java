@@ -7,15 +7,16 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
-/** 판매글 목록만을 보여주기 위한 dto - 이미지는 썸네일만 **/
 @Getter
 @Builder
-public class SalePostSummaryResponse {
+
+/**관리자 페이지 상품 목록 (기존 salePostSummaryResponse에 deleteYn 추가)**/
+public class AdminSalePostSummaryResponse {
 
     private Long postPk;
     private String sellerNickname;
+    private String buyerNickname;
     private String categoryName;
 
     private String title;
@@ -27,7 +28,7 @@ public class SalePostSummaryResponse {
     private LocalDateTime postAt;
     private LocalDateTime stateAt;
     private SaleStatement state;
-//    private Yn deleteYn;
+    private Yn deleteYn;
 
     private Double latitude;
     private Double longitude;
@@ -38,10 +39,11 @@ public class SalePostSummaryResponse {
     private boolean salePostLiked;
 
 
-    public static SalePostSummaryResponse from(SalePost salePost, String thumbnailUrl, boolean salePostLiked, int likeCount) {
-        return SalePostSummaryResponse.builder()
+    public static AdminSalePostSummaryResponse from(SalePost salePost, String thumbnailUrl, boolean salePostLiked, int likeCount) {
+        return AdminSalePostSummaryResponse.builder()
                 .postPk(salePost.getPostPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
+                .buyerNickname(salePost.getBuyerPk() != null ? salePost.getBuyerPk().getNickname() : null)
                 .categoryName(salePost.getCategoryPk().getCategoryName())
                 .title(salePost.getTitle())
                 .content(salePost.getContent())
@@ -51,6 +53,7 @@ public class SalePostSummaryResponse {
                 .postAt(salePost.getPostAt())
                 .stateAt(salePost.getStateAt())
                 .state(salePost.getState())
+                .deleteYn(salePost.getDeleteYn())
                 .latitude(salePost.getLatitude())
                 .longitude(salePost.getLongitude())
                 .thumbnailUrl(thumbnailUrl)

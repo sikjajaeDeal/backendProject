@@ -1,279 +1,469 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>📝 상품 상세 정보 (관리자)</title>
     <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          max-width: 900px;
+          margin: 20px auto;
+          padding: 10px;
+          background: #fafafa;
+          color: #333;
+        }
+        h1 {
+          text-align: center;
+          margin-bottom: 20px;
+          color: #2c3e50;
+        }
+        .info-block {
+          background: white;
+          padding: 15px;
+          border-radius: 8px;
+          box-shadow: 0 0 8px rgba(0,0,0,0.1);
+          margin-bottom: 20px;
+        }
+        .info-row {
+          margin-bottom: 10px;
+          font-size: 1rem;
+        }
+        .info-row strong {
+          width: 120px;
+          display: inline-block;
+          color: #34495e;
+        }
         .image-slot-container {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+          display: flex;
+          gap: 12px;
+          margin-top: 10px;
+          flex-wrap: wrap;
         }
         .image-slot {
-            width: 120px;
-            height: 120px;
-            border: 1px dashed gray;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
+          width: 120px;
+          height: 120px;
+          border: 2px dashed #ccc;
+          border-radius: 8px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+          background: #fff;
+          cursor: grab;
+        }
+        .image-slot.dragging {
+          opacity: 0.6;
+          border-color: #3498db;
         }
         .image-slot img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+          max-width: 100%;
+          max-height: 100%;
+          border-radius: 6px;
+          object-fit: cover;
+          user-select: none;
+          pointer-events: none;
         }
         .upload-label {
-            font-size: 30px;
-            cursor: pointer;
-            color: #aaa;
+          font-size: 36px;
+          color: #bbb;
+          cursor: pointer;
+          user-select: none;
         }
         .image-input {
-            display: none;
+          display: none;
         }
         .delete-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: red;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
+          position: absolute;
+          top: 3px;
+          right: 3px;
+          background: #e74c3c;
+          color: white;
+          border: none;
+          border-radius: 50%;
+          width: 22px;
+          height: 22px;
+          cursor: pointer;
+          font-weight: bold;
+          line-height: 20px;
+          text-align: center;
         }
-        label {
-            display: block;
-            margin: 8px 0 4px;
+        form label {
+          display: block;
+          margin: 12px 0 6px;
+          font-weight: 600;
+          color: #2c3e50;
         }
+        form input[type="text"],
+        form input[type="number"],
+        form select,
+        form textarea {
+          width: 100%;
+          padding: 8px 10px;
+          border-radius: 6px;
+          border: 1.5px solid #ccc;
+          font-size: 1rem;
+          box-sizing: border-box;
+          transition: border-color 0.3s ease;
+        }
+        form input[type="text"]:focus,
+        form input[type="number"]:focus,
+        form select:focus,
+        form textarea:focus {
+          border-color: #2980b9;
+          outline: none;
+        }
+        form textarea {
+          resize: vertical;
+          min-height: 80px;
+          font-family: inherit;
+        }
+        button {
+          background: #2980b9;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 18px;
+          font-size: 1rem;
+          cursor: pointer;
+          margin-right: 10px;
+          transition: background-color 0.25s ease;
+        }
+        button:hover {
+          background: #1f6391;
+        }
+        .btn-delete {
+          background: #c0392b;
+        }
+        .btn-delete:hover {
+          background: #922b21;
+        }
+        .button-row {
+          margin-top: 20px;
+          text-align: center;
+        }
+        .status-label {
+          display: inline-block;
+          padding: 4px 10px;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          color: white;
+          margin-left: 8px;
+        }
+        .status-S { background-color: #27ae60; } /* 판매중 */
+        .status-C { background-color: #95a5a6; } /* 판매완료 */
+        .status-P { background-color: #f39c12; } /* 판매보류 */
     </style>
 </head>
 <body>
 <h1>📝 상품 상세 정보 (관리자)</h1>
-<div id="detail"></div>
 
-<!-- 버튼 영역 -->
-<div style="margin-top:20px;">
-    <button onclick="enableEditMode()">✏️ 수정하기</button>
-    <button onclick="goBack()">🔙 목록으로</button>
-    <button onclick="confirmDelete()" style="background:#d9534f;color:#fff;">🗑️ 삭제</button>
+<div class="info-block" id="detailView">
+    <!-- 상세 정보 보여지는 곳 -->
 </div>
 
-<!-- 수정 폼 영역 -->
-<form id="editForm" style="display:none;margin-top:20px;">
-    <!-- 제목, 내용, 가격 -->
-    <label>제목: <input type="text" id="editTitle"/></label><br/>
-    <label>내용:<br/><textarea id="editContent" rows="4"></textarea></label><br/>
-    <label>희망 가격: <input type="number" id="editHopePrice"/></label><br/>
+<form id="editForm" style="display:none;">
+    <label for="editTitle">제목</label>
+    <input type="text" id="editTitle" required />
 
-    <!-- 위도, 경도 -->
-    <label>위도: <input type="number" step="0.0000001" id="editLatitude"/></label><br/>
-    <label>경도: <input type="number" step="0.0000001" id="editLongitude"/></label><br/>
+    <label for="editContent">내용</label>
+    <textarea id="editContent" rows="5" required></textarea>
 
-    <!-- 카테고리 셀렉트 박스 -->
-    <label>카테고리:
-        <select id="editCategoryPk"></select>
-        <span id="categoryNameText">현재 카테고리: </span>
-    </label><br/>
+    <label for="editHopePrice">희망 가격 (원)</label>
+    <input type="number" id="editHopePrice" min="0" required />
 
-    <label>삭제여부:
-        <select id="editDeleteYn">
-            <option value="N">N</option>
-            <option value="Y">Y</option>
-        </select>
-        <span id="deleteYnText">현재 삭제여부: </span>
-    </label><br/>
+    <label for="editLatitude">위도</label>
+    <input type="number" id="editLatitude" step="0.000000000000001" required />
 
-    <!-- 이미지 슬롯 -->
-    <label>이미지:</label><div id="imageSlots" class="image-slot-container"></div>
-    <button type="submit">💾 저장</button>
+    <label for="editLongitude">경도</label>
+    <input type="number" id="editLongitude" step="0.000000000000001" required />
+
+    <label for="editCategoryPk">카테고리</label>
+    <select id="editCategoryPk" required></select>
+
+    <label for="editDeleteYn">삭제 여부</label>
+    <select id="editDeleteYn" required>
+        <option value="N">N (삭제 안됨)</option>
+        <option value="Y">Y (삭제됨)</option>
+    </select>
+
+    <label>이미지 (드래그앤드롭으로 순서 변경 가능, 최대 4장)</label>
+    <div id="imageSlots" class="image-slot-container"></div>
+
+    <div class="button-row">
+        <button type="submit">💾 저장</button>
+        <button type="button" onclick="cancelEdit()">✖️ 취소</button>
+    </div>
 </form>
 
+<div class="button-row" id="actionButtons">
+    <button onclick="enableEditMode()">✏️ 수정하기</button>
+    <button onclick="goBack()">🔙 목록으로</button>
+    <button onclick="confirmDelete()" class="btn-delete">🗑️ 삭제</button>
+</div>
+
 <script>
-    let postData, currentPostPk;
-    let currentImageUrls = ["", "", "", ""], newImages = [null, null, null, null], draggedIndex;
+    let postData = null;
+    let currentPostPk = null;
+    let currentImageUrls = ["", "", "", ""];
+    let newImages = [null, null, null, null];
+    let draggedIndex = null;
 
     async function loadPostDetail() {
-        const pk = new URLSearchParams(window.location.search).get("postPk");
-        currentPostPk = pk;
-        const res = await fetch(`/api/admin/sale-post/${pk}`);
-        if (!res.ok) return alert("불러오기 실패");
+      currentPostPk = new URLSearchParams(window.location.search).get("postPk");
+      if (!currentPostPk) {
+        alert("postPk가 URL에 없습니다!");
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/admin/sale-post/${currentPostPk}`);
+        if (!res.ok) throw new Error("상세 정보 불러오기 실패");
         postData = await res.json();
-
-        console.log(postData);
-
-
-        // 상품 상세 정보 출력
-        document.getElementById("detail").innerHTML = `
-        <div><strong>제목:</strong> ${postData.title}</div>
-        <div><strong>카테고리:</strong> ${postData.categoryName} (PK: ${postData.categoryPk})</div>
-        <div><strong>가격:</strong> ${postData.hopePrice}원</div>
-        <div><strong>삭제여부:</strong> ${postData.deleteYn}</div>
-        <div><strong>위도:</strong> ${postData.latitude}</div>
-        <div><strong>경도:</strong> ${postData.longitude}</div>
-        <div><strong>내용:</strong><br/>${postData.content}</div>
-        <div><strong>이미지:</strong><br/>${postData.imageUrls.map(u => `<img src="${u}" style="max-width:100px;margin:2px;">`).join('')}
-        </div>`;
 
         currentImageUrls = postData.imageUrls.slice(0, 4);
         newImages = [null, null, null, null];
 
-        // 수정 전 값 텍스트로 표시
-        document.getElementById("categoryNameText").textContent = `현재 카테고리: ${postData.categoryName}`;
-        document.getElementById("deleteYnText").textContent = `현재 삭제여부: ${postData.deleteYn === 'Y' ? '삭제됨' : '삭제안됨'}`;
-
+        renderDetailView();
+      } catch (e) {
+        alert(e.message);
+        console.error(e);
+      }
     }
 
-    async function enableEditMode() {
-        if (!postData) return alert("데이터 없음");
+    function renderDetailView() {
+      const div = document.getElementById("detailView");
+      div.innerHTML = `
+        <div class="info-row"><strong>제목:</strong> ${escapeHtml(postData.title)}</div>
+        <div class="info-row"><strong>작성자:</strong> ${escapeHtml(postData.sellerNickname)}</div>
+        <div class="info-row"><strong>구매자:</strong> ${postData.buyerNickname ? escapeHtml(postData.buyerNickname) : "없음"}</div>
+        <div class="info-row"><strong>카테고리:</strong> ${escapeHtml(postData.categoryName)}</div>
+        <div class="info-row"><strong>희망 가격:</strong> ${postData.hopePrice.toLocaleString()} 원</div>
+        <div class="info-row"><strong>판매 상태:</strong>
+          <span class="status-label status-${postData.state}">
+            ${stateLabel(postData.state)}
+          </span>
+        </div>
+        <div class="info-row"><strong>삭제 여부:</strong> ${postData.deleteYn === "Y" ? "삭제됨" : "삭제 안됨"}</div>
+        <div class="info-row"><strong>위도:</strong> ${postData.latitude}</div>
+        <div class="info-row"><strong>경도:</strong> ${postData.longitude}</div>
+        <div class="info-row"><strong>내용:</strong><br />${escapeHtml(postData.content).replace(/\n/g, "<br>")}</div>
+        <div class="info-row"><strong>이미지:</strong><br />
+          ${postData.imageUrls.length > 0
+            ? postData.imageUrls.map(url => `<img src="${url}" alt="상품 이미지" style="max-width:100px; margin-right:6px; border-radius:6px;">`).join("")
+            : "없음"}
+        </div>
+      `;
 
-        document.getElementById("editForm").style.display = "block";
-        document.getElementById("editTitle").value = postData.title;
-        document.getElementById("editContent").value = postData.content;
-        document.getElementById("editHopePrice").value = postData.hopePrice;
-        document.getElementById("editLatitude").value = postData.latitude || ''; // 위도 값
-        document.getElementById("editLongitude").value = postData.longitude || ''; // 경도 값
+      // 폼 숨기고, 버튼 보이게
+      document.getElementById("editForm").style.display = "none";
+      document.getElementById("actionButtons").style.display = "block";
+    }
 
-        // 카테고리와 삭제여부 기본값을 기존값으로 설정
-        await loadCategories();
-        document.getElementById("editCategoryPk").value = postData.categoryPk;  // 기존 카테고리 설정
-        document.getElementById("editDeleteYn").value = postData.deleteYn;       // 기존 삭제여부 설정
+    function stateLabel(stateCode) {
+      switch (stateCode) {
+        case "S": return "판매중";
+        case "C": return "판매완료";
+        case "P": return "판매보류";
+        default: return "알 수 없음";
+      }
+    }
 
-        // 수정 전 값이 잘 반영되도록
-        await loadCategories();
+  function escapeHtml(text) {
+    if (!text) return "";
+    return text.replace(/[&<>"']/g, function(m) {
+      return ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      })[m];
+    });
+  }
+
+  async function enableEditMode() {
+    if (!postData) return alert("데이터가 없습니다.");
+
+    document.getElementById("editForm").style.display = "block";
+    document.getElementById("actionButtons").style.display = "none";
+
+    document.getElementById("editTitle").value = postData.title;
+    document.getElementById("editContent").value = postData.content;
+    document.getElementById("editHopePrice").value = postData.hopePrice;
+    document.getElementById("editLatitude").value = postData.latitude || '';
+    document.getElementById("editLongitude").value = postData.longitude || '';
+    document.getElementById("editDeleteYn").value = postData.deleteYn;
+
+    await loadCategories();
+    document.getElementById("editCategoryPk").value = postData.categoryPk;
+
+    renderImageSlots();
+  }
+
+  async function loadCategories() {
+    try {
+      const res = await fetch('/api/admin/sale-post/categories');
+      if (!res.ok) throw new Error("카테고리 불러오기 실패");
+      const cats = await res.json();
+
+      const sel = document.getElementById("editCategoryPk");
+      sel.innerHTML = "";
+      cats.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c.categoryPk;
+        opt.textContent = c.categoryName;
+        sel.appendChild(opt);
+      });
+    } catch (e) {
+      alert(e.message);
+      console.error(e);
+    }
+  }
+
+  function renderImageSlots() {
+    const container = document.getElementById("imageSlots");
+    container.innerHTML = "";
+
+    for (let i = 0; i < 4; i++) {
+      const slot = document.createElement("div");
+      slot.className = "image-slot";
+      slot.draggable = true;
+      slot.dataset.index = i;
+
+      slot.addEventListener("dragstart", e => {
+        draggedIndex = i;
+        slot.classList.add("dragging");
+      });
+      slot.addEventListener("dragend", e => {
+        slot.classList.remove("dragging");
+      });
+      slot.addEventListener("dragover", e => e.preventDefault());
+      slot.addEventListener("drop", e => {
+        e.preventDefault();
+        const targetIndex = Number(e.currentTarget.dataset.index);
+        [currentImageUrls[draggedIndex], currentImageUrls[targetIndex]] = [currentImageUrls[targetIndex], currentImageUrls[draggedIndex]];
+        [newImages[draggedIndex], newImages[targetIndex]] = [newImages[targetIndex], newImages[draggedIndex]];
         renderImageSlots();
-    }
+      });
 
-    async function loadCategories() {
-        const res = await fetch('/api/admin/sale-post/categories'); // 전체 카테고리 조회
-        if (!res.ok) return alert("카테고리 불러오기 실패");
-        const cats = await res.json();
-        const sel = document.getElementById("editCategoryPk");
-        sel.innerHTML = ""; // 기존 option 초기화
-        cats.forEach(c => {
-            const o = document.createElement("option");
-            o.value = c.categoryPk;
-            o.text = `${c.categoryName}`;
-            sel.append(o);
+      if (currentImageUrls[i]) {
+        const img = document.createElement("img");
+        img.src = currentImageUrls[i];
+        slot.appendChild(img);
+      } else if (newImages[i]) {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(newImages[i]);
+        slot.appendChild(img);
+      } else {
+        const label = document.createElement("label");
+        label.className = "upload-label";
+        label.textContent = "+";
+        label.htmlFor = `upload${i}`;
+
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+        input.id = `upload${i}`;
+        input.className = "image-input";
+        input.addEventListener("change", e => {
+          const file = e.target.files[0];
+          if (file) {
+            currentImageUrls[i] = "";
+            newImages[i] = file;
+            renderImageSlots();
+          }
         });
 
-        // 기존 카테고리 값 설정
-        setTimeout(() => setCategoryValue(postData.categoryPk), 100);  // 100ms 대기 후 값 설정
+        slot.appendChild(label);
+        slot.appendChild(input);
+      }
+
+      if (currentImageUrls[i] || newImages[i]) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "delete-btn";
+        btn.textContent = "X";
+        btn.addEventListener("click", () => {
+          currentImageUrls[i] = "";
+          newImages[i] = null;
+          renderImageSlots();
+        });
+        slot.appendChild(btn);
+      }
+
+      container.appendChild(slot);
     }
-    function setCategoryValue(categoryPk) {
-        const sel = document.getElementById("editCategoryPk");
-        const option = sel.querySelector(`option[value="${categoryPk}"]`);
-        if (option) option.selected = true;  // 해당 카테고리 선택
+  }
+
+  document.getElementById("editForm").addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const title = document.getElementById("editTitle").value.trim();
+    const content = document.getElementById("editContent").value.trim();
+    const hopePrice = Number(document.getElementById("editHopePrice").value);
+    const latitude = Number(document.getElementById("editLatitude").value);
+    const longitude = Number(document.getElementById("editLongitude").value);
+    const categoryPk = Number(document.getElementById("editCategoryPk").value);
+    const deleteYn = document.getElementById("editDeleteYn").value;
+
+    if (!title || !content || isNaN(hopePrice) || isNaN(latitude) || isNaN(longitude) || isNaN(categoryPk)) {
+      return alert("필수 항목을 모두 올바르게 입력하세요.");
     }
 
-    function setDeleteYnValue(deleteYn) {
-        const sel = document.getElementById("editDeleteYn");
-        const option = sel.querySelector(`option[value="${deleteYn}"]`);
-        if (option) option.selected = true;  // 해당 삭제여부 선택
+    const req = {
+      title,
+      content,
+      hopePrice,
+      latitude,
+      longitude,
+      categoryPk,
+      imageUrls: currentImageUrls
+    };
+
+    const fd = new FormData();
+    fd.append("salePostRequest", new Blob([JSON.stringify(req)], { type: "application/json" }));
+    newImages.filter(f => f).forEach(f => fd.append("salePostImages", f));
+    fd.append("deleteYn", deleteYn);  // 여기 추가
+
+    try {
+      const res = await fetch(`/api/admin/sale-post/${currentPostPk}`, {
+        method: "PUT",
+        body: fd
+      });
+      if (!res.ok) throw new Error("수정 실패");
+      alert("✅ 수정 성공");
+      window.location.reload();
+    } catch (err) {
+      alert("❌ 수정 실패: " + err.message);
     }
+  });
 
-    function renderImageSlots() {
-        const container = document.getElementById("imageSlots");
-        container.innerHTML = "";
+  function confirmDelete() {
+    if (!confirm("정말 삭제하시겠습니까?")) return;
 
-        for (let i = 0; i < 4; i++) {
-            const slot = document.createElement("div");
-            slot.className = "image-slot";
-            slot.draggable = true;
-            slot.dataset.index = i;
-
-            slot.ondragstart = () => (draggedIndex = i);
-            slot.ondragover = (e) => e.preventDefault();
-            slot.ondrop = (e) => {
-                e.preventDefault();
-                const targetIndex = parseInt(e.currentTarget.dataset.index);
-                [currentImageUrls[draggedIndex], currentImageUrls[targetIndex]] = [currentImageUrls[targetIndex], currentImageUrls[draggedIndex]];
-                [newImages[draggedIndex], newImages[targetIndex]] = [newImages[targetIndex], newImages[draggedIndex]];
-                renderImageSlots();
-            };
-
-            if (currentImageUrls[i]) {
-                const img = document.createElement("img");
-                img.src = currentImageUrls[i];
-                slot.appendChild(img);
-            } else if (newImages[i]) {
-                const img = document.createElement("img");
-                img.src = URL.createObjectURL(newImages[i]);
-                slot.appendChild(img);
-            } else {
-                const label = document.createElement("label");
-                label.className = "upload-label";
-                label.innerText = "+";
-                label.htmlFor = `upload${i}`;
-
-                const input = document.createElement("input");
-                input.type = "file";
-                input.accept = "image/*";
-                input.id = `upload${i}`;
-                input.className = "image-input";
-                input.onchange = (e) => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        currentImageUrls[i] = "";
-                        newImages[i] = file;
-                        renderImageSlots();
-                    }
-                };
-
-                slot.appendChild(label);
-                slot.appendChild(input);
-            }
-
-            if (currentImageUrls[i] || newImages[i]) {
-                const btn = document.createElement("button");
-                btn.innerText = "X";
-                btn.className = "delete-btn";
-                btn.type = "button";
-                btn.onclick = () => {
-                    currentImageUrls[i] = "";
-                    newImages[i] = null;
-                    renderImageSlots();
-                };
-                slot.appendChild(btn);
-            }
-
-            container.appendChild(slot);
+    fetch(`/api/admin/sale-post/${currentPostPk}`, { method: "DELETE" })
+      .then(res => {
+        if (res.ok) {
+          alert("✅ 삭제 완료");
+          goBack();
+        } else {
+          alert("❌ 삭제 실패");
         }
-    }
+      })
+      .catch(() => alert("❌ 삭제 중 오류 발생"));
+  }
 
-    document.getElementById("editForm").addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const req = {
-            title: document.getElementById("editTitle").value,
-            content: document.getElementById("editContent").value,
-            hopePrice: parseInt(document.getElementById("editHopePrice").value),
-            latitude: parseFloat(document.getElementById("editLatitude").value),
-            longitude: parseFloat(document.getElementById("editLongitude").value),
-            categoryPk: parseInt(document.getElementById("editCategoryPk").value),
-            deleteYn: document.getElementById("editDeleteYn").value,
-            imageUrls: currentImageUrls
-        };
+  function goBack() {
+    window.location.href = "/admin/adminSalePost.html";
+  }
 
-        const fd = new FormData();
-        fd.append("salePostRequest", new Blob([JSON.stringify(req)], { type: "application/json" }));
-        newImages.filter(f => f).forEach(f => fd.append("salePostImages", f));
+  function cancelEdit() {
+    document.getElementById("editForm").style.display = "none";
+    document.getElementById("actionButtons").style.display = "block";
+  }
 
-        const res = await fetch(`/api/admin/sale-post/${currentPostPk}`, { method: "PUT", body: fd });
-        alert(res.ok ? "✅ 수정 성공" : "❌ 수정 실패");
-        if (res.ok) window.location.reload();
-    });
-
-    function confirmDelete() {
-        if (!confirm("정말 삭제?")) return;
-        fetch(`/api/admin/sale-post/${currentPostPk}`, { method: "DELETE" })
-            .then(res => alert(res.ok ? "✅ 삭제됨" : "❌ 실패") && goBack())
-            .catch(() => alert("❌ 오류"));
-    }
-
-    function goBack() { location.href = "/admin/adminSalePost.html"; }
-    window.onload = loadPostDetail;
+  window.onload = loadPostDetail;
 </script>
 </body>
 </html>

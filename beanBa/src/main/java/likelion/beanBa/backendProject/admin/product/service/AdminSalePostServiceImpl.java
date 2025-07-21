@@ -3,10 +3,7 @@ package likelion.beanBa.backendProject.admin.product.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
-import likelion.beanBa.backendProject.product.dto.PageResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
-import likelion.beanBa.backendProject.product.dto.SalePostRequest;
-import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
+import likelion.beanBa.backendProject.product.dto.*;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
@@ -39,7 +36,7 @@ public class AdminSalePostServiceImpl implements AdminSalePostService {
 
 
     @Transactional(readOnly = true)
-    public PageResponse<SalePostSummaryResponse> getAllPostsAdmin(int page, int size, boolean includeDeleted) {
+    public PageResponse<AdminSalePostSummaryResponse> getAllPostsAdmin(int page, int size, boolean includeDeleted) {
         System.out.println("product getAllPostsAdmin start");
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "postAt"));
 
@@ -48,7 +45,7 @@ public class AdminSalePostServiceImpl implements AdminSalePostService {
                 ? salePostRepository.findAll(pageable)
                 : salePostRepository.findAllByDeleteYn(Yn.N, pageable);
 
-        List<SalePostSummaryResponse> content = salePostsPage.getContent().stream()
+        List<AdminSalePostSummaryResponse> content = salePostsPage.getContent().stream()
                 .map(post -> {
 
                     List<SalePostImage> images = salePostImageRepository.findAllByPostPkAndDeleteYn(post, Yn.N);
@@ -59,7 +56,7 @@ public class AdminSalePostServiceImpl implements AdminSalePostService {
                             .findFirst()
                             .orElse(null);
 
-                    return SalePostSummaryResponse.from(post, thumbnail, false, 0); // 찜 기능 제외
+                    return AdminSalePostSummaryResponse.from(post, thumbnail, false, 0); // 찜 기능 제외
                 })
                 .toList();
 
@@ -76,7 +73,7 @@ public class AdminSalePostServiceImpl implements AdminSalePostService {
 
     /**제품 상세보기**/
     @Transactional(readOnly = true)
-    public SalePostDetailResponse getPostDetailAdmin(Long postPk) {
+    public AdminSalePostDetailResponse getPostDetailAdmin(Long postPk) {
         SalePost post = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new RuntimeException("해당 게시글이 없습니다. postPk=" + postPk));
 
@@ -91,12 +88,12 @@ public class AdminSalePostServiceImpl implements AdminSalePostService {
         int likeCount = salePostLikeRepository.countByPostPk(post);
         boolean salePostLiked = false; // 관리자는 보통 상관없으니 false 고정 가능
 
-        return SalePostDetailResponse.from(post, imageUrls, salePostLiked, likeCount);
+        return AdminSalePostDetailResponse.from(post, imageUrls, salePostLiked, likeCount);
     }
 
 
     @Transactional
-    public void updateSalePostAdmin(Long postPk, SalePostRequest request) {
+    public void updateSalePostAdmin(Long postPk, SalePostRequest request, Yn deleteYn) {
         SalePost post = salePostRepository.findById(postPk)
                 .orElseThrow(() -> new IllegalArgumentException("게시글이 존재하지 않습니다."));
 
@@ -114,7 +111,7 @@ public class AdminSalePostServiceImpl implements AdminSalePostService {
                 category
         );
         //post.setDeleteYn(request.getDeleteYn());
-       // post.markAsDeleted(request.getDeleteYn().equalsIgnoreCase("Y") ? Yn.Y : Yn.N);
+       post.markAsNotDeleted();
 
         // 기존 이미지 전체 삭제 처리 (소프트 삭제)
         List<SalePostImage> existingImages = salePostImageRepository.findAllByPostPkAndDeleteYn(post, Yn.N);
