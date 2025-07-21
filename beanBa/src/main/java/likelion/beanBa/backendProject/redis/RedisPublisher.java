@@ -1,6 +1,7 @@
 package likelion.beanBa.backendProject.redis;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
