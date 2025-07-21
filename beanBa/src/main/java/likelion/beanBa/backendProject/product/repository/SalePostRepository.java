@@ -72,4 +72,7 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
 
     // 특정 멤버의 블라인드 된 글 갯수 반환
     long countBySellerPk_MemberPkAndDeleteYn(Long memberPk, Yn deleteYn);
+
+    @Query("SELECT COUNT(p) FROM SalePost p WHERE p.postAt >= CURRENT_DATE")
+    long countByCreatedAtToday();
 }

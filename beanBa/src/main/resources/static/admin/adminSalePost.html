@@ -26,7 +26,7 @@
 <body>
 
 <h1>📋 판매글 관리 (관리자)</h1>
-
+<button onclick="goHome()">🏠 홈으로</button>
 <!-- 컨트롤 영역 -->
 <div>
   <label>Page: <input type="number" id="page" value="0" min="0"></label>
@@ -118,6 +118,10 @@
       nav.appendChild(btn);
     }
   }
+
+  function goHome() {
+  window.location.href = "/admin/adminMain.html";
+}
 
   window.onload = () => loadPosts();
 </script>

@@ -157,7 +157,7 @@
 </head>
 <body>
 <h1>📝 상품 상세 정보 (관리자)</h1>
-
+<button onclick="goHome()">🏠 홈으로</button>
 <div class="info-block" id="detailView">
     <!-- 상세 정보 보여지는 곳 -->
 </div>
@@ -462,6 +462,10 @@
     document.getElementById("editForm").style.display = "none";
     document.getElementById("actionButtons").style.display = "block";
   }
+
+    function goHome() {
+  window.location.href = "/admin/adminMain.html";
+}
 
   window.onload = loadPostDetail;
 </script>

@@ -20,6 +20,7 @@
 </head>
 <body>
 <h1>Admin Member List</h1>
+<button onclick="goHome()">🏠 홈으로</button>
 <div>
     <label>Category:</label>
     <select id="category">
@@ -237,6 +238,10 @@
         });
         alert("수정 완료");
         loadMembers();
+    }
+
+    function goHome() {
+        window.location.href = "/admin/adminMain.html";
     }
 
     window.onload = loadMembers;
