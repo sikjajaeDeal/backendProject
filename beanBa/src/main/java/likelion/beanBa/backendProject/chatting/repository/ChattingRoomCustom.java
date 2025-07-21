@@ -17,5 +17,5 @@ public interface ChattingRoomCustom {
     /*
      * 특정 상품에 대한 채팅룸 리스트 가져오기 in 상품상세화면
      */
-    List<ChattingRoomListResponse> getChattingRoomListByPostPk(Long postPk);
+    List<ChattingRoomListResponse> getChattingRoomListByPostPk(Long postPk, Long memberPk);
 }
