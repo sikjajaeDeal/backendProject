@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.joda.time.chrono.EthiopicChronology;
 
 
 import javax.annotation.Nullable;
@@ -128,6 +129,8 @@ public class SalePost {
     public void markAsDeleted() {
         this.deleteYn = Yn.Y;
     }
+
+    public void markAsNotDeleted() {this.deleteYn = Yn.N;}
 
 
     /** 조회수 증가 메서드 **/
