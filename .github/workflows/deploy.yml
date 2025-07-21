@@ -142,6 +142,7 @@ jobs:
             beanBa/build/libs/app.jar \
             beanBa/.env \
             beanBa/.env.template \
+            docker/docker-compose.yml \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/build/libs/
 
       - name: ⚡ SSH into EC2 and deploy with Docker Compose
