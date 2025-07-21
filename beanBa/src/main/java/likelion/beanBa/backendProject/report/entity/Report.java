@@ -10,7 +10,10 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "report")
+@Table(name = "report", uniqueConstraints = @UniqueConstraint(
+        name = "uk_report_reporter_reportee_post",
+        columnNames = {"report_pk", "reportee_pk", "post_pk"}
+))
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,15 +26,15 @@ public class Report {
     @Column(name="report_pk")
     private Long reportPk;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_pk")
     private SalePost salePost;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_pk")
     private Member reporter;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reportee_pk")
     private Member reportee;
 
