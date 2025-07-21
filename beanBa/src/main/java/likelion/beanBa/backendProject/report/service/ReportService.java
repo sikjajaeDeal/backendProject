@@ -13,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -29,6 +31,11 @@ public class ReportService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 글이 없습니다."));
         Member reportee = memberRepository.findByMemberId(request.getReporteeId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다."));
+
+        // report 검증
+        if(reportRepository.existsByReporterAndReporteeAndSalePost(reporter, reportee, post)) {
+            throw new IllegalArgumentException("이미 존재하는 report 입니다.");
+        }
 
         // report 저장
         Report report = request.toEntity(post, reporter, reportee);
@@ -61,5 +68,25 @@ public class ReportService {
         if(blindPostCnt>=5){
             reportee.markAsBlind();
         }
+    }
+
+    public List<Member> getAllBlockMember() {
+        return memberRepository.findByDeleteYn("B");
+    }
+
+    public List<Report> getBlockMember(Long memberPk) {
+        Member blockMember = memberRepository.findByMemberPk(memberPk)
+                .orElseThrow();
+        return reportRepository.findByReportee(blockMember);
+    }
+
+    public List<SalePost> getAllBlockPost() {
+        return salePostRepository.findAllByDeleteYn(Yn.B);
+    }
+
+    public List<Report> getBlockPost(Long postPk) {
+        SalePost blockPost = salePostRepository.findById(postPk)
+                .orElseThrow();
+        return reportRepository.findBySalePost(blockPost);
     }
 }
