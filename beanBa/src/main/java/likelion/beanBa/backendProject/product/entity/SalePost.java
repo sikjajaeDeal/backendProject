@@ -64,6 +64,7 @@ public class SalePost {
     @Column(name = "post_at")
     private LocalDateTime postAt;
 
+
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false, length = 10)
     private SaleStatement state = SaleStatement.S;

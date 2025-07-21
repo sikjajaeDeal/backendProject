@@ -64,8 +64,7 @@ public class SecurityConfig {
                     "/api/admin/**" //admin 확인을 위해 추가 0717
 
             ).permitAll().requestMatchers(
-                            "/adminMember.html",
-                            "/adminMain.html",
+                            "/admin/**",
                             "/css/**",
                             "/js/**",
                             "/images/**",
