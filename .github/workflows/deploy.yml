@@ -96,6 +96,9 @@ jobs:
       - name: 🔄 Rename jar file to app.jar
         run: mv beanBa/build/libs/backendProject-0.0.1-SNAPSHOT.jar beanBa/build/libs/app.jar
 
+      - name: 📦 Move app.jar to docker folder
+        run: cp beanBa/build/libs/app.jar docker/app.jar
+
       - name: 📄 Write .env file safely
         run: |
           {
