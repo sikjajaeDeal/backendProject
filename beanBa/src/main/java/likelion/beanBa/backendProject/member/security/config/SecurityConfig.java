@@ -68,7 +68,9 @@ public class SecurityConfig {
                     "/js/**", // chatting 테스트 하느라고 잠시 넣어놨습니다.
                     "/api/ws-chat",
                     "/app/**",
-                    "/api/rooms/**"
+                    "/api/rooms/**",
+                    "/api/kamis/all",
+                    "/api/sale-post/elasticsearch"
             ).permitAll()
             .anyRequest().authenticated()
         )
