@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>관리자 신고 관리</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        padding: 2rem;
+        background-color: #f5f6fa;
+    }
+
+    h1, h2 {
+        color: #2f3640;
+    }
+
+    section {
+        margin-top: 2rem;
+    }
+
+    button {
+        margin: 0.3rem;
+        padding: 0.5rem 1rem;
+        background-color: #273c75;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background-color: #40739e;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    th, td {
+        border: 1px solid #dcdde1;
+        padding: 0.5rem;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f1f2f6;
+    }
+
+    tr:hover {
+        background-color: #f0f0f0;
+    }
+
+    .clickable {
+        color: #0097e6;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+<h1>관리자 신고 관리 대시보드</h1>
+
+<section>
+  <h2>🚫 차단된 회원 목록</h2>
+  <button onclick="fetchBlockedMembers()">불러오기</button>
+  <table id="blockedMembersTable">
+    <thead>
+    <tr><th>ID</th><th>이메일</th><th>닉네임</th><th>신고내역</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>📌 차단된 게시글 목록</h2>
+  <button onclick="fetchBlockedPosts()">불러오기</button>
+  <table id="blockedPostsTable">
+    <thead>
+    <tr><th>ID</th><th>제목</th><th>작성자</th><th>신고내역</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<section>
+  <h2>📄 신고 상세 내역</h2>
+  <table id="reportDetailsTable">
+    <thead>
+    <tr><th>신고 ID</th><th>신고자</th><th>사유</th><th>대상 ID</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<script>
+  async function fetchBlockedMembers() {
+      const response = await fetch('/api/report/getAllBlockMember');
+      const members = await response.json();
+      const tbody = document.querySelector("#blockedMembersTable tbody");
+      tbody.innerHTML = "";
+
+      members.forEach(member => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+              <td>${member.id}</td>
+              <td>${member.email}</td>
+              <td>${member.nickname}</td>
+              <td><span class="clickable" onclick="fetchMemberReports(${member.id})">보기</span></td>
+          `;
+          tbody.appendChild(tr);
+      });
+  }
+
+  async function fetchMemberReports(memberPk) {
+      const response = await fetch(`/api/report/getBlockMember/${memberPk}`);
+      const reports = await response.json();
+      fillReportDetailsTable(reports);
+  }
+
+  async function fetchBlockedPosts() {
+      const response = await fetch('/api/report/getAllBlockPost');
+      const posts = await response.json();
+      const tbody = document.querySelector("#blockedPostsTable tbody");
+      tbody.innerHTML = "";
+
+      posts.forEach(post => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+              <td>${post.id}</td>
+              <td>${post.title}</td>
+              <td>${post.writer.nickname}</td>
+              <td><span class="clickable" onclick="fetchPostReports(${post.id})">보기</span></td>
+          `;
+          tbody.appendChild(tr);
+      });
+  }
+
+  async function fetchPostReports(postPk) {
+      const response = await fetch(`/api/report/getBlockPost/${postPk}`);
+      const reports = await response.json();
+      fillReportDetailsTable(reports);
+  }
+
+  function fillReportDetailsTable(reports) {
+      const tbody = document.querySelector("#reportDetailsTable tbody");
+      tbody.innerHTML = "";
+      reports.forEach(report => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+              <td>${report.id}</td>
+              <td>${report.reporter.nickname}</td>
+              <td>${report.reason}</td>
+              <td>${report.reportedMember ? report.reportedMember.id : report.reportedPost.id}</td>
+          `;
+          tbody.appendChild(tr);
+      });
+  }
+</script>
+</body>
+</html>
