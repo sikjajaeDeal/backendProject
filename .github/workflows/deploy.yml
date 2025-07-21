@@ -1,4 +1,4 @@
-name: "BeanBar - CI/CD: PR + Deploy (main & develop)"
+name: "BeanBa - CI/CD: PR + Deploy (main)"
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: Build & Test
+    name: 🧪Build & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -41,11 +41,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = context.payload.pull_request.number;
+            const branchName = context.payload.pull_request.head.ref;
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: "🚨 **CI 실패**: 빌드 또는 테스트에 실패했습니다. 로그를 확인하고 수정해주세요!"
+              body: `🚨 **CI 실패** (브랜치: \`${branchName}\`) - 빌드 또는 테스트에 실패했습니다. 로그를 확인하고 수정해주세요!`
+
             });
 
       - name: ✅ Leave comment on PR if build succeeds
@@ -55,11 +58,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = context.payload.pull_request.number;
+            const branchName = context.payload.pull_request.head.ref;
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: "✅ **CI 성공**: 빌드 및 테스트를 통과했습니다! 🎉"
+              body: `✅ **CI 성공** (브랜치: \`${branchName}\`) - 빌드 및 테스트를 통과했습니다! 🎉`
             });
 
   deploy:
@@ -137,13 +142,15 @@ jobs:
             beanBa/build/libs/app.jar \
             beanBa/.env \
             beanBa/.env.template \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/
+            docker/docker-compose.yml \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/build/libs/
 
-      - name: ⚡ SSH into EC2 and deploy with PM2 ecosystem
+      - name: ⚡ SSH into EC2 and deploy with Docker Compose
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
-          cd /home/ubuntu/BeanBa/backendProject/beanBa
-          pm2 startOrReload ecosystem.config.js --env dev
+          cd /home/ubuntu/BeanBa/docker
+          docker compose down
+          docker compose up -d --build
           EOF
 
 permissions:
