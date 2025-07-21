@@ -61,7 +61,7 @@
 </head>
 <body>
 <h1>관리자 신고 관리 대시보드</h1>
-
+<button onclick="goHome()">🏠 홈으로</button>
 <section>
   <h2>🚫 차단된 회원 목록</h2>
   <button onclick="fetchBlockedMembers()">불러오기</button>
@@ -156,6 +156,10 @@
           `;
           tbody.appendChild(tr);
       });
+  }
+
+  function goHome() {
+    window.location.href = "/admin/adminMain.html";
   }
 </script>
 </body>

@@ -16,7 +16,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService{
     private final MemberRepository memberRepository;
     private final SalePostRepository  salePostRepository;
 
-    @Override
+
     public Map<String, Object> getDashboardStats() {
         Map<String, Object> result = new HashMap<>();
         result.put("totalMembers", memberRepository.count());

@@ -115,40 +115,44 @@
     }
 
     function renderCategoryTable(data) {
-        const tbody = document.getElementById("categoryTableBody");
-        tbody.innerHTML = "";
+    const tbody = document.getElementById("categoryTableBody");
+    tbody.innerHTML = "";
 
-        const page = parseInt(document.getElementById("page").value);
-        const size = parseInt(document.getElementById("size").value);
+    const page = parseInt(document.getElementById("page").value);
+    const size = parseInt(document.getElementById("size").value);
 
-        data.content.forEach((category, index) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-                <td><input type="checkbox" class="delete-checkbox" data-id="${category.categoryPk}"></td>
-                <td>${page * size + index + 1}</td>
-                <td>${category.categoryPk}</td>
-                <td><input class="edit-name" data-id="${category.categoryPk}" value="${category.categoryName}"/></td>
-                <td><input class="edit-parent" value="${category.parentPk ?? ''}"/></td>
-                <td><input class="edit-level" type="number" value="${category.level}"/></td>
-                <td>
-                    <select class="edit-useYn">
-                        <option value="Y" ${category.useYn === "Y" ? "selected" : ""}>Y</option>
-                        <option value="N" ${category.useYn === "N" ? "selected" : ""}>N</option>
-                    </select>
-                </td>
-                <td>
-                    <select class="edit-deleteYn">
-                        <option value="N" ${category.deleteYn === "N" ? "selected" : ""}>N</option>
-                        <option value="Y" ${category.deleteYn === "Y" ? "selected" : ""}>Y</option>
-                    </select>
-                </td>
-                <td><button onclick="viewDetail(${category.categoryPk})">🔍</button></td>
-            `;
-            tbody.appendChild(row);
-        });
+    data.content.forEach((category, index) => {
+        const isDeleted = category.deleteYn === "Y";
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td><input type="checkbox" class="delete-checkbox" data-id="${category.categoryPk}" ${isDeleted ? "disabled" : ""}></td>
+            <td>${page * size + index + 1}</td>
+            <td>${category.categoryPk}</td>
+            <td><input class="edit-name" data-id="${category.categoryPk}" value="${category.categoryName}" ${isDeleted ? "disabled" : ""}/></td>
+            <td><input class="edit-parent" value="${category.parentPk ?? ''}" ${isDeleted ? "disabled" : ""}/></td>
+            <td><input class="edit-level" type="number" value="${category.level}" ${isDeleted ? "disabled" : ""}/></td>
+            <td>
+                <select class="edit-useYn" ${isDeleted ? "disabled" : ""}>
+                    <option value="Y" ${category.useYn === "Y" ? "selected" : ""}>Y</option>
+                    <option value="N" ${category.useYn === "N" ? "selected" : ""}>N</option>
+                </select>
+            </td>
+            <td>
+                <select class="edit-deleteYn">
+                    <option value="N" ${category.deleteYn === "N" ? "selected" : ""}>N</option>
+                    <option value="Y" ${category.deleteYn === "Y" ? "selected" : ""}>Y</option>
+                </select>
+            </td>
+            <td><button onclick="viewDetail(${category.categoryPk})" ${isDeleted ? "disabled" : ""}>🔍</button></td>
+        `;
+        tbody.appendChild(row);
+    });
 
         document.getElementById("categoryCount").textContent = `총 ${data.totalElements}개`;
     }
+
+
 
     function loadParentCategoryOptions(categories) {
         const parentSelect = document.getElementById("newParent");
