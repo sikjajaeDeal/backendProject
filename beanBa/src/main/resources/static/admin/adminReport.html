@@ -118,7 +118,7 @@
                   <td>${member.id}</td>
                   <td>${member.email}</td>
                   <td>${member.nickname}</td>
-                  <td><span class="clickable" onclick="fetchMemberReports(${member.id})">보기</span></td>
+                  <td><span class="clickable" onclick="fetchMemberReports(${member.memberPk})">보기</span></td>
               `;
               tbody.appendChild(tr);
           });
@@ -161,8 +161,8 @@
               tr.innerHTML = `
                   <td>${post.id}</td>
                   <td>${post.title}</td>
-                  <td>${post.writer.nickname}</td>
-                  <td><span class="clickable" onclick="fetchPostReports(${post.id})">보기</span></td>
+                  <td>${post.sellerPk.nickname}</td>
+                  <td><span class="clickable" onclick="fetchPostReports(${post.postPk})">보기</span></td>
               `;
               tbody.appendChild(tr);
           });
