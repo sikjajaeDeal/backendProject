@@ -138,14 +138,14 @@
 
 
                 //  const socket = new WebSocket('/ws-chat');
-                const socket = new WebSocket('/api/ws-chat?memberPk=10');
+                const socket = new WebSocket('/api/ws-chat?memberPk=19');
                 stompClient = Stomp.over(socket);
 
                 stompClient.connect({}, function (frame) {
                     // 채팅방 입장할 때 채팅창을 초기화
                     document.getElementById("chatArea").innerHTML = "";
 
-                    fetchWithAuth(`api/chatting/getMessageList?roomPk=7`, {
+                    fetchWithAuth(`api/chatting/getMessageList?roomPk=8`, {
                         method: "GET",
                         credentials: "include",
                         headers: Object.assign(
@@ -325,9 +325,9 @@
                 }
 
                 const payload = {
-                    postPk: 48,
+                    postPk: 101,
                     message: msg,
-                    roomPk: 7
+                    roomPk: 8
                 };
 
                 console.log("msg = ",msg)

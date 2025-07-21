@@ -32,4 +32,7 @@ public class ChattingRoomListResponse {
     // 내가 메시지 읽었는 지 유무
     private String readYn;
 
+    // 상품 pk
+    private Long postPk;
+
 }
