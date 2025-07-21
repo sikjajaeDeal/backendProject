@@ -29,9 +29,9 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
     public List<ChattingRoomListResponse> getAllChattingRoomList(Long memberPk) {
 
         String sql = "SELECT chat_list.chat_room_pk, chat_list.message, chat_list.message_at, chat_list.chat_with" +
-                "            , m.nickname as chat_with_nickname, read_yn " +
+                "            , m.nickname as chat_with_nickname, read_yn, chat_list.post_pk " +
                 "  FROM (SELECT * " +
-                "          FROM (SELECT cr.chat_room_pk, cm.message, cm.message_at" +
+                "          FROM (SELECT cr.chat_room_pk, cr.post_pk, cm.message, cm.message_at" +
                 "                       , IF(cr.buy_member_pk = :memberPk, sp.member_pk, cr.buy_member_pk) AS chat_with " +
                 "                       , IF(cm.read_yn !='Y' AND cm.member_pk_from != :memberPk, 'N', 'Y') AS read_yn " +
                 "                       , ROW_NUMBER() OVER (PARTITION BY cm.chat_room_pk ORDER BY cm.chat_message_pk DESC) AS rn " +
@@ -57,7 +57,8 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                         ((Timestamp) row[2]).toLocalDateTime(), // message 전송시간
                         ((Long) row[3]).longValue(), // 채팅룸 대화상대 pk
                         (String) row[4], // 채팅룸 대화상대 이름
-                        String.valueOf(row[5]) // 내가 해당 메시지 읽었는 지 유무
+                        String.valueOf(row[5]), // 내가 해당 메시지 읽었는 지 유무
+                        ((Long) row[6]).longValue() // 상품 pk
                 ))
                 .collect(Collectors.toList());
     }
@@ -69,9 +70,9 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
     public List<ChattingRoomListResponse> getChattingRoomListByPostPk(Long postPk, Long memberPk) {
 
         String sql = "SELECT chat_list.chat_room_pk, chat_list.message, chat_list.message_at, chat_list.chat_with" +
-                "            , m.nickname as chat_with_nickname, read_yn " +
+                "            , m.nickname as chat_with_nickname, read_yn, chat_list.post_pk " +
                 "  FROM (SELECT * " +
-                "          FROM (SELECT cr.chat_room_pk, cm.message, cm.message_at" +
+                "          FROM (SELECT cr.chat_room_pk, cr.post_pk, cm.message, cm.message_at" +
                 "                       , cr.buy_member_pk AS chat_with " +
                 "                       , IF(cm.read_yn !='Y' AND cm.member_pk_from != :memberPk, 'N', 'Y') AS read_yn " +
                 "                       , ROW_NUMBER() OVER (PARTITION BY cm.chat_room_pk ORDER BY cm.chat_message_pk DESC) AS rn " +
@@ -97,7 +98,8 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                         ((Timestamp) row[2]).toLocalDateTime(), // message 전송시간
                         ((Long) row[3]).longValue(), // 채팅룸 대화상대 pk
                         (String) row[4], // 채팅룸 대화상대 이름
-                        String.valueOf(row[5]) // 내가 해당 메시지 읽었는 지 유무
+                        String.valueOf(row[5]), // 내가 해당 메시지 읽었는 지 유무
+                        ((Long) row[6]).longValue() // 상품 pk
                 ))
                 .collect(Collectors.toList());
     }
