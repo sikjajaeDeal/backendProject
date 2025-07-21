@@ -34,9 +34,12 @@ public class ChattingMessage {
     @Lob //TEXT 타입으로 만들기
     private String message; // 전송한 메시지
 
-    //엔티티가 저장될 때 자동으로 시간을 기록
-    @CreationTimestamp
+    // 엔티티가 저장될 때 자동으로 시간을 기록 -> ChattingController.java의 '/api/chatting/sendMessage'에 해당하는 메소드에서 전송 시간 추출
+//    @CreationTimestamp
     @JoinColumn(name = "message_at")
     private LocalDateTime messageAt; // 전송 시간
+
+    @Column(name = "read_yn", nullable = false)
+    private String readYn="N"; // 상대방이 읽었는 지 유무
 
 }

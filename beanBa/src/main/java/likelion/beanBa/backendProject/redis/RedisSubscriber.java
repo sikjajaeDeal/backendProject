@@ -15,21 +15,21 @@ public class RedisSubscriber implements MessageListener {
 
     private final SimpMessagingTemplate simpMessagingTemplate;
 
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
 
         try {
             String msgBody = new String(message.getBody());
-            ChattingRequest chattingMessageDto = objectMapper.readValue(msgBody, ChattingRequest.class);
+            ChattingRequest chattingRequest = objectMapper.readValue(msgBody, ChattingRequest.class);
 
-            if (chattingMessageDto.getTo() != null && !chattingMessageDto.getTo().isEmpty()) {
+            if (chattingRequest.getTo() != null && !chattingRequest.getTo().isEmpty()) {
                 // 귓속말
-                simpMessagingTemplate.convertAndSendToUser(chattingMessageDto.getTo(), "/queue/private", chattingMessageDto);
+                simpMessagingTemplate.convertAndSendToUser(chattingRequest.getTo(), "/queue/private", chattingRequest);
             } else {
                 // 일반 메시지
-                simpMessagingTemplate.convertAndSend("/topic/room." + chattingMessageDto.getRoomPk(), chattingMessageDto);
+                simpMessagingTemplate.convertAndSend("/topic/room." + chattingRequest.getRoomPk(), chattingRequest);
             }
         } catch (Exception e) {
 
