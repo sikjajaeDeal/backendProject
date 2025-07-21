@@ -2,7 +2,7 @@ services:
 
   elastic:
     build:
-      context: .
+      context: ./elastic-docker
       dockerfile: Dockerfile
     ports:
       - 9200:9200
@@ -34,6 +34,24 @@ services:
     networks:
       - prod_server 
     restart: unless-stopped
+
+  # Spring Boot App Server
+  beanba-server:
+    build:
+      context: ./server-docker
+      dockerfile: Dockerfile
+    container_name: beanba-server
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../backendProject/beanBa/.env
+    volumes:
+      - ../backendProject/beanBa/build/libs/app.jar:/app.jar  # 실제 JAR 위치 연결
+    networks:
+      - prod_server
+    depends_on:
+      - redis
+      - elastic
 
 networks:
   prod_server:

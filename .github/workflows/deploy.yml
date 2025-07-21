@@ -72,7 +72,8 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: >
-      github.event_name == 'push' && github.ref == 'refs/heads/main'
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
 
     steps:
       - name: ✅ Checkout repository
@@ -141,13 +142,14 @@ jobs:
             beanBa/build/libs/app.jar \
             beanBa/.env \
             beanBa/.env.template \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/build/libs/
 
-      - name: ⚡ SSH into EC2 and deploy with PM2 ecosystem
+      - name: ⚡ SSH into EC2 and deploy with Docker Compose
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
-          cd /home/ubuntu/BeanBa/backendProject/beanBa
-          pm2 startOrReload ecosystem.config.js --env dev
+          cd /home/ubuntu/BeanBa/docker
+          docker compose down
+          docker compose up -d --build
           EOF
 
 permissions:
