@@ -26,15 +26,15 @@ public class Report {
     @Column(name="report_pk")
     private Long reportPk;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "post_pk")
     private SalePost salePost;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "reporter_pk")
     private Member reporter;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "reportee_pk")
     private Member reportee;
 

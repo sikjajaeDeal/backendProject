@@ -10,6 +10,8 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=false
       - xpack.security.http.ssl.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
     networks:
       - prod_server
 
@@ -56,6 +58,9 @@ services:
 networks:
   prod_server:
     external: true
+
+volumes:
+  elasticsearch-data:
 
 
 
