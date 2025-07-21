@@ -72,6 +72,11 @@ dependencies {
 	// ..env
 	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	// LocalDateTime 직렬화 시 필요
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.19.1'
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1'
 
 	implementation 'org.apache.httpcomponents.client5:httpclient5'
 }
