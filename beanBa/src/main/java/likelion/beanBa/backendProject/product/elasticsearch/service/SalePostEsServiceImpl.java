@@ -17,8 +17,10 @@ import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
+import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsTestDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
+import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsTestRepository;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.entity.SalePostImage;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
@@ -29,6 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -43,6 +46,7 @@ public class SalePostEsServiceImpl implements SalePostEsService {
     private final ElasticsearchClient client;
 
     private final SalePostEsRepository esRepository;
+    private final SalePostEsTestRepository esTestRepository;
 
     private final SalePostRepository salePostRepository;
     private final SalePostEsRepository salePostEsRepository;
@@ -245,7 +249,141 @@ public class SalePostEsServiceImpl implements SalePostEsService {
         }
 
     }
+
+
+
+
+
+
+
+    public Page<SalePostSummaryResponse> search_test(SearchRequestDTO searchRequestDTO, Member member) throws RuntimeException{
+
+        try{
+
+            System.out.println("검색 시작 : ");
+
+            int page = searchRequestDTO.getPage();
+            int size = searchRequestDTO.getSize();
+
+            int minPrice = searchRequestDTO.getMinPrice();
+            int maxPrice = searchRequestDTO.getMaxPrice();
+
+            String keyword = searchRequestDTO.getKeyword();
+
+            //엘라스틱서치에서 페이징을 위한 시작 위치를 계산하는 변수
+            int from = page * size;
+
+            //엘라스틱서치에서 사용할 검색조건을 담는 객체
+            Query query;
+
+
+            query = BoolQuery.of(b ->{
+
+
+
+                System.out.println("키워드는 : "+keyword);
+
+                // PrefixQuery는 해당 필드가 특정 단어로 시작하는지 검사하는 쿼리
+                // MatchQuery 는 해당 단어가 포함되어 있는지 검사하는 쿼리
+
+                /**
+                 must: 모두 일치해야 함 (AND)
+                 should: 하나라도 일치하면 됨 (OR)
+                 must_not: 해당 조건을 만족하면 제외
+                 filter : must와 같지만 점수 계산 안함 (속도가 빠름)
+                 **/
+
+
+                // 접두어 초성 중간글자 검색 쿼리를 생성하는 메서드 입니다.
+                baseSearchFilter(b,searchRequestDTO);
+
+                // 위치 기반 검색 쿼리를 생성하는 메서드 입니다.(기본값은 5km)
+                locationSearchFilter(b, searchRequestDTO);
+
+                // 가격 범위기반 검색 쿼리를 생성하는 메서드입니다.
+                priceSearchFilter(b, searchRequestDTO.getMinPrice(), searchRequestDTO.getMaxPrice());
+
+                // 카테고리 검색 쿼리를 생성하는 메서드입니다.
+                categorySearchFilter(b, searchRequestDTO.getCategoryPk());
+
+
+                return b;
+            })._toQuery();
+
+            //
+            //SearchRequest 는 엘라스틱서치에서 검색을 하기 위한 검색요청 객체
+            // 인덱스명, 페이징 정보, 쿼리를 포함한 검색 요청
+
+            SearchRequest request = SearchRequest.of(s->s
+                .index("sale_post")
+                .from(from)
+                .size(size)
+                .query(query)
+
+                //정렬
+                .sort(sort->sort
+                    .field(f->f
+                            .field("postPk") // 정렬 대상 필드명
+                            .order(SortOrder.Desc) // 최신순
+                        // 만약 id를 기준으로 할꺼면 board-index.txt 에서 "id"를 long으로 변경
+                    )
+
+                )
+
+            );
+
+            //SearchResponse는 엘라스틱서치의 검색 결과를 담고 있는 응답 객체
+            SearchResponse<SalePostEsTestDocument> response =
+                // 엘라스틱서치에 명령을 전달하는 자바API 검색요청을 담아서 응답객체로 반환
+                client.search(request, SalePostEsTestDocument.class);
+
+            List<SalePostSummaryResponse> content = response.hits() //엘라스틱 서치 응답에서 hits(문서 검색결과) 전체를 꺼냄
+                .hits()// 검색 결과 안에 개별 리스트를 가져옴
+                .stream()// 자바 stream api를 사용
+                .map(Hit::source)// 각 Hit 객체에서 실제 문서를 꺼내는 작업
+                .map(SalePostSummaryResponse::from)
+                .collect(Collectors.toList());
+
+            //전체 검색 결과 수(총 문서의 갯수)
+            long total = response.hits().total().value();
+
+            //PageImpl 객체를 사용해서 Spring에서 사용할 수 있는 page 객체로 변환
+
+            return new PageImpl<>(content, PageRequest.of(page,size),total);
+
+        }catch(Exception e){
+
+            log.error("검색 오류: " + e.getMessage());
+            throw new RuntimeException("검색 중 오류 발생",e);
+
+
+        }
+
+    }
+
+
+
+
+
+
+
 // ================ 엘라스틱서치 i/o ====================
+
+    @Async
+    public void save_test(Member member, SalePost salePost, SalePostRepository salePostRepository,
+        SalePostLikeRepository salePostLikeRepository, SalePostImageRepository salePostImageRepository) {
+
+        try {
+            SalePostEsTestDocument doc = SalePostEsTestDocument.from(member, salePost, salePostRepository, salePostLikeRepository, salePostImageRepository);
+            System.out.println("SalePostEsServiceImpl.save : " + doc.toString());
+            esTestRepository.save(doc);
+        } catch (Exception e) {
+            log.error("Elasticsearch 저장 오류: {}", e.getMessage());
+            //throw new RuntimeException("Elasticsearch 저장 중 오류 발생", e);
+        }
+
+    }
+
     public void save(SalePost salePost) {
 
         try {

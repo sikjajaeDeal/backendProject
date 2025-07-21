@@ -7,6 +7,7 @@ import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
 import likelion.beanBa.backendProject.product.dto.SalePostDetailResponse;
 import likelion.beanBa.backendProject.product.dto.SalePostSummaryResponse;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
+import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsTestDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,21 @@ public class SalePostEsController {
     try {
       Member member = userDetails != null ? userDetails.getMember() : null;
       return ResponseEntity.ok(salePostEsService.search(searchRequestDTO, member));
+    } catch (RuntimeException e) {
+      System.out.println(e.getMessage());
+
+      return null;
+    }
+
+  }
+
+  @PostMapping("/test")
+  public ResponseEntity<Page<SalePostSummaryResponse>> elasticSearch_test
+      (@RequestBody SearchRequestDTO searchRequestDTO, @CurrentUser CustomUserDetails userDetails) {
+
+    try {
+      Member member = userDetails != null ? userDetails.getMember() : null;
+      return ResponseEntity.ok(salePostEsService.search_test(searchRequestDTO, member));
     } catch (RuntimeException e) {
       System.out.println(e.getMessage());
 

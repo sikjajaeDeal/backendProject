@@ -68,7 +68,8 @@ public class SalePostServiceImpl implements SalePostService {
 
 
         //테스트할 때 주석처리
-        salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
+        //salePostEsService.save(salePost); // 게시글 생성 시 Elasticsearch에 저장
+        salePostEsService.save_test(sellerPk, salePost, salePostRepository, salePostLikeRepository, salePostImageRepository);
 
 
         return salePost;

@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.product.dto;
 
+import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsTestDocument;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import lombok.Builder;
@@ -11,7 +12,8 @@ import java.util.List;
 /** 판매글 목록만을 보여주기 위한 dto - 이미지는 썸네일만 **/
 @Getter
 @Builder
-public class SalePostSummaryResponse {
+public class
+SalePostSummaryResponse {
 
     private Long postPk;
     private String sellerNickname;
@@ -56,4 +58,30 @@ public class SalePostSummaryResponse {
                 .salePostLiked(salePostLiked)
                 .build();
     }
+
+    public static SalePostSummaryResponse from(SalePostEsTestDocument salePostEsTestDocument) {
+        return SalePostSummaryResponse.builder()
+            .postPk(salePostEsTestDocument.getPostPk())
+            .sellerNickname(salePostEsTestDocument.getSellerNickname())
+            .categoryName(salePostEsTestDocument.getCategoryName())
+
+            .title(salePostEsTestDocument.getTitle())
+            .content(salePostEsTestDocument.getContent())
+            .hopePrice(salePostEsTestDocument.getHopePrice())
+            .viewCount(salePostEsTestDocument.getViewCount())
+            .likeCount(salePostEsTestDocument.getLikeCount())
+
+            .postAt(salePostEsTestDocument.getPostAt())
+            .stateAt(salePostEsTestDocument.getStateAt())
+            .state(salePostEsTestDocument.getState())
+
+            .latitude(salePostEsTestDocument.getLatitude())
+            .longitude(salePostEsTestDocument.getLongitude())
+
+            .thumbnailUrl(salePostEsTestDocument.getThumbnailUrl())
+
+            .salePostLiked(salePostEsTestDocument.isSalePostLiked())
+            .build();
+    }
+
 }
