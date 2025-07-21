@@ -62,6 +62,7 @@
 <body>
 <h1>관리자 신고 관리 대시보드</h1>
 <button onclick="goHome()">🏠 홈으로</button>
+
 <section>
   <h2>🚫 차단된 회원 목록</h2>
   <button onclick="fetchBlockedMembers()">불러오기</button>
@@ -96,70 +97,117 @@
 
 <script>
   async function fetchBlockedMembers() {
-      const response = await fetch('/api/report/getAllBlockMember');
-      const members = await response.json();
-      const tbody = document.querySelector("#blockedMembersTable tbody");
-      tbody.innerHTML = "";
+      try {
+          const response = await fetch('/api/report/getAllBlockMember', {
+              credentials: 'include'  // ← 세션 기반 인증 대응
+          });
 
-      members.forEach(member => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-              <td>${member.id}</td>
-              <td>${member.email}</td>
-              <td>${member.nickname}</td>
-              <td><span class="clickable" onclick="fetchMemberReports(${member.id})">보기</span></td>
-          `;
-          tbody.appendChild(tr);
-      });
+          if (response.status === 401 || response.status === 403) {
+              alert("❌ 인증이 필요합니다. 다시 로그인해주세요.");
+              window.location.href = "/login";  // 로그인 페이지 경로
+              return;
+          }
+
+          const members = await response.json();
+          const tbody = document.querySelector("#blockedMembersTable tbody");
+          tbody.innerHTML = "";
+
+          members.forEach(member => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                  <td>${member.id}</td>
+                  <td>${member.email}</td>
+                  <td>${member.nickname}</td>
+                  <td><span class="clickable" onclick="fetchMemberReports(${member.id})">보기</span></td>
+              `;
+              tbody.appendChild(tr);
+          });
+      } catch (err) {
+          console.error(err);
+          alert("🚫 차단된 회원 목록을 불러오는 중 오류 발생");
+      }
   }
 
   async function fetchMemberReports(memberPk) {
-      const response = await fetch(`/api/report/getBlockMember/${memberPk}`);
-      const reports = await response.json();
-      fillReportDetailsTable(reports);
+      try {
+          const response = await fetch(`/api/report/getBlockMember/${memberPk}`, {
+              credentials: 'include'
+          });
+
+          if (!response.ok) throw new Error("회원 신고 정보 불러오기 실패");
+
+          const reports = await response.json();
+          fillReportDetailsTable(reports);
+      } catch (err) {
+          console.error(err);
+          alert("❌ 회원 신고 내역 로딩 실패");
+      }
   }
 
   async function fetchBlockedPosts() {
-      const response = await fetch('/api/report/getAllBlockPost');
-      const posts = await response.json();
-      const tbody = document.querySelector("#blockedPostsTable tbody");
-      tbody.innerHTML = "";
+      try {
+          const response = await fetch('/api/report/getAllBlockPost', {
+              credentials: 'include'
+          });
 
-      posts.forEach(post => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-              <td>${post.id}</td>
-              <td>${post.title}</td>
-              <td>${post.writer.nickname}</td>
-              <td><span class="clickable" onclick="fetchPostReports(${post.id})">보기</span></td>
-          `;
-          tbody.appendChild(tr);
-      });
+          if (!response.ok) throw new Error("차단된 게시글 불러오기 실패");
+
+          const posts = await response.json();
+          const tbody = document.querySelector("#blockedPostsTable tbody");
+          tbody.innerHTML = "";
+
+          posts.forEach(post => {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                  <td>${post.id}</td>
+                  <td>${post.title}</td>
+                  <td>${post.writer.nickname}</td>
+                  <td><span class="clickable" onclick="fetchPostReports(${post.id})">보기</span></td>
+              `;
+              tbody.appendChild(tr);
+          });
+      } catch (err) {
+          console.error(err);
+          alert("❌ 차단된 게시글 로딩 실패");
+      }
   }
 
   async function fetchPostReports(postPk) {
-      const response = await fetch(`/api/report/getBlockPost/${postPk}`);
-      const reports = await response.json();
-      fillReportDetailsTable(reports);
+      try {
+          const response = await fetch(`/api/report/getBlockPost/${postPk}`, {
+              credentials: 'include'
+          });
+
+          if (!response.ok) throw new Error("게시글 신고 정보 불러오기 실패");
+
+          const reports = await response.json();
+          fillReportDetailsTable(reports);
+      } catch (err) {
+          console.error(err);
+          alert("❌ 게시글 신고 내역 로딩 실패");
+      }
   }
 
   function fillReportDetailsTable(reports) {
       const tbody = document.querySelector("#reportDetailsTable tbody");
       tbody.innerHTML = "";
       reports.forEach(report => {
+          const targetId = report.reportedMember ? report.reportedMember.id :
+                          report.reportedPost ? report.reportedPost.id : "-";
+
           const tr = document.createElement("tr");
           tr.innerHTML = `
               <td>${report.id}</td>
               <td>${report.reporter.nickname}</td>
               <td>${report.reason}</td>
-              <td>${report.reportedMember ? report.reportedMember.id : report.reportedPost.id}</td>
+              <td>${targetId}</td>
           `;
           tbody.appendChild(tr);
       });
   }
 
   function goHome() {
-    window.location.href = "/admin/adminMain.html";
+      window.location.href = "/admin/adminMain.html";
   }
 </script>
 </body>

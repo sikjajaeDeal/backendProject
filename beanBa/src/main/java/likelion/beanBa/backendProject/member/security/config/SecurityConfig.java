@@ -76,6 +76,7 @@ public class SecurityConfig {
 
             ).permitAll().requestMatchers(
                     "/api/admin/**",
+                    "/api/report/**",
                     "/admin/**",
                             "/css/**",
                             "/images/**",
