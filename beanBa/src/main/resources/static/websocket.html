@@ -187,7 +187,7 @@
                     //일반채팅
                     stompClient.subscribe(`/topic/room.${roomId}`, function (chat) {
                         const message = JSON.parse(chat.body);
-                        showMessage(message.from, message.message);
+                        showMessage(message.from, message.message, message.messageAt);
                     });
 
                     //귓속말
@@ -340,9 +340,9 @@
                 document.getElementById("msg").value = "";
             }
 
-            function showMessage(from, message) {
+            function showMessage(from, message, messageAt) {
                 const chatArea = document.getElementById("chatArea");
-                chatArea.innerHTML += `<div class="msgrow"><span class="from">${from}:</span> ${message}</div>`;
+                chatArea.innerHTML += `<div class="msgrow"><span class="from">${from}:</span> ${message} - ${messageAt}</div>`;
                 chatArea.scrollTop = chatArea.scrollHeight;
             }
             function showSysMsg(msg) {
