@@ -35,4 +35,7 @@ public class ChattingRoomListResponse {
     // 상품 pk
     private Long postPk;
 
+    // 현재 로그인 한 내 계정 pk
+    private Long memberPk;
+
 }
