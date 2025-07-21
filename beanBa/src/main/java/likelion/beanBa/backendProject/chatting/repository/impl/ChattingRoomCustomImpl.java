@@ -58,7 +58,8 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                         ((Long) row[3]).longValue(), // 채팅룸 대화상대 pk
                         (String) row[4], // 채팅룸 대화상대 이름
                         String.valueOf(row[5]), // 내가 해당 메시지 읽었는 지 유무
-                        ((Long) row[6]).longValue() // 상품 pk
+                        ((Long) row[6]).longValue(), // 상품 pk
+                        memberPk // 내 계정 pk값
                 ))
                 .collect(Collectors.toList());
     }
@@ -99,7 +100,8 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                         ((Long) row[3]).longValue(), // 채팅룸 대화상대 pk
                         (String) row[4], // 채팅룸 대화상대 이름
                         String.valueOf(row[5]), // 내가 해당 메시지 읽었는 지 유무
-                        ((Long) row[6]).longValue() // 상품 pk
+                        ((Long) row[6]).longValue(), // 상품 pk
+                        memberPk // 내 계정 pk값
                 ))
                 .collect(Collectors.toList());
     }
