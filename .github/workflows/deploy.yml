@@ -137,11 +137,11 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: 📂 Send elastic-docker & server-docker (1-time setup)
-              run: |
-                scp -r -i key.pem \
-                  docker/elastic-docker \
-                  docker/server-docker \
-                  ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/
+        run: |
+          scp -r -i key.pem \
+            docker/elastic-docker \
+            docker/server-docker \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/
 
       - name: 🌐 Deploy to EC2 via SCP
         run: |
