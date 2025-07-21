@@ -143,7 +143,7 @@ jobs:
             beanBa/.env \
             beanBa/.env.template \
             docker/docker-compose.yml \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/docker-compose.yml
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/
 
       - name: ⚡ SSH into EC2 and deploy with Docker Compose
         run: |
