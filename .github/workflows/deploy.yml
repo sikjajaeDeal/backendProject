@@ -16,27 +16,6 @@ jobs:
     name: Build & Test
     runs-on: ubuntu-latest
 
-    env:
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      GOOGLE_OAUTH_CLIENT_ID: ${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}
-      GOOGLE_OAUTH_CLIENT_SECRET: ${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}
-      KAKAO_OAUTH_CLIENT_ID: ${{ secrets.KAKAO_OAUTH_CLIENT_ID }}
-      KAKAO_OAUTH_CLIENT_SECRET: ${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}
-      SPRING_MAIL_HOST: ${{ secrets.SPRING_MAIL_HOST }}
-      SPRING_MAIL_PORT: ${{ secrets.SPRING_MAIL_PORT }}
-      SPRING_MAIL_USERNAME: ${{ secrets.SPRING_MAIL_USERNAME }}
-      SPRING_MAIL_PASSWORD: ${{ secrets.SPRING_MAIL_PASSWORD }}
-      SPRING_ELASTICSEARCH_URIS: ${{ secrets.SPRING_ELASTICSEARCH_URIS }}
-      SPRING_DATASOURCE_URL_PROD: ${{ secrets.SPRING_DATASOURCE_URL_PROD }}
-      SPRING_DATASOURCE_USERNAME_PROD: ${{ secrets.SPRING_DATASOURCE_USERNAME_PROD }}
-      SPRING_DATASOURCE_PASSWORD_PROD: ${{ secrets.SPRING_DATASOURCE_PASSWORD_PROD }}
-      REDIS_HOST_PROD: ${{ secrets.REDIS_HOST_PROD }}
-      REDIS_PORT_PROD: ${{ secrets.REDIS_PORT_PROD }}
-      S3_REION_STATIC: ${{ secrets.S3_REION_STATIC }}
-      S3_ACCESSKEY: ${{ secrets.S3_ACCESSKEY }}
-      S3_SECRETKEY: ${{ secrets.S3_SECRETKEY }}
-      S3_BUCKET: ${{ secrets.S3_BUCKET }}
-
     steps:
       - name: ✅ Checkout repository
         uses: actions/checkout@v4
@@ -109,6 +88,39 @@ jobs:
         run: ./gradlew bootJar
         working-directory: ./beanBa
 
+      - name: 🔄 Rename jar file to app.jar
+        run: mv beanBa/build/libs/backendProject-0.0.1-SNAPSHOT.jar beanBa/build/libs/app.jar
+
+      - name: 📄 Write .env file safely
+        run: |
+          {
+            echo "SPRING_PROFILES_ACTIVE=dev"
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}"
+            echo "GOOGLE_OAUTH_CLIENT_ID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID }}"
+            echo "GOOGLE_OAUTH_CLIENT_SECRET=${{ secrets.GOOGLE_OAUTH_CLIENT_SECRET }}"
+            echo "KAKAO_OAUTH_CLIENT_ID=${{ secrets.KAKAO_OAUTH_CLIENT_ID }}"
+            echo "KAKAO_OAUTH_CLIENT_SECRET=${{ secrets.KAKAO_OAUTH_CLIENT_SECRET }}"
+            echo "SPRING_MAIL_HOST=${{ secrets.SPRING_MAIL_HOST }}"
+            echo "SPRING_MAIL_PORT=${{ secrets.SPRING_MAIL_PORT }}"
+            echo "SPRING_MAIL_USERNAME=${{ secrets.SPRING_MAIL_USERNAME }}"
+            echo "SPRING_MAIL_PASSWORD=${{ secrets.SPRING_MAIL_PASSWORD }}"
+            echo "SPRING_ELASTICSEARCH_URIS=${{ secrets.SPRING_ELASTICSEARCH_URIS }}"
+            echo "SPRING_DATASOURCE_URL_PROD=${{ secrets.SPRING_DATASOURCE_URL_PROD }}"
+            echo "SPRING_DATASOURCE_USERNAME_PROD=${{ secrets.SPRING_DATASOURCE_USERNAME_PROD }}"
+            echo "SPRING_DATASOURCE_PASSWORD_PROD=${{ secrets.SPRING_DATASOURCE_PASSWORD_PROD }}"
+            echo "REDIS_HOST_PROD=${{ secrets.REDIS_HOST_PROD }}"
+            echo "REDIS_PORT_PROD=${{ secrets.REDIS_PORT_PROD }}"
+            echo "SPRING_DATASOURCE_URL_DEV=${{ secrets.SPRING_DATASOURCE_URL_DEV }}"
+            echo "SPRING_DATASOURCE_USERNAME_DEV=${{ secrets.SPRING_DATASOURCE_USERNAME_DEV }}"
+            echo "SPRING_DATASOURCE_PASSWORD_DEV=${{ secrets.SPRING_DATASOURCE_PASSWORD_DEV }}"
+            echo "REDIS_HOST_DEV=${{ secrets.REDIS_HOST_DEV }}"
+            echo "REDIS_PORT_DEV=${{ secrets.REDIS_PORT_DEV }}"
+            echo "S3_REION_STATIC=${{ secrets.S3_REION_STATIC }}"
+            echo "S3_ACCESSKEY=${{ secrets.S3_ACCESSKEY }}"
+            echo "S3_SECRETKEY=${{ secrets.S3_SECRETKEY }}"
+            echo "S3_BUCKET=${{ secrets.S3_BUCKET }}"
+          } > beanBa/.env
+
       - name: 🔐 Save SSH key
         run: |
           echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
@@ -122,8 +134,10 @@ jobs:
       - name: 🌐 Deploy to EC2 via SCP
         run: |
           scp -i key.pem \
-            beanBa/build/libs/*.jar \
-            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/app.jar
+            beanBa/build/libs/app.jar \
+            beanBa/.env \
+            beanBa/.env.template \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/backendProject/beanBa/
 
       - name: ⚡ SSH into EC2 and deploy with PM2 ecosystem
         run: |

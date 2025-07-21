@@ -190,4 +190,11 @@ public class SalePostController {
         String changeStatusMessage = salePostService.changeSaleStatus(postPk, status, buyerPk, loginMember);
         return ResponseEntity.ok(Map.of("message", changeStatusMessage));
     }
+
+    @GetMapping("/top-view")
+    public ResponseEntity<List<SalePostSummaryResponse>> getTopViewCountPosts(@CurrentUser CustomUserDetails userDetails) {
+        Member loginMember = userDetails != null ? userDetails.getMember() : null;
+        List<SalePostSummaryResponse> salePosts = salePostService.getTop4SalePostsByLikeAndView(loginMember);
+        return ResponseEntity.ok(salePosts);
+    }
 }
