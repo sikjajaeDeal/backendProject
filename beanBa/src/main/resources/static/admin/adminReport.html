@@ -159,7 +159,7 @@
           posts.forEach(post => {
               const tr = document.createElement("tr");
               tr.innerHTML = `
-                  <td>${post.id}</td>
+                  <td>${post.postPk}</td>
                   <td>${post.title}</td>
                   <td>${post.sellerPk.nickname}</td>
                   <td><span class="clickable" onclick="fetchPostReports(${post.postPk})">보기</span></td>
