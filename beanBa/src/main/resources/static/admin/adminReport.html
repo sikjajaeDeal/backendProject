@@ -115,7 +115,7 @@
           members.forEach(member => {
               const tr = document.createElement("tr");
               tr.innerHTML = `
-                  <td>${member.id}</td>
+                  <td>${member.memberId}</td>
                   <td>${member.email}</td>
                   <td>${member.nickname}</td>
                   <td><span class="clickable" onclick="fetchMemberReports(${member.memberPk})">보기</span></td>
