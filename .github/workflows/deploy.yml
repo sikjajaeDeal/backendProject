@@ -1,4 +1,4 @@
-name: "BeanBar - CI/CD: PR + Deploy (main & develop)"
+name: "BeanBa - CI/CD: PR + Deploy (main)"
 
 on:
   push:
@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: Build & Test
+    name: 🧪Build & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -41,11 +41,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = context.payload.pull_request.number;
+            const branchName = context.payload.pull_request.head.ref;
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: "🚨 **CI 실패**: 빌드 또는 테스트에 실패했습니다. 로그를 확인하고 수정해주세요!"
+              body: `🚨 **CI 실패** (브랜치: \`${branchName}\`) - 빌드 또는 테스트에 실패했습니다. 로그를 확인하고 수정해주세요!`
+
             });
 
       - name: ✅ Leave comment on PR if build succeeds
@@ -55,11 +58,13 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const prNumber = context.payload.pull_request.number;
+            const branchName = context.payload.pull_request.head.ref;
+
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
-              body: "✅ **CI 성공**: 빌드 및 테스트를 통과했습니다! 🎉"
+              body: `✅ **CI 성공** (브랜치: \`${branchName}\`) - 빌드 및 테스트를 통과했습니다! 🎉`
             });
 
   deploy:
@@ -67,8 +72,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: >
-      github.event_name == 'push' &&
-      (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main')
+      github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: ✅ Checkout repository
