@@ -4,9 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import likelion.beanBa.backendProject.chatting.dto.ChattingRequest;
+import likelion.beanBa.backendProject.chatting.dto.ChattingMessageResponse;
 import likelion.beanBa.backendProject.chatting.dto.ChattingRoomListResponse;
 import likelion.beanBa.backendProject.chatting.entity.ChattingMessage;
 import likelion.beanBa.backendProject.chatting.entity.ChattingRoom;
+import likelion.beanBa.backendProject.chatting.handler.StompPrincipal;
 import likelion.beanBa.backendProject.chatting.repository.ChattingMessageRepository;
 import likelion.beanBa.backendProject.chatting.repository.ChattingRoomRepository;
 import likelion.beanBa.backendProject.chatting.repository.impl.ChattingRoomCustomImpl;
@@ -27,6 +29,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.*;
 
 /**
@@ -34,7 +37,7 @@ import java.util.*;
  * */
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/chatting")
+@RequestMapping("/api/chatting")
 @Slf4j
 public class ChattingController {
 
@@ -56,12 +59,11 @@ public class ChattingController {
      *  상품 상세화면에서 채팅방 열 때
      *  return : 채팅방 pk
      * */
-    @GetMapping("/openChattingRoom")
+    @PostMapping("/openChattingRoom")
     @ResponseBody
-    public ResponseEntity<?> openChattingRoom(ChattingRequest chattingRequest,
+    public ResponseEntity<?> openChattingRoom(@RequestBody ChattingRequest chattingRequest,
     @CurrentUser CustomUserDetails userDetails) {
         Long memberPk = userDetails.getMember().getMemberPk(); // 현 로그인 한 사용자 member pk
-        memberPk = 1L;
 
         // jwt에서 가져온 로그인 정보가 옳지 않은 경우
         if (memberPk == null) {
@@ -70,7 +72,7 @@ public class ChattingController {
         }
 
         Long postPk = chattingRequest.getPostPk();
-        if (memberPk == null) { // 클라이언트에서 가져온 postPk가 존재하지 않는 경우
+        if (postPk == null) { // 클라이언트에서 가져온 postPk가 존재하지 않는 경우
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("해당 상품을 찾을 수 없습니다. 새로고침 후 다시 시도해 주시기 바랍니다.");
         }
@@ -95,17 +97,20 @@ public class ChattingController {
             return chattingRoomRepository.save(newRoom);
         });
 
-        return ResponseEntity.ok(chattingRoom.getId());
+//        return ResponseEntity.ok(chattingRoom.getId());
+        Map<String, Object> returnMap = new HashMap<>();
+        returnMap.put("roomPk", chattingRoom.getId());
+
+        return ResponseEntity.ok(returnMap);
     }
 
-
     /*
-    * 채팅룸 리스트 가져오기
+    * 모든 채팅룸 리스트 가져오기
     * */
-    @GetMapping("/getChattingRoomList")
-    public ResponseEntity<?> getChattingRoomList(@CurrentUser CustomUserDetails userDetails) {
+    @GetMapping("/getAllChattingRoomList")
+    @ResponseBody
+    public ResponseEntity<?> getAllChattingRoomList(@CurrentUser CustomUserDetails userDetails) {
         Long memberPk = userDetails.getMember().getMemberPk(); // 현 로그인 한 사용자 member pk
-        memberPk = 1L;
 
         // jwt에서 가져온 로그인 정보가 옳지 않은 경우
         if (memberPk == null) {
@@ -113,7 +118,23 @@ public class ChattingController {
                     .body("로그인을 다시 확인해 주시기 바랍니다.");
         }
 
-        List<ChattingRoomListResponse> chattingRoomList = chattingRoomCustomImpl.getChattingRoomList(memberPk);
+        List<ChattingRoomListResponse> chattingRoomList = chattingRoomCustomImpl.getAllChattingRoomList(memberPk);
+
+        return ResponseEntity.ok(chattingRoomList);
+    }
+
+    /*
+     * 특정 상품에 대한 채팅룸 리스트 가져오기 in 상품상세화면
+     */
+    @GetMapping("/getChattingRoomListByPostPk")
+    @ResponseBody
+    public ResponseEntity<?> getChattingRoomListByPostPk(@RequestParam("postPk") Long postPk) {
+        if (postPk == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("새로고침 후 다시 시도해 주시기 바랍니다.");
+        }
+
+        List<ChattingRoomListResponse> chattingRoomList = chattingRoomCustomImpl.getChattingRoomListByPostPk(postPk);
 
         return ResponseEntity.ok(chattingRoomList);
     }
@@ -123,6 +144,7 @@ public class ChattingController {
     * DB에 저장되어 있는 과거 채팅 메시지 가져오기
     */
     @GetMapping("/getMessageList")
+    @ResponseBody
     public ResponseEntity<?> getMessageList(ChattingRequest chattingRequest) {
         Long roomPk = chattingRequest.getRoomPk();
 
@@ -144,26 +166,62 @@ public class ChattingController {
         List<ChattingMessage> messageList = chattingMessageRepository.findByChattingRoomOrderByIdAsc(chattingRoom)
                 .orElseGet(ArrayList::new);
 
-        return ResponseEntity.ok(messageList);
+        // ChattingMessage → ChattingResponse로 변환
+        List<ChattingMessageResponse> responseList = messageList.stream()
+                .map(message -> {
+                    ChattingRoom room = message.getChattingRoom();
+                    Member member = message.getMember();
+
+                    return new ChattingMessageResponse(
+                            message.getId(),
+                            room != null ? room.getId() : null,
+                            member != null ? member.getMemberPk() : null,
+                            member != null ? member.getNickname() : null,
+                            message.getMessage(),
+                            message.getMessageAt()
+                    );
+                })
+                .toList();
+
+        return ResponseEntity.ok(responseList);
     }
 
     /*
     * (방이 없을 시)동적으로 방 생성 및 채팅
     */
-    @MessageMapping("/chat.sendMessage")
+    @MessageMapping("/chatting/sendMessage")
     public void sendmessage(ChattingRequest message
-            , @CurrentUser CustomUserDetails userDetails) throws JsonProcessingException {
+//            , @CurrentUser CustomUserDetails userDetails // 웹소켓 통신은 @CurrentUser사용불가
+              , Principal principal
+            ) throws JsonProcessingException {
+
+        // 테스트용
+        /*
+        message.setRoomPk(5L);
+        message.setPostPk(28L);
+        message.setFrom("테스트발신자");
+        message.setMemberPkFrom(1L);
+        */
+
         String channel = null;
         String msg = null;
-        Long memberPk = userDetails.getMember().getMemberPk(); // 현 로그인 한 사용자 member pk
+        Long memberPk = ((StompPrincipal) principal).getMemberPk(); // 현 로그인 한 사용자 member pk
+        String nickName = null; // 현 로그인 한 사용자 member 닉네임
+        Member memberFrom = memberRepository.findByMemberPk(memberPk).orElse(null);
+        if(memberFrom != null) {
+            nickName = memberFrom.getNickname();
+        }
+
+        message.setFrom(nickName);
         message.setMemberPkFrom(memberPk);
 
         // 일반 메시지
         channel = "room."+message.getRoomPk();
+//        channel = "room.5"; // 테스트용
         msg = objectMapper.writeValueAsString(message);
 
         redisPublisher.publish(channel, msg);
-        /*
+
         try {
             // DB에 메시지 저장
             saveMessage(message);
@@ -172,7 +230,7 @@ public class ChattingController {
 
             throw e;
         }
-         */
+
     }
 
     /*

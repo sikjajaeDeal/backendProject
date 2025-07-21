@@ -59,14 +59,21 @@ public class SecurityConfig {
             .requestMatchers(
                 "/upload",
                 "/api/test-sale-post/**",  //sale-post 테스트 하느라고 잠시 넣어놨습니다.
-                "/api/sale-post/all/",
-                "/api/sale-post/detail/**",
-                    "/api/admin/**" //admin 확인을 위해 추가 0717
+                "/api/sale-post/all/**",
+                "/api/sale-post/detail/**"
+            ).permitAll()
+            .requestMatchers(
+                    "api/chatting/**",
+                    "/*.html",
+                    "/js/**", // chatting 테스트 하느라고 잠시 넣어놨습니다.
+                    "/api/ws-chat",
+                    "/app/**",
+                    "/api/rooms/**"
 
             ).permitAll().requestMatchers(
-                            "/admin/**",
+                    "/api/admin/**",
+                    "/admin/**",
                             "/css/**",
-                            "/js/**",
                             "/images/**",
                             "/favicon.ico"
                     ).permitAll()//0717 김송이 추가

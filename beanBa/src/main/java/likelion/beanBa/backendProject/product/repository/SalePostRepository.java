@@ -1,8 +1,8 @@
 package likelion.beanBa.backendProject.product.repository;
 
 
-import java.util.Iterator;
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.product.dto.TopPostSummaryProjection;
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
@@ -41,6 +41,35 @@ public interface SalePostRepository extends JpaRepository<SalePost, Long> {
     Page<SalePost> findAllByBuyerPkAndStateAndDeleteYn(Member buyer, SaleStatement state, Yn deleteYn, Pageable pageable);
 
 
+    @Query("""
+        SELECT 
+            p.postPk AS postPk,
+            m.nickname AS sellerNickname,
+            c.categoryName AS categoryName,
+            p.title AS title,
+            p.content AS content,
+            p.hopePrice AS hopePrice,
+            p.viewCount AS viewCount,
+            COUNT(l) AS likeCount,
+            p.postAt AS postAt,
+            p.stateAt AS stateAt,
+            p.state AS state,
+            p.latitude AS latitude,
+            p.longitude AS longitude
+        FROM SalePost p
+        JOIN p.sellerPk m
+        JOIN p.categoryPk c
+        LEFT JOIN SalePostLike l ON l.postPk = p
+        WHERE p.deleteYn = 'N' AND p.state = 'S'
+        GROUP BY p.postPk, m.nickname, c.categoryName, p.title, p.content, p.hopePrice,
+                 p.viewCount, p.postAt, p.stateAt, p.state, p.latitude, p.longitude
+        ORDER BY COUNT(l) DESC, p.viewCount DESC
+    """)
+    List<TopPostSummaryProjection> findTop4SalePostsByLikeAndView(Pageable pageable);
 
 
+
+
+    // 특정 멤버의 블라인드 된 글 갯수 반환
+    long countBySellerPk_MemberPkAndDeleteYn(Long memberPk, Yn deleteYn);
 }

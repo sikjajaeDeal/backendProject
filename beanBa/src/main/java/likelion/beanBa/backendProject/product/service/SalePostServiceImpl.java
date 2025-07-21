@@ -5,7 +5,6 @@ import likelion.beanBa.backendProject.like.repository.SalePostLikeRepository;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.product.dto.*;
-import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import likelion.beanBa.backendProject.product.entity.Category;
 import likelion.beanBa.backendProject.product.entity.SalePost;
@@ -159,6 +158,7 @@ public class SalePostServiceImpl implements SalePostService {
         SalePost salePost = salePostRepository.findByPostPkAndDeleteYn(postPk, Yn.N)
                 .orElseThrow(() -> new EntityNotFoundException("존재하지 않거나 삭제된 게시글입니다."));
 
+
         if (!salePost.getSellerPk().getMemberPk().equals(sellerPk.getMemberPk())) {
             throw new IllegalArgumentException("작성자만 수정할 수 있습니다.");
         }
@@ -212,6 +212,7 @@ public class SalePostServiceImpl implements SalePostService {
         switch (newStatus) {
             case S: // 판매중
             case H: // 판매보류
+            case R:
                 if (salePost.getState() == newStatus) {
                     log.info("이미 '{}' 상태인 게시글입니다. 상태 변경 생략.", newStatus);
                     return "이미 " + newStatus.name() + " 상태입니다.";
@@ -249,6 +250,50 @@ public class SalePostServiceImpl implements SalePostService {
             default:
                 throw new IllegalArgumentException("지원하지 않는 상태입니다: " + newStatus);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<SalePostSummaryResponse> getTop4SalePostsByLikeAndView(Member member) {
+        // 1. 판매중 + 삭제되지 않은 게시글 중 상위 4개 가져오기 (like DESC, view DESC)
+        List<TopPostSummaryProjection> projections =
+                salePostRepository.findTop4SalePostsByLikeAndView(PageRequest.of(0, 4));
+
+        // 2. 로그인한 회원이 찜한 게시글 pk 목록 조회
+        Set<Long> likedPostPks = member != null
+                ? salePostLikeRepository.findAllByMemberPk(member).stream()
+                .map(like -> like.getPostPk().getPostPk())
+                .collect(Collectors.toSet())
+                : Set.of();
+
+        // 3. projection 을 DTO 로 매핑 + 썸네일은 imageOrder 기준으로 1개만 DB 에서 조회
+        return projections.stream()
+                .map(salePost -> {
+                    // 썸네일 이미지 1개만 가져오기 (가장 앞 순서)
+                    SalePost postRef = SalePost.builder().postPk(salePost.getPostPk()).build(); // 더미 엔티티
+                    String thumbnailUrl = salePostImageRepository
+                            .findTopByPostPkAndDeleteYnOrderByImageOrderAsc(postRef, Yn.N)
+                            .map(SalePostImage::getImageUrl)
+                            .orElse(null);
+
+                    return SalePostSummaryResponse.builder()
+                            .postPk(salePost.getPostPk())
+                            .sellerNickname(salePost.getSellerNickname())
+                            .categoryName(salePost.getCategoryName())
+                            .title(salePost.getTitle())
+                            .content(salePost.getContent())
+                            .hopePrice(salePost.getHopePrice())
+                            .viewCount(salePost.getViewCount())
+                            .likeCount(salePost.getLikeCount())
+                            .postAt(salePost.getPostAt())
+                            .stateAt(salePost.getStateAt())
+                            .state(SaleStatement.valueOf(salePost.getState()))
+                            .latitude(salePost.getLatitude())
+                            .longitude(salePost.getLongitude())
+                            .thumbnailUrl(thumbnailUrl)
+                            .salePostLiked(likedPostPks.contains(salePost.getPostPk()))
+                            .build();
+                })
+                .toList();
     }
 
 

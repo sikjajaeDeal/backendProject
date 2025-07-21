@@ -69,6 +69,12 @@ dependencies {
 
 	// redis
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// ..env
+	implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+
+
+	implementation 'org.apache.httpcomponents.client5:httpclient5'
 }
 
 tasks.named('test') {
