@@ -149,8 +149,9 @@ jobs:
       - name: 📤 Upload app.jar and .env to EC2
         run: |
           scp -i key.pem \
-            docker/app.jar \
+            beanBa/build/libs/app.jar \
             beanBa/.env \
+            beanBa/.env.template \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/
 
       - name: ⚡ SSH into EC2 and run Blue/Green deploy
