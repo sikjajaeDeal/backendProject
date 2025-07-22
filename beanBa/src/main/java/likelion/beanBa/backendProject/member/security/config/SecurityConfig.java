@@ -71,8 +71,17 @@ public class SecurityConfig {
                     "/app/**",
                     "/api/rooms/**",
                     "/api/kamis/all",
-                    "/api/sale-post/elasticsearch"
-            ).permitAll()
+                    "/api/sale-post/elasticsearch",
+                    "/api/rooms/**"
+
+            ).permitAll().requestMatchers(
+                    "/api/admin/**",
+                    "/api/report/**",
+                    "/admin/**",
+                            "/css/**",
+                            "/images/**",
+                            "/favicon.ico"
+                    ).permitAll()//0717 김송이 추가
             .anyRequest().authenticated()
         )
         .oauth2Login(oauth2 -> oauth2

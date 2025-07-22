@@ -1,7 +1,10 @@
 package likelion.beanBa.backendProject.product.dto;
 
+import likelion.beanBa.backendProject.member.dto.AdminMemberDTO;
+import likelion.beanBa.backendProject.member.dto.MemberResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 
@@ -15,4 +18,15 @@ public class PageResponse<T> {
     private Long totalElements;
     private int totalPage;
     private boolean last;
+
+    public static <T> PageResponse<T> from(Page<T> responsePage) {
+        return new PageResponse<>(
+                responsePage.getContent(),
+                responsePage.getNumber(),
+                responsePage.getSize(),
+                responsePage.getTotalElements(),
+                responsePage.getTotalPages(),
+                responsePage.isLast()
+        );
+    }
 }

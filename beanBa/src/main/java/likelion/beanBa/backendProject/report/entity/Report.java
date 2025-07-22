@@ -30,11 +30,11 @@ public class Report {
     @JoinColumn(name = "post_pk")
     private SalePost salePost;
 
-    @ManyToOne
+    @ManyToOne // 신고자
     @JoinColumn(name = "reporter_pk")
     private Member reporter;
 
-    @ManyToOne
+    @ManyToOne //신고대상
     @JoinColumn(name = "reportee_pk")
     private Member reportee;
 
