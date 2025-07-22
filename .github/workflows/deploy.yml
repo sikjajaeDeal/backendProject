@@ -160,6 +160,7 @@ jobs:
             chmod +x deploy.sh
             ./deploy.sh
             echo "👍 SSH connection complete"
+            exit 0
           EOF
 
 permissions:
