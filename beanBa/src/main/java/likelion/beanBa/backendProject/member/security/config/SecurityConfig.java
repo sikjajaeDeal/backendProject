@@ -63,6 +63,7 @@ public class SecurityConfig {
                 "/api/sale-post/detail/**",
                 "/api/sale-post/top-view/**"
             ).permitAll()
+            .requestMatchers("/api/health/**").permitAll() //배포 헬스체크
             .requestMatchers(
                     "api/chatting/**",
                     "/*.html",
@@ -71,8 +72,17 @@ public class SecurityConfig {
                     "/app/**",
                     "/api/rooms/**",
                     "/api/kamis/all",
-                    "/api/sale-post/elasticsearch"
-            ).permitAll()
+                    "/api/sale-post/elasticsearch",
+                    "/api/rooms/**"
+
+            ).permitAll().requestMatchers(
+                    "/api/admin/**",
+                    "/api/report/**",
+                    "/admin/**",
+                            "/css/**",
+                            "/images/**",
+                            "/favicon.ico"
+                    ).permitAll()//0717 김송이 추가
             .anyRequest().authenticated()
         )
         .oauth2Login(oauth2 -> oauth2

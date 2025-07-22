@@ -1,5 +1,6 @@
 package likelion.beanBa.backendProject.product.dto;
 
+
 import likelion.beanBa.backendProject.product.entity.SalePost;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
@@ -9,39 +10,44 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.List;
 
-/** 판매글 목록만을 보여주기 위한 dto - 이미지는 썸네일만 **/
+/** 관리자가 판매글 단건 조회 상세 정보 보기 위한 dto - 이미지 리스트 모두 포함 **/
 @Getter
 @Builder
-public class SalePostSummaryResponse {
+public class AdminSalePostDetailResponse {
 
     private Long postPk;
+    private Long sellerPk;
     private String sellerNickname;
+    private String buyerNickname;
     private String categoryName;
 
     private String title;
     private String content;
     private int hopePrice;
     private Long viewCount;
-    private int likeCount;
+
+    @Builder.Default
+    private int likeCount = 0;
 
     private LocalDateTime postAt;
     private LocalDateTime stateAt;
     private SaleStatement state;
-//    private Yn deleteYn;
+    private Yn deleteYn;
 
     private Double latitude;
     private Double longitude;
 
-    private String thumbnailUrl;
+    private List<String> imageUrls;
 
-    // 찜 여부 필드 추가
-    private boolean salePostLiked;
+    @Builder.Default
+    private boolean salePostLiked = false; // 값 반환을 빠뜨렸을 경우 대비, 디폴트 설정
 
-
-    public static SalePostSummaryResponse from(SalePost salePost, String thumbnailUrl, boolean salePostLiked, int likeCount) {
-        return SalePostSummaryResponse.builder()
+    public static AdminSalePostDetailResponse from(SalePost salePost, List<String> imageUrls, boolean salePostLiked, int likeCount) {
+        return AdminSalePostDetailResponse.builder()
                 .postPk(salePost.getPostPk())
+                .sellerPk(salePost.getSellerPk().getMemberPk())
                 .sellerNickname(salePost.getSellerPk().getNickname())
+                .buyerNickname(salePost.getBuyerPk() != null ? salePost.getBuyerPk().getNickname() : null)
                 .categoryName(salePost.getCategoryPk().getCategoryName())
                 .title(salePost.getTitle())
                 .content(salePost.getContent())
@@ -51,11 +57,11 @@ public class SalePostSummaryResponse {
                 .postAt(salePost.getPostAt())
                 .stateAt(salePost.getStateAt())
                 .state(salePost.getState())
+                .deleteYn(salePost.getDeleteYn())
                 .latitude(salePost.getLatitude())
                 .longitude(salePost.getLongitude())
-                .thumbnailUrl(thumbnailUrl)
+                .imageUrls(imageUrls)
                 .salePostLiked(salePostLiked)
                 .build();
     }
-
 }
