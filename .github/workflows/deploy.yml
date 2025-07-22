@@ -155,10 +155,11 @@ jobs:
 
       - name: ⚡ SSH into EC2 and run Blue/Green deploy
         run: |
-          ssh -i key.pem -tt ubuntu@${{ secrets.EC2_HOST }} <<EOF || true
+          ssh -i key.pem -tt ubuntu@${{ secrets.EC2_HOST }} <<EOF
             cd /home/ubuntu/BeanBa/docker
             chmod +x deploy.sh
             ./deploy.sh
+            echo "👍 SSH connection complete"
           EOF
 
 permissions:
