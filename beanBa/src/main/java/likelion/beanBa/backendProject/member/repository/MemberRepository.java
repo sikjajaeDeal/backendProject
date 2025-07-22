@@ -20,7 +20,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findByDeleteYn(String deleteYn);
 
     /** 관리자 memberId로 특정 멤버 검색**/
-    Page<Member> findByMemberId(String memberId, Pageable pageable);
-    Page<Member> findByNickname(String nickname, Pageable pageable);
-    Page<Member> findByEmail(String email, Pageable pageable);
+    Page<Member> findByMemberIdContaining(String memberId, Pageable pageable);
+    Page<Member> findByNicknameContaining(String nickname, Pageable pageable);
+    Page<Member> findByEmailContaining(String email, Pageable pageable);
 }
