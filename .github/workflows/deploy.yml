@@ -146,21 +146,19 @@ jobs:
             docker/server-docker \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/
 
-      - name: 🌐 Deploy to EC2 via SCP
+      - name: 📤 Upload app.jar and .env to EC2
         run: |
           scp -i key.pem \
-            beanBa/build/libs/app.jar \
+            docker/app.jar \
             beanBa/.env \
-            beanBa/.env.template \
-            docker/docker-compose.yml \
             ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/
 
-      - name: ⚡ SSH into EC2 and deploy with Docker Compose
+      - name: ⚡ SSH into EC2 and run Blue/Green deploy
         run: |
           ssh -i key.pem ubuntu@${{ secrets.EC2_HOST }} <<EOF
-          cd /home/ubuntu/BeanBa/docker
-          docker compose down
-          docker compose up -d --build
+            cd /home/ubuntu/BeanBa/docker
+            chmod +x deploy.sh
+            ./deploy.sh
           EOF
 
 permissions:
