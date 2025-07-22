@@ -71,8 +71,17 @@ public class SecurityConfig {
                     "/app/**",
                     "/api/rooms/**",
                     "/api/kamis/all",
-                    "/api/sale-post/elasticsearch"
-            ).permitAll()
+                    "/api/sale-post/elasticsearch",
+                    "/api/rooms/**"
+
+            ).permitAll().requestMatchers(
+                    "/api/admin/**",
+                    "/api/report/**",
+                    "/admin/**",
+                            "/css/**",
+                            "/images/**",
+                            "/favicon.ico"
+                    ).permitAll()//0717 김송이 추가
             .anyRequest().authenticated()
         )
         .oauth2Login(oauth2 -> oauth2
@@ -102,7 +111,7 @@ public class SecurityConfig {
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:8081"));
+    config.setAllowedOrigins(List.of("http://localhost:8081","https://beanba.store:8081"));
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true); // credentials 필요 없는 경우 false

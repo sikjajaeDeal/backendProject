@@ -4,6 +4,11 @@ import jakarta.persistence.*;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.product.product_enum.SaleStatement;
 import likelion.beanBa.backendProject.product.product_enum.Yn;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.joda.time.chrono.EthiopicChronology;
 import lombok.*;
 
 
@@ -60,6 +65,7 @@ public class SalePost {
 
     @Column(name = "post_at")
     private LocalDateTime postAt;
+
 
     @Enumerated(EnumType.STRING)
     @Column(name = "state", nullable = false, length = 10)
@@ -131,6 +137,8 @@ public class SalePost {
     public void markAsDeleted() {
         this.deleteYn = Yn.Y;
     }
+
+    public void markAsNotDeleted() {this.deleteYn = Yn.N;}
 
 
     /** 조회수 증가 메서드 **/
