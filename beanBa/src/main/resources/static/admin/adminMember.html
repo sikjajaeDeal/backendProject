@@ -54,10 +54,14 @@
         <th>DeleteYn</th>
         <th>Latitude</th>
         <th>Longitude</th>
+        <th>Status</th>
     </tr>
     </thead>
     <tbody></tbody>
 </table>
+
+<div id="pagination" style="margin-top: 10px; text-align: center;"></div>
+
 
 <script>
     // 셀렉트박스 옵션 정의
@@ -72,7 +76,8 @@
     ];
     const YN_OPTIONS = [
         {value: 'Y', label: 'Y'},
-        {value: 'N', label: 'N'}
+        {value: 'N', label: 'N'},
+        {value: 'B', label: 'B'}
     ];
 
     let currentMembers = [];
@@ -90,7 +95,7 @@
         if (member.deleteYn === 'N') {
             // deleteYn == N: role, useYn, deleteYn 만 활성화
             disabled = !['role', 'useYn', 'deleteYn'].includes(field);
-        } else if (member.deleteYn === 'Y') {
+        } else if (member.deleteYn === 'Y' || member.deleteYn === 'B') {
             // deleteYn == Y: deleteYn 만 활성화
             disabled = field !== 'deleteYn';
         } else {
@@ -185,8 +190,28 @@
                 row.appendChild(td);
             });
 
+            const statusTd = document.createElement('td');
+let statusText = '';
+
+if (member.deleteYn === 'Y') {
+    statusText = '삭제회원';
+} else if (member.deleteYn === 'B') {
+    statusText = '정지회원';
+} else if (member.deleteYn === 'N' && member.useYn === 'N') {
+    statusText = '휴먼계정';
+} else if (member.deleteYn === 'N' && member.useYn === 'Y') {
+    statusText = '일반회원';
+} else {
+    statusText = '알 수 없음';
+}
+statusTd.textContent = statusText;
+row.appendChild(statusTd);
+
             tbody.appendChild(row);
         });
+
+        renderPagination(data);
+
     }
 
     async function loadMembers() {
@@ -243,6 +268,61 @@
     function goHome() {
         window.location.href = "/admin/adminMain.html";
     }
+
+
+function renderPagination(data) {
+    const paginationDiv = document.getElementById("pagination");
+    paginationDiv.innerHTML = "";
+
+    const totalPages = data.totalPage;
+    const currentPage = data.page;
+
+    function createButton(text, page, disabled = false, isCurrent = false) {
+        const btn = document.createElement("button");
+        btn.textContent = text;
+        btn.disabled = disabled;
+
+        // 스타일 공통
+        btn.style.border = "1px solid black";
+        btn.style.color = "black";
+
+        if (isCurrent) {
+            // 현재 페이지 번호 스타일: 회색 배경, 검정 테두리, 검은 글씨
+            btn.style.backgroundColor = "lightgray";
+            btn.style.fontWeight = "bold";
+        } else {
+            // 나머지 버튼(화살표 포함): 하얀 배경, 검정 테두리, 검은 글씨
+            btn.style.backgroundColor = "white";
+        }
+
+        btn.onclick = () => {
+            document.getElementById("page").value = page;
+            loadMembers();
+        };
+        paginationDiv.appendChild(btn);
+    }
+
+    // << 맨 처음 페이지로 이동
+    createButton("<<", 0, currentPage === 0);
+
+    // < 이전 페이지로 이동
+    createButton("<", currentPage - 1, currentPage === 0);
+
+    // 페이지 번호 버튼들
+    let startPage = Math.max(0, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 3);
+
+    for (let i = startPage; i < endPage; i++) {
+        createButton(i + 1, i, false, i === currentPage);
+    }
+
+    // > 다음 페이지로 이동
+    createButton(">", currentPage + 1, currentPage >= totalPages - 1);
+
+    // >> 마지막 페이지로 이동
+    createButton(">>", totalPages - 1, currentPage >= totalPages - 1);
+}
+
 
     window.onload = loadMembers;
 </script>
