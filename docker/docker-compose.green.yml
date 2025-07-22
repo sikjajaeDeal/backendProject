@@ -15,9 +15,6 @@ services:
       - ./app.jar:/app.jar
     networks:
       - prod_server
-    depends_on:
-      - redis
-      - elastic
 
 networks:
   prod_server:
