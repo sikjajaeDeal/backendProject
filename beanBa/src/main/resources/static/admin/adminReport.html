@@ -89,7 +89,7 @@
   <h2>📄 신고 상세 내역</h2>
   <table id="reportDetailsTable">
     <thead>
-    <tr><th>신고 ID</th><th>신고자</th><th>사유</th><th>대상 ID</th></tr>
+    <tr><th>신고 ID</th><th>신고자</th><th>사유</th><th>신고대상</th></tr>
     </thead>
     <tbody></tbody>
   </table>
@@ -197,10 +197,10 @@
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
-              <td>${report.id}</td>
+              <td>${report.reportPk}</td>
               <td>${report.reporter.nickname}</td>
-              <td>${report.reason}</td>
-              <td>${targetId}</td>
+              <td>${report.reportReason}</td>
+              <td>${report.reportee.nickname}</td>
           `;
           tbody.appendChild(tr);
       });
