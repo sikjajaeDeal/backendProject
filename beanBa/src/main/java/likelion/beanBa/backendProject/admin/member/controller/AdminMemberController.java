@@ -21,8 +21,8 @@ public class AdminMemberController {
     /**사용자 전체 조회**/
     @GetMapping("/member")
     public ResponseEntity<PageResponse<AdminMemberDTO>> getAllMembers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
             ) {
         System.out.println("🔥 Controller 도착함");
         PageResponse<AdminMemberDTO> response = adminService.getAllMembers(page, size);
@@ -37,9 +37,9 @@ public class AdminMemberController {
 
     @GetMapping("/member/search")
     public ResponseEntity<PageResponse<AdminMemberDTO>> memberSearch(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "memberId") String category,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value= "category", defaultValue = "memberId") String category,
             @RequestParam String keyword
     ){
         PageResponse<AdminMemberDTO> response;

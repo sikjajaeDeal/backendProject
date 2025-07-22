@@ -28,8 +28,8 @@ public class AdminCategoryController {
     /**카테고리 조회**/
     @GetMapping
     public ResponseEntity<PageResponse<CategoryResponse>> getAllCategory(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10")int size
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10")int size
     ){
         System.out.println("🔥 Controller 도착함");
         PageResponse<CategoryResponse> response = adminCategoryService.getAllCategory(page, size);

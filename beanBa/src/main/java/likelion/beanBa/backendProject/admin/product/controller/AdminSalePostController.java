@@ -29,9 +29,9 @@ public class AdminSalePostController {
 
     @GetMapping
     public ResponseEntity<PageResponse<AdminSalePostSummaryResponse>> getAllPostsAdmin(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "false") boolean includeDeleted
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "includeDeleted", defaultValue = "false") boolean includeDeleted
     ) {
         System.out.println("product controller start");
         PageResponse<AdminSalePostSummaryResponse> posts = adminSalePostService.getAllPostsAdmin(page, size, includeDeleted);
@@ -49,10 +49,10 @@ public class AdminSalePostController {
 
     @PutMapping("/{postPk}")
     public ResponseEntity<?> updateSalePostAdmin(
-            @PathVariable Long postPk,
-            @RequestPart("salePostRequest") SalePostRequest request,
+            @PathVariable (value = "postPk") Long postPk,
+            @RequestPart(value = "salePostRequest") SalePostRequest request,
             @RequestPart(value = "salePostImages", required = false) MultipartFile[] salePostImages,
-            @RequestParam("deleteYn") Yn deleteYn
+            @RequestParam(value = "deleteYn") Yn deleteYn
             ) {
         try {
             System.out.println("update salePostAdmin controller  start");
@@ -108,7 +108,7 @@ public class AdminSalePostController {
 
     // 삭제 (soft delete, DELETE)
     @DeleteMapping("/{postPk}")
-    public ResponseEntity<?> deleteSalePostAdmin(@PathVariable Long postPk) {
+    public ResponseEntity<?> deleteSalePostAdmin(@PathVariable(value = "postPk") Long postPk) {
         try {
             adminSalePostService.deleteSalePostAdmin(postPk);
             return ResponseEntity.ok().build();
