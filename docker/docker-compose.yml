@@ -48,7 +48,7 @@ services:
     env_file:
       - ../backendProject/beanBa/.env
     volumes:
-      - ../backendProject/beanBa/build/libs/app.jar:/app.jar  # 실제 JAR 위치 연결
+      - ./app.jar:/app.jar    # 실제 JAR 위치 연결
     networks:
       - prod_server
     depends_on:
