@@ -63,6 +63,7 @@ public class SecurityConfig {
                 "/api/sale-post/detail/**",
                 "/api/sale-post/top-view/**"
             ).permitAll()
+            .requestMatchers("/api/health/**").permitAll() //배포 헬스체크
             .requestMatchers(
                     "api/chatting/**",
                     "/*.html",
