@@ -85,6 +85,8 @@ public class SecurityConfig {
                     ).permitAll()//0717 김송이 추가
             .anyRequest().authenticated()
         )
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
         .oauth2Login(oauth2 -> oauth2
             .userInfoEndpoint(userInfo -> userInfo
                 .userService(customOAuth2UserService))
