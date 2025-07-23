@@ -1,13 +1,21 @@
 package likelion.beanBa.backendProject.product.elasticsearch.controller;
 
 
+import static likelion.beanBa.backendProject.global.util.AuthUtils.getAuthenticatedMember;
+
 import java.util.List;
+import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
+import likelion.beanBa.backendProject.member.security.service.CustomUserDetails;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.ElasticInsertRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SalePostEsDocument;
 import likelion.beanBa.backendProject.product.elasticsearch.dto.SearchRequestDTO;
 import likelion.beanBa.backendProject.product.elasticsearch.repository.SalePostEsRepository;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsService;
 import likelion.beanBa.backendProject.product.elasticsearch.service.SalePostEsServiceImpl;
+import likelion.beanBa.backendProject.product.entity.SalePost;
+import likelion.beanBa.backendProject.product.repository.CategoryRepository;
+import likelion.beanBa.backendProject.product.repository.SalePostRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
@@ -26,6 +34,10 @@ import java.time.format.DateTimeFormatter;
 @RestController
 @RequestMapping("/api/test-sale-post")
 public class TestSalePostEsController {
+
+    private final CategoryRepository categoryRepository;
+    private final SalePostRepository salePostRepository;
+    private final SalePostEsService salePostEsServiceImpl;
 
     private final SalePostEsService salePostEsService;
     private final SalePostEsRepository salePostEsRepository;
@@ -49,23 +61,34 @@ public class TestSalePostEsController {
 //    }
 
     //엘라스틱서치에 SalePostEsDocument를 저장하는 API
-    @PostMapping("/elasticsearch/insert")
-    public ResponseEntity<?> insertSalePostEsDocument(
-        @RequestBody List<ElasticInsertRequestDTO> requestDtoList) {
-        List<SalePostEsDocument> salePostEsDocumentList = requestDtoList.stream()
-                .map(requestDTO -> SalePostEsDocument.builder()
-                    .postPk(requestDTO.getPostPk())
-                    .sellerId(requestDTO.getSellerId())
-                    .buyerId(requestDTO.getBuyerId())
-                    .title(requestDTO.getTitle())
-                    .content(requestDTO.getContent())
-                    .hopePrice(requestDTO.getHopePrice())
-                    .categoryPk(requestDTO.getCategoryPk())
-                    .deleteYn(requestDTO.getDeleteYn())
-                    .geoLocation(new GeoPoint(requestDTO.getLatitude(), requestDTO.getLongitude()))
-                    .build()).toList();
-        salePostEsRepository.saveAll(salePostEsDocumentList);
-        return ResponseEntity.ok("SalePostEsDocuments inserted successfully");
+    @PostMapping
+    public ResponseEntity<?> insertSalePostMock(
+        @RequestBody List<ElasticInsertRequestDTO> elasticInsertRequestDTOList,
+        @CurrentUser CustomUserDetails userDetails) {
+
+        try {
+            Member member = getAuthenticatedMember(userDetails);
+
+            for (ElasticInsertRequestDTO dto : elasticInsertRequestDTOList) {
+                SalePost salePost = SalePost.create(
+                    member,
+                    categoryRepository.findById(dto.getCategoryPk()).orElse(null),
+                    dto.getTitle(),
+                    dto.getContent(),
+                    dto.getHopePrice(),
+                    dto.getLatitude(),
+                    dto.getLongitude()
+                );
+
+                salePostRepository.save(salePost);
+                salePostEsService.save(salePost);
+            }
+            return ResponseEntity.ok("엘라스틱서치에 SalePostEsDocument 저장 완료");
+        } catch (Exception e) {
+            System.out.println("저장중 에러 발생 : "+ e.getMessage());
+            return ResponseEntity.status(500).body("엘라스틱서치에 SalePostEsDocument 저장 실패: " + e.getMessage());
+        }
+
     }
 
 }
