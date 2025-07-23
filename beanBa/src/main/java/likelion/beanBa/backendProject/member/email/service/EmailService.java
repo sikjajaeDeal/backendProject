@@ -38,7 +38,7 @@ public class EmailService {
             case "signup" -> {
                 message.setTo(email);
                 message.setSubject("콩바구니 회원가입 이메일 인증");
-                String verifyUrl = "https://localhost:8081/signup/verify?email=" + email + "&token=" + token;
+                String verifyUrl = "https://beanba.store/signup/verify?email=" + email + "&token=" + token;
                 message.setText("콩바구니 회원가입을 위해 아래 링크를 클릭해주세요:\n" + verifyUrl);
             }
             case "findId" -> {
@@ -51,7 +51,7 @@ public class EmailService {
             case "findPassword" -> {
                 message.setTo(email);
                 message.setSubject("콩바구니 비밀번호 변경");
-                String changePwdUrl = "https://localhost:8081/changePwd?memberId=" + memberId + "&token=" + token;
+                String changePwdUrl = "https://beanba.store/changePwd?memberId=" + memberId + "&token=" + token;
                 message.setText("콩바구니 회원가입을 위해 아래 링크를 클릭해주세요:\n" + changePwdUrl);
             }
             default -> throw new IllegalArgumentException("알 수 없는 purpose 입니다.");
