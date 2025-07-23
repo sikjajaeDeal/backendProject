@@ -201,6 +201,26 @@ public class ChattingController {
     }
 
     /*
+     * 모든 채팅룸 중 안 읽은 메시지 있는 지 확인(로그인 후 호출 됨)
+     * */
+    @GetMapping("/checkReadYn")
+    @ResponseBody
+    public ResponseEntity<?> checkReadYn(@CurrentUser CustomUserDetails userDetails) {
+        Long memberPk = userDetails.getMember().getMemberPk(); // 현 로그인 한 사용자 member pk
+
+        // jwt에서 가져온 로그인 정보가 옳지 않은 경우
+        if (memberPk == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("로그인을 다시 확인해 주시기 바랍니다.");
+        }
+
+        Map<String, Object> checkMap = chattingService.checkReadYn(memberPk);
+
+        return ResponseEntity.ok(checkMap);
+    }
+
+
+    /*
     * (방이 없을 시)동적으로 방 생성 및 채팅
     */
     @MessageMapping("/chatting/sendMessage")
