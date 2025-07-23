@@ -19,7 +19,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/api/ws-chat") // '/ws-chat' path를 통해 http 요청하여 웹소켓 연결
                 .setHandshakeHandler(new CustomHandshakeHandler())
-                .setAllowedOriginPatterns("*");
+//                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns("http://localhost:8081","https://beanba.store"); // 해당 도메인의 요청만 허락
     }
 
     /*
