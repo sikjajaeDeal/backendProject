@@ -38,4 +38,6 @@ public class ChattingRoomListResponse {
     // 현재 로그인 한 내 계정 pk
     private Long memberPk;
 
+    // 상품 제목
+    private String title;
 }
