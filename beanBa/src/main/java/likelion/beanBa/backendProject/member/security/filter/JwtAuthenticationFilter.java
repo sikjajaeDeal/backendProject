@@ -31,8 +31,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = extractToken(request);
         String path = request.getRequestURI();
+
         // ✅ 인증 없이 접근 가능한 경로들 //0717 임시 추가
-        if (path.startsWith("/admin-test.html") || path.startsWith("/admin/members")) {
+        if (path.startsWith("/admin-test.html")
+                || path.startsWith("/admin/members")
+                || path.startsWith("/oauth2/authorization/")
+                || path.startsWith("/login/oauth2/")
+                || path.startsWith("/oauth2/callback")) {
             filterChain.doFilter(request, response);
             return;
         }
