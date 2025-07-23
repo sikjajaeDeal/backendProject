@@ -31,7 +31,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -227,8 +229,9 @@ public class ChattingController {
         chattingRequest.setFrom(nickName);
         chattingRequest.setMemberPkFrom(memberPk);
 
-        LocalDateTime nowTime = LocalDateTime.now();
-        chattingRequest.setMessageAt(nowTime); // 전송시간 세팅
+        ZoneId seoulZone = ZoneId.of("Asia/Seoul");
+        LocalDateTime nowTime = LocalDateTime.ofInstant(Instant.now(), seoulZone);
+        chattingRequest.setMessageAt(nowTime); // 전송시간 세팅(서울 기준)
 
         // 일반 메시지
         channel = "room."+chattingRequest.getRoomPk();
