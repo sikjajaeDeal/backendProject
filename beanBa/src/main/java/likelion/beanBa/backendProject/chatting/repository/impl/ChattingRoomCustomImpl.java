@@ -45,7 +45,7 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                 "      ORDER BY ranked.message_at DESC) chat_list " +
                 "      LEFT OUTER JOIN member m " +
                 "      ON chat_list.chat_with = m.member_pk" +
-                "      ORDER BY chat_list.chat_room_pk DESC ";
+                "      ORDER BY chat_list.message_at DESC ";
 
         List<Object[]> resultList = entityManager.createNativeQuery(sql)
                 .setParameter("memberPk", memberPk)
@@ -88,7 +88,7 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                 "      ORDER BY ranked.message_at DESC) chat_list " +
                 "      LEFT OUTER JOIN member m " +
                 "      ON chat_list.chat_with = m.member_pk" +
-                "      ORDER BY chat_list.chat_room_pk DESC ";
+                "      ORDER BY chat_list.message_at DESC ";
 
         List<Object[]> resultList = entityManager.createNativeQuery(sql)
                 .setParameter("postPk", postPk)
@@ -134,7 +134,7 @@ public class ChattingRoomCustomImpl implements ChattingRoomCustom {
                 "      LEFT OUTER JOIN member m " +
                 "      ON chat_list.chat_with = m.member_pk "+
                 "   WHERE chat_list.read_yn = 'N' " +
-                "      ORDER BY chat_list.chat_room_pk DESC ";
+                "      ORDER BY chat_list.message_at DESC ";
 
         List<Object[]> resultList = entityManager.createNativeQuery(sql)
                 .setParameter("memberPk", memberPk)
