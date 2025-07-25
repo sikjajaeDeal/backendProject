@@ -32,6 +32,12 @@ public class ReportService {
         Member reportee = memberRepository.findByMemberId(request.getReporteeId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다."));
 
+        if(reporter.getMemberPk().equals(post.getSellerPk().getMemberPk())) {
+            request.setReportKind(ReportKind.BUYER);
+        } else {
+            request.setReportKind(ReportKind.SELLER);
+        }
+
         // report 검증
         if(reportRepository.existsByReporterAndReporteeAndSalePost(reporter, reportee, post)) {
             throw new IllegalArgumentException("이미 존재하는 report 입니다.");
@@ -42,7 +48,7 @@ public class ReportService {
         reportRepository.save(report);
 
         // 후처리
-        ReportKind kind = ReportKind.of(request.getReportKind());
+        ReportKind kind = request.getReportKind();
         switch (kind) {
             case BUYER -> blindMember(reportee);
             case SELLER -> blindPost(post, reportee);
