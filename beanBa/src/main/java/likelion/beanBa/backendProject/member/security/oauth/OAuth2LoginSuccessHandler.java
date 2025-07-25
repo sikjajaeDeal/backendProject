@@ -1,18 +1,14 @@
 package likelion.beanBa.backendProject.member.security.oauth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import likelion.beanBa.backendProject.member.Entity.Member;
 import likelion.beanBa.backendProject.member.auth.Entity.Auth;
-import likelion.beanBa.backendProject.member.auth.dto.LoginResponse;
 import likelion.beanBa.backendProject.member.auth.repository.AuthRepository;
-import likelion.beanBa.backendProject.member.dto.MemberResponse;
 import likelion.beanBa.backendProject.member.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
@@ -26,7 +22,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthRepository authRepository;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -45,7 +40,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         refreshCookie.setMaxAge(7*24*60*60);
         response.addCookie(refreshCookie);
 
-        authRepository.findByMemberAndRefreshTokenNotAndDeleteYn(member, "logout", "N")
+        authRepository.findByMemberAndDeleteYn(member, "N")
                 .ifPresentOrElse(auth -> auth.updateToken(refreshToken),
                         () -> authRepository.save(new Auth(member,refreshToken)));
 
