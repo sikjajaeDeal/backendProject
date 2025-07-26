@@ -13,7 +13,7 @@ import lombok.*;
 @Builder
 public class ReportRequest {
     private Long postPk;
-    private String reporteeId;
+    private Long reporteePk;
     private String reportReason;
     private ReportKind reportKind;
 

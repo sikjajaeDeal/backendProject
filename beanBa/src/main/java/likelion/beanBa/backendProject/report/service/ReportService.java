@@ -29,7 +29,7 @@ public class ReportService {
         // 조회 시 예외 처리
         SalePost post = salePostRepository.findById(request.getPostPk())
                 .orElseThrow(() -> new IllegalArgumentException("해당 글이 없습니다."));
-        Member reportee = memberRepository.findByMemberId(request.getReporteeId())
+        Member reportee = memberRepository.findByMemberPk(request.getReporteePk())
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다."));
 
         if(reporter.getMemberPk().equals(post.getSellerPk().getMemberPk())) {

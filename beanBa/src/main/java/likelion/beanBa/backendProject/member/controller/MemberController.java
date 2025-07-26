@@ -3,6 +3,7 @@ package likelion.beanBa.backendProject.member.controller;
 import likelion.beanBa.backendProject.member.dto.MemberRequest;
 import likelion.beanBa.backendProject.member.dto.MemberResponse;
 import likelion.beanBa.backendProject.member.Entity.Member;
+import likelion.beanBa.backendProject.member.email.service.EmailAuthService;
 import likelion.beanBa.backendProject.member.email.service.EmailService;
 import likelion.beanBa.backendProject.member.repository.MemberRepository;
 import likelion.beanBa.backendProject.member.security.annotation.CurrentUser;
@@ -20,6 +21,7 @@ public class MemberController {
     private final MemberService memberService;
     private final EmailService emailService;
     private final MemberRepository memberRepository;
+    private final EmailAuthService emailAuthService;
 
     @GetMapping("/me")
     public ResponseEntity<MemberResponse> getMyInfo(
@@ -54,6 +56,20 @@ public class MemberController {
 
         emailService.sendVerificationCode(email, memberId,"findPassword");
         return ResponseEntity.ok("가입시 이메일로 아이디 발송.");
+    }
+
+    @GetMapping("/findPassword/verify")
+    public ResponseEntity<String> emailVerify(
+            @RequestParam String email,
+            @RequestParam String memberId,
+            @RequestParam String code) {
+        boolean verified = emailService.verifyCode(email, memberId, "findPassword", code);
+        if(verified) {
+            emailAuthService.markEmailAsVerified(email);
+            return ResponseEntity.ok("이메일 인증 성공");
+        } else {
+            return ResponseEntity.badRequest().body("이메일 인증 실패");
+        }
     }
 
     @PostMapping("/changePwd")
