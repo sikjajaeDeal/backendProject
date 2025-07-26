@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+
+  beanba-server-green:
+    build:
+      context: ./server-docker
+      dockerfile: Dockerfile
+    container_name: beanba-green
+    ports:
+      - "8084:8080"
+    env_file:
+      - ../backendProject/beanBa/.env
+    volumes:
+      - ./app.jar:/app.jar
+    networks:
+      - prod_server
+
+networks:
+  prod_server:
+    external: true
