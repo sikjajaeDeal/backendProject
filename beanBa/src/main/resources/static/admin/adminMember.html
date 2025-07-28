@@ -234,7 +234,7 @@ row.appendChild(statusTd);
         if (!sel.length) { alert("삭제할 회원을 선택해주세요."); return; }
         if (!confirm("선택한 회원을 정말 삭제하시겠습니까?")) return;
         await fetch("/api/admin/delete", {
-            method:'POST',
+            method:'DELETE',
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify(sel)
         });
@@ -257,7 +257,7 @@ row.appendChild(statusTd);
         if (!list.length) { alert("수정된 항목이 없습니다."); return; }
         if (!confirm("수정 사항을 저장하시겠습니까?")) return;
         await fetch("/api/admin/update", {
-            method:'POST',
+            method:'PUT',
             headers:{'Content-Type':'application/json'},
             body: JSON.stringify(list)
         });
