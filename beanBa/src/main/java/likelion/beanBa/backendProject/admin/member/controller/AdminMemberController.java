@@ -61,7 +61,7 @@ public class AdminMemberController {
 
     /** 다중 선택 삭제 **/
 
-    @PostMapping("/delete")
+    @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteMembersAdmin(@RequestBody List<Long> memberPkList){
 
         System.out.println("🔥 deleteMembersAdmin 도착함");
@@ -75,7 +75,7 @@ public class AdminMemberController {
 
     /** 멤버 다중 수정 **/
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public ResponseEntity<Void> updateMembersAdmin(@RequestBody List<AdminMemberDTO> adminMemberDTO){
         System.out.println("🔥 updateMembersAdmin 도착함");
         adminService.updateMembersAdmin(adminMemberDTO);
