@@ -42,7 +42,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     public PageResponse<AdminMemberDTO>memberSearchId(String memberId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Member> memberPage = memberRepository.findByMemberId(memberId,pageable);
+        Page<Member> memberPage = memberRepository.findByMemberIdContaining(memberId,pageable);
 
         Page<AdminMemberDTO> responsePage = memberPage.map(AdminMemberDTO::from);
 
@@ -57,7 +57,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     public PageResponse<AdminMemberDTO>memberSearchNickName(String nickName, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Member> memberPage = memberRepository.findByNickname(nickName,pageable);
+        Page<Member> memberPage = memberRepository.findByNicknameContaining(nickName,pageable);
 
         Page<AdminMemberDTO> responsePage = memberPage.map(AdminMemberDTO::from);
 
@@ -69,7 +69,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
     public PageResponse<AdminMemberDTO>memberSearchEmail(String email, int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Member> memberPage = memberRepository.findByEmail(email,pageable);
+        Page<Member> memberPage = memberRepository.findByEmailContaining(email,pageable);
 
         Page<AdminMemberDTO> responsePage = memberPage.map(AdminMemberDTO::from);
 

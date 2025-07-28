@@ -13,7 +13,7 @@ on:
 
 jobs:
   build:
-    name: 🧪Build & Test
+    name: 🧪 Build & Test
     runs-on: ubuntu-latest
 
     steps:
@@ -96,6 +96,9 @@ jobs:
       - name: 🔄 Rename jar file to app.jar
         run: mv beanBa/build/libs/backendProject-0.0.1-SNAPSHOT.jar beanBa/build/libs/app.jar
 
+      - name: 📦 Move app.jar to docker folder
+        run: cp beanBa/build/libs/app.jar docker/app.jar
+
       - name: 📄 Write .env file safely
         run: |
           {
@@ -135,6 +138,13 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 📂 Send elastic-docker & server-docker (1-time setup)
+        run: |
+          scp -r -i key.pem \
+            docker/elastic-docker \
+            docker/server-docker \
+            ubuntu@${{ secrets.EC2_HOST }}:/home/ubuntu/BeanBa/docker/
 
       - name: 🌐 Deploy to EC2 via SCP
         run: |

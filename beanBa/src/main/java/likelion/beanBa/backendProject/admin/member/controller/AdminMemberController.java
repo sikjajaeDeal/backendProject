@@ -40,7 +40,7 @@ public class AdminMemberController {
             @RequestParam(value = "page", defaultValue = "0") int page,
             @RequestParam(value = "size", defaultValue = "10") int size,
             @RequestParam(value= "category", defaultValue = "memberId") String category,
-            @RequestParam String keyword
+            @RequestParam(value="keyword") String keyword
     ){
         PageResponse<AdminMemberDTO> response;
         if(category.equals("email")){

@@ -13,13 +13,16 @@ import likelion.beanBa.backendProject.member.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 @RequiredArgsConstructor
-public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
+public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthRepository authRepository;
@@ -46,10 +49,9 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .ifPresentOrElse(auth -> auth.updateToken(refreshToken),
                         () -> authRepository.save(new Auth(member,refreshToken)));
 
-        LoginResponse loginResponse = new LoginResponse(accessToken, MemberResponse.from(member));
+        String redirectUrl = "https://beanba.store:8081/oauth2/callback"
+                +"?accessToken="+ URLEncoder.encode(accessToken, StandardCharsets.UTF_8);
 
-        response.setContentType("application/json;charset=UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write(objectMapper.writeValueAsString(loginResponse));
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
     }
 }
