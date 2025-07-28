@@ -18,4 +18,9 @@ public interface ChattingRoomCustom {
      * 특정 상품에 대한 채팅룸 리스트 가져오기 in 상품상세화면
      */
     List<ChattingRoomListResponse> getChattingRoomListByPostPk(Long postPk, Long memberPk);
+
+    /*
+     * 모든 채팅룸 중 안 읽은 메시지가 있는 채팅룸 리스트 가져오기(로그인 후 호출 됨)
+     */
+    List<ChattingRoomListResponse> getUnreadChattingRoomList(Long memberPk);
 }

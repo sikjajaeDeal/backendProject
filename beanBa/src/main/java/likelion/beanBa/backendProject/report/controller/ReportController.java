@@ -21,7 +21,7 @@ public class ReportController {
 
     private final ReportService reportService;
 
-    @PostMapping("/summit")
+    @PostMapping("/submit")
     public ResponseEntity<String> reportMember(
             @CurrentUser CustomUserDetails userDetails,
             @RequestBody ReportRequest request) {

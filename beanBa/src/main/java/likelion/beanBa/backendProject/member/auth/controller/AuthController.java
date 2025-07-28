@@ -59,8 +59,8 @@ public class AuthController {
     @GetMapping("/signup/verify")
     public ResponseEntity<String> emailVerify(
             @RequestParam String email,
-            @RequestParam String token) {
-        boolean verified = emailService.verifyCode(email, token);
+            @RequestParam String code) {
+        boolean verified = emailService.verifyCode(email, null, "signup", code);
         if(verified) {
             emailAuthService.markEmailAsVerified(email);
             return ResponseEntity.ok("이메일 인증 성공");
