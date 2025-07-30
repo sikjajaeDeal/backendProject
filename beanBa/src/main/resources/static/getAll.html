@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전체 게시글 조회</title>
+    <style>
+        .post-container {
+            border: 1px solid #ccc;
+            padding: 16px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+<h2>전체 게시글 목록</h2>
+<div id="posts"></div>
+
+<script>
+    async function fetchAllPosts() {
+        try {
+            const res = await fetch("http://localhost:8080/api/test-sale-post/all");
+            if (!res.ok) throw new Error("조회 실패");
+
+            const posts = await res.json();
+            const container = document.getElementById("posts");
+            container.innerHTML = ""; // 초기화
+
+            posts.forEach(post => {
+                const postDiv = document.createElement("div");
+                postDiv.className = "post-container";
+
+                postDiv.innerHTML = `
+                        <h3>${post.title}</h3>
+                        <p><strong>작성자:</strong> ${post.sellerNickname}</p>
+                        <p><strong>카테고리:</strong> ${post.categoryName}</p>
+                        <p><strong>가격:</strong> ${post.hopePrice.toLocaleString()}원</p>
+                        <p><strong>조회수:</strong> ${post.viewCount} | <strong>좋아요:</strong> ${post.likeCount}</p>
+                        <p><strong>찜 여부:</strong> ${post.salePostLiked ? '❤️' : '🤍'}</p>
+                        ${post.thumbnailUrl ? `<img src="${post.thumbnailUrl}" class="thumbnail">` : '<p>썸네일 없음</p>'}
+                    `;
+
+                container.appendChild(postDiv);
+            });
+
+        } catch (err) {
+            alert("❌ 게시글 조회 실패: " + err.message);
+        }
+    }
+
+    // 페이지 로드 시 전체 조회 실행
+    window.onload = fetchAllPosts;
+</script>
+</body>
+</html>

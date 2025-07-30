@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Admin Member List</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td { border: 1px solid black; }
+        th, td { padding: 8px; text-align: left; }
+        input[disabled], select[disabled] { background-color: #f0f0f0; }
+        th:first-child, td:first-child { text-align: center; width: 30px; }
+        select, input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+<h1>Admin Member List</h1>
+<button onclick="goHome()">🏠 홈으로</button>
+<div>
+    <label>Category:</label>
+    <select id="category">
+        <option value="memberId">Member ID</option>
+        <option value="email">Email</option>
+        <option value="nickName">Nickname</option>
+    </select>
+    <label>Keyword:</label><input type="text" id="keyword"/>
+    <label>Page:</label><input type="number" id="page" value="0" min="0"/>
+    <label>Size:</label><input type="number" id="size" value="10" min="1"/>
+    <button onclick="searchMembers()">🔍 Search</button>
+    <button onclick="loadMembers()">📋 Load All</button>
+    <button onclick="deleteSelected()">🗑️ Delete Selected</button>
+    <button onclick="updateSelected()">💾 Save Changes</button>
+</div>
+
+<h2>Member List</h2>
+<div id="totalCount" style="margin-bottom: 10px; font-weight: bold;"></div>
+<table id="memberTable">
+    <thead>
+    <tr>
+        <th><input type="checkbox" onclick="toggleAll(this)"></th>
+        <th>No</th>
+        <th>Member PK</th>
+        <th>Member ID</th>
+        <th>Email</th>
+        <th>Nickname</th>
+        <th>Provider</th>
+        <th>Role</th>
+        <th>UseYn</th>
+        <th>DeleteYn</th>
+        <th>Latitude</th>
+        <th>Longitude</th>
+        <th>Status</th>
+    </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<div id="pagination" style="margin-top: 10px; text-align: center;"></div>
+
+
+<script>
+    // 셀렉트박스 옵션 정의
+    const PROVIDERS = [
+        {value: 'R', label: 'Local'},
+        {value: 'G', label: 'Google'},
+        {value: 'K', label: 'Kakao'}
+    ];
+    const ROLES = [
+        {value: 'member', label: 'Member'},
+        {value: 'admin', label: 'Admin'}
+    ];
+    const YN_OPTIONS = [
+        {value: 'Y', label: 'Y'},
+        {value: 'N', label: 'N'},
+        {value: 'B', label: 'B'}
+    ];
+
+    let currentMembers = [];
+
+    function toggleAll(src) {
+        document.querySelectorAll('input[name="selectMember"]').forEach(cb => {
+            if (!cb.disabled) cb.checked = src.checked;
+        });
+    }
+
+    function createInput(member, field) {
+        const val = member[field] != null ? member[field] : (field === 'latitude' || field === 'longitude' ? 0 : '');
+        let disabled;
+
+        if (member.deleteYn === 'N') {
+            // deleteYn == N: role, useYn, deleteYn 만 활성화
+            disabled = !['role', 'useYn', 'deleteYn'].includes(field);
+        } else if (member.deleteYn === 'Y' || member.deleteYn === 'B') {
+            // deleteYn == Y: deleteYn 만 활성화
+            disabled = field !== 'deleteYn';
+        } else {
+            disabled = false; // 기본은 활성화
+        }
+
+        if (['provider', 'role', 'useYn', 'deleteYn'].includes(field)) {
+            // select box 생성
+            const select = document.createElement('select');
+            select.dataset.pk = member.memberPk;
+            select.dataset.field = field;
+            select.disabled = disabled;
+
+            let options = [];
+            if (field === 'provider') options = PROVIDERS;
+            else if (field === 'role') options = ROLES;
+            else options = YN_OPTIONS;
+
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = opt.value;
+                option.textContent = opt.label;
+                if (opt.value === val) option.selected = true;
+                select.appendChild(option);
+            });
+            return select;
+        } else {
+            // 일반 input 생성
+            const input = document.createElement('input');
+            input.type = (field === 'latitude' || field === 'longitude') ? 'number' : 'text';
+            input.value = val;
+            input.dataset.pk = member.memberPk;
+            input.dataset.field = field;
+            input.disabled = disabled;
+            if (input.type === 'number') input.step = 'any';
+            return input;
+        }
+    }
+
+    function renderTable(data) {
+        currentMembers = data.content;
+        const tbody = document.querySelector("#memberTable tbody");
+        tbody.innerHTML = "";
+
+        // 총 회원 수 표시
+        const totalCountDiv = document.getElementById("totalCount");
+        if (data.totalElements !== undefined) {
+            totalCountDiv.textContent = `총 회원 수: ${data.totalElements}명`;
+        } else {
+            totalCountDiv.textContent = "총 회원 수: 알 수 없음";
+        }
+
+        // 페이지 번호와 사이즈 가져와서 No 계산
+        const page = parseInt(document.getElementById("page").value) || 0;
+        const size = parseInt(document.getElementById("size").value) || 10;
+
+        data.content.forEach((member, index) => {
+            const isDeleted = member.deleteYn === 'Y';
+            const row = document.createElement("tr");
+
+            // 체크박스 셀
+            const checkboxTd = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.name = 'selectMember';
+            checkbox.value = member.memberPk;
+            if(isDeleted) checkbox.disabled = true;
+            checkboxTd.appendChild(checkbox);
+            row.appendChild(checkboxTd);
+
+            // No 셀 (페이지 * size + index + 1)
+            const noTd = document.createElement('td');
+            noTd.textContent = page * size + index + 1;
+            noTd.style.textAlign = 'center';
+            row.appendChild(noTd);
+
+            // memberPk, memberId 셀
+            const pkTd = document.createElement('td');
+            pkTd.textContent = member.memberPk;
+            row.appendChild(pkTd);
+
+            const idTd = document.createElement('td');
+            idTd.textContent = member.memberId;
+            row.appendChild(idTd);
+
+            // 나머지 필드들 셀 생성
+            const fields = ['email','nickname','provider','role','useYn','deleteYn','latitude','longitude'];
+            fields.forEach(field => {
+                const td = document.createElement('td');
+                const inputOrSelect = createInput(member, field);
+                td.appendChild(inputOrSelect);
+                row.appendChild(td);
+            });
+
+            const statusTd = document.createElement('td');
+let statusText = '';
+
+if (member.deleteYn === 'Y') {
+    statusText = '삭제회원';
+} else if (member.deleteYn === 'B') {
+    statusText = '정지회원';
+} else if (member.deleteYn === 'N' && member.useYn === 'N') {
+    statusText = '휴먼계정';
+} else if (member.deleteYn === 'N' && member.useYn === 'Y') {
+    statusText = '일반회원';
+} else {
+    statusText = '알 수 없음';
+}
+statusTd.textContent = statusText;
+row.appendChild(statusTd);
+
+            tbody.appendChild(row);
+        });
+
+        renderPagination(data);
+
+    }
+
+    async function loadMembers() {
+        const p = document.getElementById("page").value, s = document.getElementById("size").value;
+        const res = await fetch(`/api/admin/member?page=${p}&size=${s}`);
+        renderTable(await res.json());
+    }
+
+    async function searchMembers() {
+        const p = document.getElementById("page").value, s = document.getElementById("size").value;
+        const c = document.getElementById("category").value, k = document.getElementById("keyword").value.trim();
+        if (!k) { alert("검색어를 입력해주세요."); return; }
+        const res = await fetch(`/api/admin/member/search?page=${p}&size=${s}&category=${c}&keyword=${encodeURIComponent(k)}`);
+        renderTable(await res.json());
+    }
+
+    async function deleteSelected() {
+        const sel = [...document.querySelectorAll('input[name="selectMember"]:checked')]
+            .map(cb => parseInt(cb.value));
+        if (!sel.length) { alert("삭제할 회원을 선택해주세요."); return; }
+        if (!confirm("선택한 회원을 정말 삭제하시겠습니까?")) return;
+        await fetch("/api/admin/delete", {
+            method:'DELETE',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(sel)
+        });
+        alert("삭제 완료");
+        loadMembers();
+    }
+
+    async function updateSelected() {
+        const inputs = document.querySelectorAll('input[data-pk], select[data-pk]');
+        const updates = {};
+        inputs.forEach(inp => {
+            if (inp.disabled) return;
+            const pk = inp.dataset.pk;
+            const f = inp.dataset.field;
+            const v = inp.value;
+            updates[pk] = updates[pk] || {memberPk: parseInt(pk)};
+            updates[pk][f] = v;
+        });
+        const list = Object.values(updates);
+        if (!list.length) { alert("수정된 항목이 없습니다."); return; }
+        if (!confirm("수정 사항을 저장하시겠습니까?")) return;
+        await fetch("/api/admin/update", {
+            method:'PUT',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify(list)
+        });
+        alert("수정 완료");
+        loadMembers();
+    }
+
+    function goHome() {
+        window.location.href = "/admin/adminMain.html";
+    }
+
+
+function renderPagination(data) {
+    const paginationDiv = document.getElementById("pagination");
+    paginationDiv.innerHTML = "";
+
+    const totalPages = data.totalPage;
+    const currentPage = data.page;
+
+    function createButton(text, page, disabled = false, isCurrent = false) {
+        const btn = document.createElement("button");
+        btn.textContent = text;
+        btn.disabled = disabled;
+
+        // 스타일 공통
+        btn.style.border = "1px solid black";
+        btn.style.color = "black";
+
+        if (isCurrent) {
+            // 현재 페이지 번호 스타일: 회색 배경, 검정 테두리, 검은 글씨
+            btn.style.backgroundColor = "lightgray";
+            btn.style.fontWeight = "bold";
+        } else {
+            // 나머지 버튼(화살표 포함): 하얀 배경, 검정 테두리, 검은 글씨
+            btn.style.backgroundColor = "white";
+        }
+
+        btn.onclick = () => {
+            document.getElementById("page").value = page;
+            loadMembers();
+        };
+        paginationDiv.appendChild(btn);
+    }
+
+    // << 맨 처음 페이지로 이동
+    createButton("<<", 0, currentPage === 0);
+
+    // < 이전 페이지로 이동
+    createButton("<", currentPage - 1, currentPage === 0);
+
+    // 페이지 번호 버튼들
+    let startPage = Math.max(0, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 3);
+
+    for (let i = startPage; i < endPage; i++) {
+        createButton(i + 1, i, false, i === currentPage);
+    }
+
+    // > 다음 페이지로 이동
+    createButton(">", currentPage + 1, currentPage >= totalPages - 1);
+
+    // >> 마지막 페이지로 이동
+    createButton(">>", totalPages - 1, currentPage >= totalPages - 1);
+}
+
+
+    window.onload = loadMembers;
+</script>
+</body>
+</html>

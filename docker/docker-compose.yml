@@ -1,0 +1,67 @@
+services:
+
+  elastic:
+    build:
+      context: ./elastic-docker
+      dockerfile: Dockerfile
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+    networks:
+      - prod_server
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elastic:9200
+    networks:
+      - prod_server
+
+#  logstash:
+#    image: docker.elastic.co/logstash/logstash:8.12.0
+#    container_name: logstash
+
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - prod_server 
+    restart: unless-stopped
+
+  # Spring Boot App Server
+  beanba-server:
+    build:
+      context: ./server-docker
+      dockerfile: Dockerfile
+    container_name: beanba-server
+    ports:
+      - "8080:8080"
+    env_file:
+      - ../backendProject/beanBa/.env
+    volumes:
+      - ./app.jar:/app.jar    # 실제 JAR 위치 연결
+    networks:
+      - prod_server
+    depends_on:
+      - redis
+      - elastic
+
+networks:
+  prod_server:
+    external: true
+
+volumes:
+  elasticsearch-data:
+
+
+
+
