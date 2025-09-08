@@ -62,4 +62,5 @@
    - 식자재 이미지 파일 저장소
   
 ### 구조도
-![콩바구니_구조도.png](attachment:dd94a316-be0a-4320-b578-c675a970721a:콩바구니_구조도.png)
+<img width="960" height="513" alt="콩바구니구조_250724" src="https://github.com/user-attachments/assets/1e5b4d1f-6cfa-49ef-97b1-4899d4e4ef24" />
+
