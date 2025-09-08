@@ -61,6 +61,6 @@
 3. **S3**
    - 식자재 이미지 파일 저장소
   
-### 구조도
+### 🗺️ 구조도
 <img width="960" height="513" alt="콩바구니구조_250724" src="https://github.com/user-attachments/assets/1e5b4d1f-6cfa-49ef-97b1-4899d4e4ef24" />
 
