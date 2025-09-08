@@ -60,28 +60,3 @@
 
 3. **S3**
    - 식자재 이미지 파일 저장소
-
-### 🗺️ 아키텍처(개요)
-
-```mermaid
-flowchart LR
-    subgraph Internet
-      U[사용자]
-    end
-
-    U -->|HTTPS| N[Nginx (EC2)]
-    N -->|/api| B1[Spring Boot (Blue)]
-    N -->|/api| B2[Spring Boot (Green)]
-    N -->|/ws| B1
-    N -->|/ws| B2
-
-    B1 <---> R[Redis]
-    B2 <---> R
-    B1 <---> ES[(Elasticsearch)]
-    B2 <---> ES
-    ES --- K[Kibana]
-
-    B1 -->|JPA| DB[(RDS MySQL)]
-    B2 -->|JPA| DB
-    B1 --> S3[(S3)]
-    B2 --> S3
