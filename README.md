@@ -43,6 +43,9 @@
 
 콩바구니(beanba) 백엔드는 AWS 클라우드 상에서 다음과 같이 구성됩니다.
 
+### 🗺️ 구조도
+<img width="960" height="513" alt="콩바구니구조_250724" src="https://github.com/user-attachments/assets/1e5b4d1f-6cfa-49ef-97b1-4899d4e4ef24" />
+
 ### 📦 주요 서비스
 1. **EC2 (t3.medium)**
    - Spring Boot 애플리케이션을 호스팅하는 가상 서버
@@ -60,7 +63,4 @@
 
 3. **S3**
    - 식자재 이미지 파일 저장소
-  
-### 🗺️ 구조도
-<img width="960" height="513" alt="콩바구니구조_250724" src="https://github.com/user-attachments/assets/1e5b4d1f-6cfa-49ef-97b1-4899d4e4ef24" />
 
