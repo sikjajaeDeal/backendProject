@@ -2,11 +2,14 @@ package likelion.beanBa.backendProject.global.exception;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,4 +68,50 @@ public class GlobalExceptionHandler {
         error.put("error", e.getMessage());
         return ResponseEntity.badRequest().body(error);
     }
+
+    // ==========================================================
+    // ✅ STOMP(WebSocket) 예외 처리 추가
+    // ✅ 반드시 클라이언트는 'user/queue/errors'를 구독해야 함
+    // ==========================================================
+
+    /** STOMP 전송 중 발생한 예외 처리 (IllegalArgumentException, EntityNotFoundException, IllegalStateException 등) **/
+    @MessageExceptionHandler({
+            IllegalArgumentException.class,
+            EntityNotFoundException.class,
+            IllegalStateException.class
+    })
+    @SendToUser("/queue/errors")
+    public Map<String, Object> handleStompKnownExceptions(Exception e, Principal principal) {
+        /*
+        log.warn("STOMP error (known): user={}, type={}, msg={}",
+                principal != null ? principal.getName() : "anonymous",
+                e.getClass().getSimpleName(),
+                e.getMessage());
+        */
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("type", e.getClass().getSimpleName());
+        payload.put("message", e.getMessage());
+        payload.put("timestamp", System.currentTimeMillis());
+        return payload;
+    }
+
+    /** 그 외 모든 STOMP 예외 (예상치 못한 런타임 오류) **/
+    @MessageExceptionHandler(Exception.class)
+    @SendToUser("/queue/errors")
+    public Map<String, Object> handleStompUnknownExceptions(Exception e, Principal principal) {
+        /*
+        log.error("STOMP error (unknown): user={}, type={}, msg={}",
+                principal != null ? principal.getName() : "anonymous",
+                e.getClass().getSimpleName(),
+                e.getMessage(), e);
+        */
+
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("type", "InternalError");
+        payload.put("message", "메시지 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        payload.put("timestamp", System.currentTimeMillis());
+        return payload;
+    }
+
 }
