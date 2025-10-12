@@ -2,10 +2,7 @@ package likelion.beanBa.backendProject.chatting.entity;
 
 import jakarta.persistence.*;
 import likelion.beanBa.backendProject.member.Entity.Member;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -15,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
 @Table(name = "chat_message")
 public class ChattingMessage {
 
