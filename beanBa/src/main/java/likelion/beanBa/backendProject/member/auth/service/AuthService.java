@@ -1,5 +1,7 @@
 package likelion.beanBa.backendProject.member.auth.service;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import likelion.beanBa.backendProject.member.auth.Entity.Auth;
 import likelion.beanBa.backendProject.member.auth.dto.JwtToken;
 import likelion.beanBa.backendProject.member.auth.dto.LoginRequest;
@@ -25,7 +27,7 @@ public class AuthService {
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthRepository authRepository;
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginResponse login(LoginRequest request, HttpServletResponse response) {
         Member member = memberRepository.findByMemberId(request.getMemberId())
                 .orElseThrow(() -> new IllegalArgumentException("아이디가 존재하지 않습니다."));
 
@@ -42,6 +44,12 @@ public class AuthService {
                         auth -> auth.updateToken(refreshToken),
                         () -> authRepository.save(new Auth(member, refreshToken))
                 );
+
+        Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+        refreshCookie.setHttpOnly(true);
+        refreshCookie.setPath("/");
+        refreshCookie.setMaxAge(7*24*60*60);
+        response.addCookie(refreshCookie);
 
         return new LoginResponse(accessToken, MemberResponse.from(member));
     }
